@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.NativeImage;
 import com.mrcrayfish.catalogue.Constants;
 import com.mrcrayfish.catalogue.client.FabricModData;
 import com.mrcrayfish.catalogue.client.IModData;
+import com.mrcrayfish.catalogue.exception.ModResourceNotFoundException;
 import com.mrcrayfish.catalogue.platform.services.IPlatformHelper;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
@@ -39,7 +40,7 @@ public class FabricPlatformHelper implements IPlatformHelper
     }
 
     @Override
-    public NativeImage loadImageFromModResource(String modId, String resource)
+    public NativeImage loadImageFromModResource(String modId, String resource) throws ModResourceNotFoundException
     {
         return FabricLoader.getInstance()
             .getModContainer(modId)
@@ -51,7 +52,7 @@ public class FabricPlatformHelper implements IPlatformHelper
                     Constants.LOG.error("Failed to load image resource '{}' from mod {}", resource, modId, e);
                     return null;
                 }
-            }).orElse(null);
+            }).orElseThrow(ModResourceNotFoundException::new);
     }
 
     @Override
