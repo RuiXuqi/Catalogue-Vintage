@@ -1,15 +1,11 @@
 package com.mrcrayfish.catalogue.platform;
 
 import com.mojang.blaze3d.platform.NativeImage;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mrcrayfish.catalogue.client.IModData;
 import com.mrcrayfish.catalogue.client.NeoForgeModData;
 import com.mrcrayfish.catalogue.exception.ModResourceNotFoundException;
 import com.mrcrayfish.catalogue.platform.services.IPlatformHelper;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.RenderType;
 import net.neoforged.fml.ModList;
-import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforgespi.language.IModFileInfo;
 
@@ -63,21 +59,9 @@ public class NeoForgePlatformHelper implements IPlatformHelper
     }
 
     @Override
-    public void drawUpdateIcon(GuiGraphics graphics, int x, int y)
-    {
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        graphics.blit(RenderType::guiTextured, NeoForgeModData.VERSION_CHECK_ICONS, x, y, 24, 0, 8, 8, 64, 16);
-    }
-
-    @Override
     public boolean isModLoaded(String modId)
     {
         return ModList.get().isLoaded(modId);
     }
 
-    @Override
-    public boolean isDevelopmentEnvironment()
-    {
-        return !FMLLoader.isProduction();
-    }
 }
