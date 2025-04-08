@@ -2,13 +2,10 @@ package com.mrcrayfish.catalogue.client.screen;
 
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
+import com.mojang.blaze3d.systems.CommandEncoder;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.BufferUploader;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.blaze3d.textures.GpuTexture;
+import com.mojang.blaze3d.vertex.*;
 import com.mrcrayfish.catalogue.Constants;
 import com.mrcrayfish.catalogue.Utils;
 import com.mrcrayfish.catalogue.client.Branding;
@@ -22,26 +19,17 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.AbstractButton;
-import net.minecraft.client.gui.components.AbstractSelectionList;
-import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.gui.components.LogoRenderer;
-import net.minecraft.client.gui.components.ObjectSelectionList;
+import net.minecraft.client.gui.components.*;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratedElementType;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.gui.screens.ConfirmLinkScreen;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.CoreShaders;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.chat.ClickEvent;
-import net.minecraft.network.chat.CommonComponents;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.FormattedCharSequence;
@@ -56,18 +44,12 @@ import org.joml.Matrix4f;
 import org.lwjgl.glfw.GLFW;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -279,8 +261,7 @@ public class CatalogueModListScreen extends Screen implements DropdownMenuHandle
     {
         if(url != null)
         {
-            Style style = Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, url));
-            this.handleComponentClicked(style);
+            ConfirmLinkScreen.confirmLinkNow(this, url, false);
         }
     }
 
@@ -602,8 +583,7 @@ public class CatalogueModListScreen extends Screen implements DropdownMenuHandle
                 IModData.Update update = this.selectedModData.getUpdate();
                 if(update != null && update.url() != null && !update.url().isBlank())
                 {
-                    Style style = Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, update.url()));
-                    this.handleComponentClicked(style);
+                    this.openLink(update.url());
                 }
             }
         }
@@ -672,19 +652,19 @@ public class CatalogueModListScreen extends Screen implements DropdownMenuHandle
         if(this.selectedModData == null)
             return;
 
-        ResourceLocation texture = cachedBackground != null ? cachedBackground.resource() : MISSING_BACKGROUND;
-        RenderSystem.setShader(CoreShaders.POSITION_TEX_COLOR);
+        ResourceLocation textureRef = cachedBackground != null ? cachedBackground.resource() : MISSING_BACKGROUND;
+        GpuTexture texture = Minecraft.getInstance().getTextureManager().getTexture(textureRef).getTexture();
         RenderSystem.setShaderTexture(0, texture);
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.enableBlend();
         Matrix4f matrix = graphics.pose().last().pose();
         BufferBuilder builder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
         builder.addVertex(matrix, x, y, 0).setUv(0, 0).setColor(1.0F, 1.0F, 1.0F, 1.0F);
         builder.addVertex(matrix, x, y + 128, 0).setUv(0, 1).setColor(0.0F, 0.0F, 0.0F, 0.0F);
         builder.addVertex(matrix, x + contentWidth, y + 128, 0).setUv(1, 1).setColor(0.0F, 0.0F, 0.0F, 0.0F);
         builder.addVertex(matrix, x + contentWidth, y, 0).setUv(1, 0).setColor(1.0F, 1.0F, 1.0F, 1.0F);
-        BufferUploader.drawWithShader(builder.buildOrThrow());
-        RenderSystem.disableBlend();
+        try(MeshData data = builder.buildOrThrow())
+        {
+            RenderType.guiTextured(textureRef).draw(data);
+        }
     }
 
     private void drawBanner(GuiGraphics graphics, int contentWidth, int x, int y, int maxWidth, int maxHeight)
@@ -714,10 +694,7 @@ public class CatalogueModListScreen extends Screen implements DropdownMenuHandle
                 y += 8;
             }
 
-            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-            RenderSystem.enableBlend();
             graphics.blit(RenderType::guiTextured, info.resource(), x, y, 0, 0, displayWidth, displayHeight, info.width(), info.height(), info.width(), info.height());
-            RenderSystem.disableBlend();
         }
     }
 
@@ -1061,10 +1038,7 @@ public class CatalogueModListScreen extends Screen implements DropdownMenuHandle
             ImageInfo iconInfo = IMAGE_ICON_CACHE.get(this.data.getModId());
             if(iconInfo != null)
             {
-                RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-                RenderSystem.enableBlend();
                 graphics.blit(RenderType::guiTextured, iconInfo.resource(), left + 4, top + 3, 0, 0, 16, 16, iconInfo.width(), iconInfo.height(), iconInfo.width(), iconInfo.height());
-                RenderSystem.disableBlend();
                 return;
             }
 

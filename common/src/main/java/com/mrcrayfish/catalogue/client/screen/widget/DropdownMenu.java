@@ -193,9 +193,7 @@ public class DropdownMenu extends AbstractWidget
         @Override
         protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float deltaTick)
         {
-            RenderSystem.enableBlend();
             graphics.blitSprite(RenderType::guiTextured, SPRITES.get(this.active, this.isHovered() || this.selected()), this.getX(), this.getY(), this.getWidth(), this.getHeight());
-            RenderSystem.disableBlend();
 
             Font font = Minecraft.getInstance().font;
             int offset = (this.getHeight() - font.lineHeight) / 2 + 1;
