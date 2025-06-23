@@ -7,6 +7,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.narration.NarratedElementType;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
@@ -50,17 +51,17 @@ public class CatalogueIconButton extends Button
     {
         super.renderWidget(graphics, mouseX, mouseY, partialTicks);
         Minecraft minecraft = Minecraft.getInstance();
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, this.alpha);
+        //RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, this.alpha);
         int contentWidth = 10 + minecraft.font.width(this.label) + (!this.label.getString().isEmpty() ? 4 : 0);
         int iconX = this.getX() + (this.width - contentWidth) / 2;
         int iconY = this.getY() + (this.height - 10) / 2;
         float brightness = this.active ? 1.0F : 0.5F;
-        RenderSystem.setShaderColor(brightness, brightness, brightness, this.alpha);
-        graphics.blit(RenderType::guiTextured, TEXTURE, iconX, iconY, this.u, this.v, 10, 10, 64, 64);
-        RenderSystem.setShaderColor(brightness, brightness, brightness, this.alpha);
-        int textColor = this.active ? 16777215 : 10526880;
+        //RenderSystem.setShaderColor(brightness, brightness, brightness, this.alpha);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, iconX, iconY, this.u, this.v, 10, 10, 64, 64);
+        //RenderSystem.setShaderColor(brightness, brightness, brightness, this.alpha);
+        int textColor = (this.active ? 16777215 : 10526880) | 0xFF000000;
         graphics.drawString(minecraft.font, this.label, iconX + 14, iconY + 1, textColor);
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        //RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
     @Override

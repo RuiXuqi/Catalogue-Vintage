@@ -15,6 +15,7 @@ import net.minecraft.client.gui.narration.NarratedElementType;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
@@ -125,9 +126,7 @@ public class DropdownMenu extends AbstractWidget
     @Override
     protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float deltaTick)
     {
-        PoseStack poseStack = graphics.pose();
-        poseStack.pushPose();
-        poseStack.translate(0, 0, 50);
+        graphics.pose().pushMatrix();
         Minecraft minecraft = Minecraft.getInstance();
         Window window = minecraft.getWindow();
         graphics.fill(0, 0, window.getWidth(), window.getHeight(), 0x50000000);
@@ -139,7 +138,7 @@ public class DropdownMenu extends AbstractWidget
         {
             this.subMenu.render(graphics, mouseX, mouseY, deltaTick);
         }
-        poseStack.popPose();
+        graphics.pose().pushMatrix();
     }
 
     @Override
@@ -193,7 +192,7 @@ public class DropdownMenu extends AbstractWidget
         @Override
         protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float deltaTick)
         {
-            graphics.blitSprite(RenderType::guiTextured, SPRITES.get(this.active, this.isHovered() || this.selected()), this.getX(), this.getY(), this.getWidth(), this.getHeight());
+            graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SPRITES.get(this.active, this.isHovered() || this.selected()), this.getX(), this.getY(), this.getWidth(), this.getHeight());
 
             Font font = Minecraft.getInstance().font;
             int offset = (this.getHeight() - font.lineHeight) / 2 + 1;
@@ -241,7 +240,7 @@ public class DropdownMenu extends AbstractWidget
         {
             super.renderWidget(graphics, mouseX, mouseY, deltaTick);
             int offset = (this.getHeight() - 14) / 2;
-            graphics.blit(RenderType::guiTextured, TEXTURE, this.getX() + this.getWidth() - 14 - offset, this.getY() + offset, this.isHoveredOrFocused() ? 14 : 0, this.holder.getValue() ? 14 : 0, 14, 14, 64, 64);
+            graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, this.getX() + this.getWidth() - 14 - offset, this.getY() + offset, this.isHoveredOrFocused() ? 14 : 0, this.holder.getValue() ? 14 : 0, 14, 14, 64, 64);
         }
 
         @Override
@@ -279,17 +278,10 @@ public class DropdownMenu extends AbstractWidget
         @Override
         protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float deltaTick)
         {
-            PoseStack poseStack = graphics.pose();
-            poseStack.pushPose();
-            if(this.selected())
-            {
-                poseStack.translate(0, 0, 51);
-            }
             super.renderWidget(graphics, mouseX, mouseY, deltaTick);
             Font font = Minecraft.getInstance().font;
             int top = this.getY() + (this.getHeight() - font.lineHeight) / 2 + 1;
             graphics.drawString(Minecraft.getInstance().font, ">", this.getX() + this.getWidth() - 10, top, 0xFFFFFFFF);
-            poseStack.popPose();
         }
 
         @Override

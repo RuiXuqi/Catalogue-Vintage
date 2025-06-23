@@ -9,6 +9,8 @@ import com.mrcrayfish.catalogue.platform.services.IPlatformHelper;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.render.state.GuiRenderState;
 
 import java.io.File;
 import java.io.IOException;
@@ -60,4 +62,9 @@ public class FabricPlatformHelper implements IPlatformHelper
         return FabricLoader.getInstance().isModLoaded(modId);
     }
 
+    @Override
+    public GuiRenderState getGuiRenderState(GuiGraphics graphics)
+    {
+        return graphics.guiRenderState;
+    }
 }

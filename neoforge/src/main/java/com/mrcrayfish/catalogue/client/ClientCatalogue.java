@@ -10,7 +10,7 @@ import net.neoforged.fml.loading.FMLPaths;
 /**
  * Author: MrCrayfish
  */
-@EventBusSubscriber(modid = Constants.MOD_ID, value = Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = Constants.MOD_ID, value = Dist.CLIENT)
 public class ClientCatalogue
 {
     @SubscribeEvent

@@ -5,6 +5,8 @@ import com.mrcrayfish.catalogue.client.IModData;
 import com.mrcrayfish.catalogue.client.NeoForgeModData;
 import com.mrcrayfish.catalogue.exception.ModResourceNotFoundException;
 import com.mrcrayfish.catalogue.platform.services.IPlatformHelper;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.render.state.GuiRenderState;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforgespi.language.IModFileInfo;
@@ -62,6 +64,12 @@ public class NeoForgePlatformHelper implements IPlatformHelper
     public boolean isModLoaded(String modId)
     {
         return ModList.get().isLoaded(modId);
+    }
+
+    @Override
+    public GuiRenderState getGuiRenderState(GuiGraphics graphics)
+    {
+        return graphics.guiRenderState;
     }
 
 }

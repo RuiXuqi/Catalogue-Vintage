@@ -2,10 +2,7 @@ package com.mrcrayfish.catalogue.client.screen;
 
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
-import com.mojang.blaze3d.systems.CommandEncoder;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.textures.GpuTexture;
-import com.mojang.blaze3d.vertex.*;
+import com.mojang.blaze3d.textures.GpuTextureView;
 import com.mrcrayfish.catalogue.Constants;
 import com.mrcrayfish.catalogue.Utils;
 import com.mrcrayfish.catalogue.client.Branding;
@@ -23,13 +20,19 @@ import net.minecraft.client.gui.components.*;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratedElementType;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.gui.render.TextureSetup;
+import net.minecraft.client.gui.render.state.BlitRenderState;
+import net.minecraft.client.gui.render.state.GuiRenderState;
 import net.minecraft.client.gui.screens.ConfirmLinkScreen;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.chat.*;
+import net.minecraft.network.chat.CommonComponents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.FormattedCharSequence;
@@ -40,11 +43,10 @@ import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Matrix4f;
+import org.joml.Matrix3x2f;
 import org.lwjgl.glfw.GLFW;
 
 import java.io.IOException;
-import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -107,8 +109,6 @@ public class CatalogueModListScreen extends Screen implements DropdownMenuHandle
     private Button websiteButton;
     private Button issueButton;
     private StringList descriptionList;
-    private int tooltipYOffset;
-    private List<? extends FormattedCharSequence> activeTooltip;
     private @Nullable DropdownMenu menu;
 
     public CatalogueModListScreen(Screen parent)
@@ -195,7 +195,6 @@ public class CatalogueModListScreen extends Screen implements DropdownMenuHandle
         this.issueButton.visible = false;
         this.descriptionList = new StringList(contentWidth + padding * 2, 50, contentLeft - padding, 130);
         this.descriptionList.visible = false;
-        //this.descriptionList.setRenderBackground(false); // TODO what appened
         this.addWidget(this.descriptionList);
 
         DropdownMenu menu = DropdownMenu.builder(this)
@@ -257,6 +256,11 @@ public class CatalogueModListScreen extends Screen implements DropdownMenuHandle
         this.updateSearchFieldSuggestion(this.searchTextField.getValue());
     }
 
+    /**
+     * Creates a confirmation screen to open a link
+     *
+     * @param url the url to open
+     */
     private void openLink(@Nullable String url)
     {
         if(url != null)
@@ -276,8 +280,6 @@ public class CatalogueModListScreen extends Screen implements DropdownMenuHandle
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
     {
-        this.activeTooltip = null;
-
         boolean inMenu = this.menu != null;
         super.render(graphics, inMenu ? -1000 : mouseX, inMenu ? -1000 : mouseY, partialTicks);
 
@@ -285,11 +287,11 @@ public class CatalogueModListScreen extends Screen implements DropdownMenuHandle
         {
             int iconX = this.searchTextField.getX() + this.searchTextField.getWidth() - 15;
             int iconY = this.searchTextField.getY() + (this.searchTextField.getHeight() - 10) / 2;
-            graphics.blit(RenderType::guiTextured, CatalogueIconButton.TEXTURE, iconX, iconY, 20, 10, 10, 10, 64, 64);
+            graphics.blit(RenderPipelines.GUI_TEXTURED, CatalogueIconButton.TEXTURE, iconX, iconY, 20, 10, 10, 10, 64, 64);
 
             if(this.menu == null && ClientHelper.isMouseWithin(iconX, iconY, 10, 10, mouseX, mouseY))
             {
-                this.setActiveTooltip(Component.translatable("catalogue.gui.advanced_search.info"));
+                graphics.setTooltipForNextFrame(Component.translatable("catalogue.gui.advanced_search.info"), mouseX, mouseY);
             }
         }
 
@@ -298,8 +300,7 @@ public class CatalogueModListScreen extends Screen implements DropdownMenuHandle
         ImageInfo bannerInfo = BANNER_CACHE.get(Constants.MOD_ID);
         if(bannerInfo != null)
         {
-            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-            graphics.blit(RenderType::guiTextured, bannerInfo.resource(), 10, 9, 0, 0, 10, 10, bannerInfo.width(), bannerInfo.height(), bannerInfo.width(), bannerInfo.height());
+            graphics.blit(RenderPipelines.GUI_TEXTURED, bannerInfo.resource(), 10, 9, 0, 0, 10, 10, bannerInfo.width(), bannerInfo.height(), bannerInfo.width(), bannerInfo.height());
         }
 
         if(this.menu != null)
@@ -310,26 +311,18 @@ public class CatalogueModListScreen extends Screen implements DropdownMenuHandle
         {
             if(ClientHelper.isMouseWithin(10, 9, 10, 10, mouseX, mouseY))
             {
-                this.setActiveTooltip(Component.translatable("catalogue.gui.info"));
-                this.tooltipYOffset = 10;
+                this.setTooltip(graphics, Component.translatable("catalogue.gui.info"), mouseX, mouseY + 10);
             }
 
             if(this.optionsButton.isMouseOver(mouseX, mouseY))
             {
-                this.setActiveTooltip(Component.translatable("catalogue.gui.options"));
-                this.tooltipYOffset = 10;
+                this.setTooltip(graphics, Component.translatable("catalogue.gui.options"), mouseX, mouseY + 10);
             }
 
             if(this.modFolderButton.isMouseOver(mouseX, mouseY))
             {
-                this.setActiveTooltip(Component.translatable("catalogue.gui.open_mods_folder"));
+                this.setTooltip(graphics, Component.translatable("catalogue.gui.open_mods_folder"), mouseX, mouseY);
             }
-        }
-
-        if(this.activeTooltip != null)
-        {
-            graphics.renderTooltip(this.font, this.activeTooltip, mouseX, mouseY + this.tooltipYOffset);
-            this.tooltipYOffset = 0;
         }
     }
 
@@ -337,6 +330,20 @@ public class CatalogueModListScreen extends Screen implements DropdownMenuHandle
     public void removed()
     {
         FAVOURITES.save();
+    }
+
+    /**
+     * Sets the tooltip for the next frame. This method will automatically split the given message
+     * into separate lines if it reaches the maximum width.
+     *
+     * @param graphics a gui graphics instance
+     * @param message the message to display in the tooltip
+     * @param mouseX the current mouse x position
+     * @param mouseY the current mouse y position
+     */
+    private void setTooltip(GuiGraphics graphics, Component message, int mouseX, int mouseY)
+    {
+        graphics.setTooltipForNextFrame(this.font.split(message, Math.min(200, this.width)), mouseX, mouseY);
     }
 
     private void updateSelectedModList()
@@ -415,7 +422,7 @@ public class CatalogueModListScreen extends Screen implements DropdownMenuHandle
         MutableComponent title = Component.empty().append(modsLabel).append(" ").append(countLabel);
         int titleWidth = this.font.width(title);
         int titleLeft = this.modList.getX() + (this.modList.getWidth() - titleWidth) / 2;
-        graphics.drawString(this.font, title, titleLeft, 10, 0xFFFFFF);
+        graphics.drawString(this.font, title, titleLeft, 10, 0xFFFFFFFF);
 
         int countLabelWidth = this.font.width(countLabel);
         if(ClientHelper.isMouseWithin(titleLeft + titleWidth - countLabelWidth, 10, countLabelWidth, this.font.lineHeight, mouseX, mouseY))
@@ -425,8 +432,7 @@ public class CatalogueModListScreen extends Screen implements DropdownMenuHandle
                 Component.translatable("catalogue.gui.mod_count", counts.getLeft()).getVisualOrderText(),
                 Component.translatable("catalogue.gui.library_count", counts.getRight()).getVisualOrderText()
             );
-            this.setActiveTooltip(lines);
-            this.tooltipYOffset = 10;
+            graphics.setTooltipForNextFrame(lines, mouseX, mouseY + 10);
         }
     }
 
@@ -456,17 +462,16 @@ public class CatalogueModListScreen extends Screen implements DropdownMenuHandle
             this.drawBanner(graphics, contentWidth, contentLeft, 10, this.width - (listRight + 12 + 10) - 10, 50);
 
             // Draw mod name
-            PoseStack poseStack = graphics.pose();
-            poseStack.pushPose();
-            poseStack.translate(contentLeft, 70, 0);
-            poseStack.scale(2.0F, 2.0F, 2.0F);
-            graphics.drawString(this.font, this.selectedModData.getDisplayName(), 0, 0, 0xFFFFFF);
-            poseStack.popPose();
+            graphics.pose().pushMatrix();
+            graphics.pose().translate(contentLeft, 70);
+            graphics.pose().scale(2.0F, 2.0F);
+            graphics.drawString(this.font, this.selectedModData.getDisplayName(), 0, 0, 0xFFFFFFFF);
+            graphics.pose().popMatrix();
 
             // Draw version
             Component modId = Component.literal("Mod ID: " + this.selectedModData.getModId()).withStyle(ChatFormatting.DARK_GRAY);
             int modIdWidth = this.font.width(modId);
-            graphics.drawString(this.font, modId, contentLeft + contentWidth - modIdWidth, 92, 0xFFFFFF);
+            graphics.drawString(this.font, modId, contentLeft + contentWidth - modIdWidth, 92, 0xFFFFFFFF);
 
             // Draw version
             this.drawStringWithLabel(graphics, "catalogue.gui.version", this.selectedModData.getVersion().toString(), contentLeft, 92, contentWidth, mouseX, mouseY, ChatFormatting.GRAY, ChatFormatting.WHITE);
@@ -481,7 +486,7 @@ public class CatalogueModListScreen extends Screen implements DropdownMenuHandle
                 if(ClientHelper.isMouseWithin(contentLeft + versionWidth + 5, 92, 8, 8, mouseX, mouseY))
                 {
                     Component message = ClientServices.COMPONENT.createFormatted("catalogue.gui.update_available", update.url());
-                    this.setActiveTooltip(message);
+                    this.setTooltip(graphics, message, mouseX, mouseY);
                 }
             }
 
@@ -545,15 +550,15 @@ public class CatalogueModListScreen extends Screen implements DropdownMenuHandle
             content = this.font.plainSubstrByWidth(content, maxWidth - this.font.width(label) - 7) + "...";
             MutableComponent credits = Component.literal(label).withStyle(labelColor);
             credits.append(Component.literal(content).withStyle(contentColor));
-            graphics.drawString(this.font, credits, x, y, 0xFFFFFF);
+            graphics.drawString(this.font, credits, x, y, 0xFFFFFFFF);
             if(ClientHelper.isMouseWithin(x, y, maxWidth, 9, mouseX, mouseY)) // Sets the active tool tip if string is too long so users can still read it
             {
-                this.setActiveTooltip(Component.literal(text));
+                this.setTooltip(graphics, Component.literal(text), mouseX, mouseY);
             }
         }
         else
         {
-            graphics.drawString(this.font, Component.literal(label).withStyle(labelColor).append(Component.literal(content).withStyle(contentColor)), x, y, 0xFFFFFF);
+            graphics.drawString(this.font, Component.literal(label).withStyle(labelColor).append(Component.literal(content).withStyle(contentColor)), x, y, 0xFFFFFFFF);
         }
     }
 
@@ -606,18 +611,13 @@ public class CatalogueModListScreen extends Screen implements DropdownMenuHandle
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
-    private void setActiveTooltip(Component content)
-    {
-        this.activeTooltip = this.font.split(content, Math.min(200, this.width));
-        this.tooltipYOffset = 0;
-    }
-
-    private void setActiveTooltip(List<? extends FormattedCharSequence> activeTooltip)
-    {
-        this.activeTooltip = activeTooltip;
-        this.tooltipYOffset = 0;
-    }
-
+    /**
+     * Sets the selected mod data. This handles loading the logo and background, updates the states
+     * of widgets, like the config button enable state (if the mod has a config), and the description
+     * test.
+     *
+     * @param data the mod data to set as selected
+     */
     private void setSelectedModData(IModData data)
     {
         this.selectedModData = data;
@@ -631,7 +631,7 @@ public class CatalogueModListScreen extends Screen implements DropdownMenuHandle
         this.issueButton.active = data.getIssueTracker() != null;
         int contentLeft = this.modList.getRight() + 12 + 10;
         int contentWidth = this.width - contentLeft - 10;
-        int labelCount = this.getLabelCount(data);
+        int labelCount = this.getFooterTextElementCount(data);
         this.descriptionList.setWidth(contentWidth);
         this.descriptionList.setHeight(this.height - 135 - labelCount * 15 - 9);
         this.descriptionList.setX(contentLeft);
@@ -639,32 +639,45 @@ public class CatalogueModListScreen extends Screen implements DropdownMenuHandle
         this.descriptionList.setScrollAmount(0);
     }
 
-    private int getLabelCount(IModData selectedModData)
+    /**
+     * Gets the count of the footer text elements. This is used to corrrectly set the height of
+     * the description widget.
+     *
+     * @param data the mod data
+     * @return the count of footer text elements
+     */
+    private int getFooterTextElementCount(IModData data)
     {
         int count = 1; //1 by default since license property will always exist
-        if(selectedModData.getCredits() != null && !selectedModData.getCredits().isBlank()) count++;
-        if(selectedModData.getAuthors() != null && !selectedModData.getAuthors().isBlank()) count++;
+        if(data.getCredits() != null && !data.getCredits().isBlank()) count++;
+        if(data.getAuthors() != null && !data.getAuthors().isBlank()) count++;
         return count;
     }
 
-    private void drawBackground(GuiGraphics graphics, int contentWidth, int x, int y)
+    /**
+     * Draws the background that is visible when a mod is selected. Backgrounds are programmatically
+     * faded out to the bottom of the image.
+     *
+     * @param graphics a gui graphics instance
+     * @param contentWidth the widget of the content area
+     * @param contentLeft the x position of the content area
+     * @param contentTop the y position of the content area
+     */
+    private void drawBackground(GuiGraphics graphics, int contentWidth, int contentLeft, int contentTop)
     {
         if(this.selectedModData == null)
             return;
 
         ResourceLocation textureRef = cachedBackground != null ? cachedBackground.resource() : MISSING_BACKGROUND;
-        GpuTexture texture = Minecraft.getInstance().getTextureManager().getTexture(textureRef).getTexture();
-        RenderSystem.setShaderTexture(0, texture);
-        Matrix4f matrix = graphics.pose().last().pose();
-        BufferBuilder builder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
-        builder.addVertex(matrix, x, y, 0).setUv(0, 0).setColor(1.0F, 1.0F, 1.0F, 1.0F);
-        builder.addVertex(matrix, x, y + 128, 0).setUv(0, 1).setColor(0.0F, 0.0F, 0.0F, 0.0F);
-        builder.addVertex(matrix, x + contentWidth, y + 128, 0).setUv(1, 1).setColor(0.0F, 0.0F, 0.0F, 0.0F);
-        builder.addVertex(matrix, x + contentWidth, y, 0).setUv(1, 0).setColor(1.0F, 1.0F, 1.0F, 1.0F);
-        try(MeshData data = builder.buildOrThrow())
-        {
-            RenderType.guiTextured(textureRef).draw(data);
-        }
+        GuiRenderState state = ClientServices.PLATFORM.getGuiRenderState(graphics);
+        GpuTextureView gpuTexture = this.minecraft.getTextureManager().getTexture(textureRef).getTextureView();
+        BlitRenderState blit = new BlitRenderState(
+                RenderPipelines.GUI_TEXTURED,
+                TextureSetup.singleTexture(gpuTexture),
+                new Matrix3x2f(graphics.pose()),
+                contentLeft, contentTop, contentLeft + contentWidth, contentTop + 128, 0, 1, 0, 1,
+                0xFFFFFFFF, null);
+        state.submitGuiElement(new BackgroundRenderState(blit));
     }
 
     private void drawBanner(GuiGraphics graphics, int contentWidth, int x, int y, int maxWidth, int maxHeight)
@@ -694,7 +707,7 @@ public class CatalogueModListScreen extends Screen implements DropdownMenuHandle
                 y += 8;
             }
 
-            graphics.blit(RenderType::guiTextured, info.resource(), x, y, 0, 0, displayWidth, displayHeight, info.width(), info.height(), info.width(), info.height());
+            graphics.blit(RenderPipelines.GUI_TEXTURED, info.resource(), x, y, 0, 0, displayWidth, displayHeight, info.width(), info.height(), info.width(), info.height());
         }
     }
 
@@ -1002,8 +1015,8 @@ public class CatalogueModListScreen extends Screen implements DropdownMenuHandle
             // Draws mod name and version
             boolean inOptionsMenu = CatalogueModListScreen.this.menu != null;
             boolean drawFavouriteIcon = !inOptionsMenu && !this.list.shouldHideFavourites() && ClientHelper.isMouseWithin(left + rowWidth - rowHeight - 4, top, rowHeight + 4, rowHeight, mouseX, mouseY) || FAVOURITES.has(this.data.getModId());
-            graphics.drawString(CatalogueModListScreen.this.font, this.getFormattedModName(drawFavouriteIcon), left + 24, top + 2, 0xFFFFFF);
-            graphics.drawString(CatalogueModListScreen.this.font, Component.literal(this.data.getVersion()).withStyle(ChatFormatting.GRAY), left + 24, top + 12, 0xFFFFFF);
+            graphics.drawString(CatalogueModListScreen.this.font, this.getFormattedModName(drawFavouriteIcon), left + 24, top + 2, 0xFFFFFFFF);
+            graphics.drawString(CatalogueModListScreen.this.font, Component.literal(this.data.getVersion()).withStyle(ChatFormatting.GRAY), left + 24, top + 12, 0xFFFFFFFF);
 
             // Draw image icon or fallback to item icon
             this.drawIcon(graphics, top, left);
@@ -1026,7 +1039,7 @@ public class CatalogueModListScreen extends Screen implements DropdownMenuHandle
                     Component label = !FAVOURITES.has(this.data.getModId()) ?
                         Component.translatable("catalogue.gui.favourite") :
                         Component.translatable("catalogue.gui.remove_favourite");
-                    CatalogueModListScreen.this.setActiveTooltip(label);
+                    CatalogueModListScreen.this.setTooltip(graphics, label, mouseX, mouseY);
                 }
             }
         }
@@ -1038,7 +1051,7 @@ public class CatalogueModListScreen extends Screen implements DropdownMenuHandle
             ImageInfo iconInfo = IMAGE_ICON_CACHE.get(this.data.getModId());
             if(iconInfo != null)
             {
-                graphics.blit(RenderType::guiTextured, iconInfo.resource(), left + 4, top + 3, 0, 0, 16, 16, iconInfo.width(), iconInfo.height(), iconInfo.width(), iconInfo.height());
+                graphics.blit(RenderPipelines.GUI_TEXTURED, iconInfo.resource(), left + 4, top + 3, 0, 0, 16, 16, iconInfo.width(), iconInfo.height(), iconInfo.width(), iconInfo.height());
                 return;
             }
 
@@ -1187,7 +1200,7 @@ public class CatalogueModListScreen extends Screen implements DropdownMenuHandle
             protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick)
             {
                 int textureU = FAVOURITES.has(this.modId) ? 10 : 0;
-                graphics.blit(RenderType::guiTextured, TEXTURE, this.getX(), this.getY(), textureU, 10, 10, 10, 64, 64);
+                graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, this.getX(), this.getY(), textureU, 10, 10, 10, 64, 64);
             }
 
             @Override
@@ -1306,7 +1319,7 @@ public class CatalogueModListScreen extends Screen implements DropdownMenuHandle
         @Override
         public void render(GuiGraphics graphics, int index, int top, int left, int rowWidth, int rowHeight, int mouseX, int mouseY, boolean hovered, float partialTicks)
         {
-            graphics.drawString(CatalogueModListScreen.this.font, this.line, left, top, 0xFFFFFF);
+            graphics.drawString(CatalogueModListScreen.this.font, this.line, left, top, 0xFFFFFFFF);
         }
 
         @Override

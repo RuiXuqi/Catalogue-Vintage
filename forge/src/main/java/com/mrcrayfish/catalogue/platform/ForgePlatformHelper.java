@@ -5,6 +5,8 @@ import com.mrcrayfish.catalogue.exception.ModResourceNotFoundException;
 import com.mrcrayfish.catalogue.client.ForgeModData;
 import com.mrcrayfish.catalogue.client.IModData;
 import com.mrcrayfish.catalogue.platform.services.IPlatformHelper;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.render.state.GuiRenderState;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.forgespi.language.IModFileInfo;
@@ -64,4 +66,9 @@ public class ForgePlatformHelper implements IPlatformHelper
         return ModList.get().isLoaded(modId);
     }
 
+    @Override
+    public GuiRenderState getGuiRenderState(GuiGraphics graphics)
+    {
+        return graphics.getRenderState();
+    }
 }

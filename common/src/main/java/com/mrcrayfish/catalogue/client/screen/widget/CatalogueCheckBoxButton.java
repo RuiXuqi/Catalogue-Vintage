@@ -5,6 +5,7 @@ import com.mrcrayfish.catalogue.Constants;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.resources.ResourceLocation;
@@ -40,8 +41,7 @@ public class CatalogueCheckBoxButton extends AbstractButton
     @Override
     public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
     {
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, this.alpha);
-        graphics.blit(RenderType::guiTextured, TEXTURE, this.getX(), this.getY(), this.isHoveredOrFocused() ? 14 : 0, this.isSelected() ? 14 : 0, 14, 14, 64, 64);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, this.getX(), this.getY(), this.isHoveredOrFocused() ? 14 : 0, this.isSelected() ? 14 : 0, 14, 14, 64, 64);
     }
 
     @Override
