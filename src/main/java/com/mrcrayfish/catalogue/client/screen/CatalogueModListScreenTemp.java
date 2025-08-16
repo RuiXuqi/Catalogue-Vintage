@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
+// Code by deepseek. DO NOT USE DIRECTLY.
 public class CatalogueModListScreenTemp extends GuiScreen {
     private static final Comparator<ModEntry> SORT = Comparator.comparing(o -> o.getInfo().getName());
     private static final ResourceLocation MISSING_BANNER = new ResourceLocation("catalogue", "textures/gui/missing_banner.png");

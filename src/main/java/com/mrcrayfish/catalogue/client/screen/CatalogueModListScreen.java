@@ -121,7 +121,7 @@ public class CatalogueModListScreen extends GuiScreen {
 
         public ModList() {
             super(CatalogueModListScreen.this.mc, 150, CatalogueModListScreen.this.height, 46, CatalogueModListScreen.this.height - 35, 26);
-            this.left = 10;
+            this.setSlotXBoundsFromLeft(10);
         }
 
         @Override
@@ -189,7 +189,6 @@ public class CatalogueModListScreen extends GuiScreen {
 
     }
 
-    // 定义 Entry
     private class ModEntry implements GuiListExtended.IGuiListEntry {
         private final ModContainer info;
         private final ModList list;
@@ -265,6 +264,7 @@ public class CatalogueModListScreen extends GuiScreen {
                 return anvil;
             }
 
+            // Not working
             // Gets the raw item icon resource string
             String itemIcon = this.info.getCustomModProperties().get("catalogueItemIcon");
 
@@ -347,13 +347,13 @@ public class CatalogueModListScreen extends GuiScreen {
     private void drawModList(int mouseX, int mouseY, float partialTicks) {
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         mc.getTextureManager().bindTexture(VERSION_CHECK_ICONS);
-        this.drawTexturedModalRect(this.modList.left + this.modList.width - 24, 10, 24, 0, 8, 8);
+        this.drawTexturedModalRect(this.modList.right - 24, 10, 24, 0, 8, 8);
 
         this.modList.drawScreen(mouseX, mouseY, partialTicks);
         drawString(this.fontRenderer, TextFormatting.BOLD + I18n.format("catalogue.gui.title"), 70, 10, 0xFFFFFF);
         this.searchTextField.drawTextBox();
 
-        if(ScreenUtil.isMouseWithin(this.modList.left + this.modList.width - 14, 7, 14, 14, mouseX, mouseY)) {
+        if(ScreenUtil.isMouseWithin(this.modList.right - 14, 7, 14, 14, mouseX, mouseY)) {
             this.setActiveTooltip(I18n.format("fml.menu.mods.filter_updates"));
             this.tooltipYOffset = 10;
         }
