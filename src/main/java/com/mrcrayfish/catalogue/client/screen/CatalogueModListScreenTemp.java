@@ -84,7 +84,7 @@ public class CatalogueModListScreenTemp extends GuiScreen {
         this.issueButton.visible = false;
 
         this.descriptionList = new StringList(this.mc, contentWidth, this.height - 135 - 55, 130, contentLeft);
-        this.updatesButton = this.addButton(new CatalogueCheckBoxButton(15, this.width - 30, 7));
+        this.updatesButton = this.addButton(new CatalogueCheckBoxButton(15, this.width - 30, 7, false));
 
         this.modList.filterAndUpdateList(this.searchTextField.getText());
 
@@ -192,7 +192,7 @@ public class CatalogueModListScreenTemp extends GuiScreen {
             // 更新过滤按钮
             if (button instanceof CatalogueCheckBoxButton) {
                 CatalogueCheckBoxButton checkBox = (CatalogueCheckBoxButton) button;
-                checkBox.setSelected(!checkBox.isSelected());
+                checkBox.setSelected(!checkBox.selected());
                 this.modList.filterAndUpdateList(this.searchTextField.getText());
                 this.updateSelectedModList();
             }

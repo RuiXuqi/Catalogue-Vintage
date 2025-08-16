@@ -8,13 +8,13 @@ import net.minecraft.util.ResourceLocation;
 /**
  * Author: MrCrayfish
  */
-public class CatalogueCheckBoxButton extends GuiButton
-{
+public class CatalogueCheckBoxButton extends GuiButton {
     private static final ResourceLocation TEXTURE = new ResourceLocation("catalogue", "textures/gui/checkbox.png");
     private boolean selected;
 
-    public CatalogueCheckBoxButton(int id, int x, int y) {
+    public CatalogueCheckBoxButton(int id, int x, int y, boolean selectedDefault) {
         super(id, x, y, 14, 14, "");
+        this.selected = selectedDefault;
     }
 
     @Override
@@ -42,12 +42,11 @@ public class CatalogueCheckBoxButton extends GuiButton
         }
     }
 
-    public boolean isSelected() {
+    public boolean selected() {
         return this.selected;
     }
 
     public void setSelected(boolean selected) {
         this.selected = selected;
     }
-
 }

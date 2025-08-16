@@ -8,6 +8,7 @@ import com.mrcrayfish.catalogue.client.screen.widget.CatalogueIconButton;
 import com.mrcrayfish.catalogue.client.screen.widget.CatalogueListExtended;
 import com.mrcrayfish.catalogue.client.screen.widget.CatalogueTextField;
 import net.minecraft.client.gui.*;
+import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.Tessellator;
@@ -15,6 +16,7 @@ import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.texture.TextureUtil;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.resources.IResourcePack;
 import net.minecraft.init.Blocks;
@@ -23,6 +25,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.common.ForgeVersion;
+import net.minecraftforge.common.ForgeVersion.CheckResult;
+import net.minecraftforge.common.ForgeVersion.Status;
 import net.minecraftforge.fml.client.FMLClientHandler;
 import net.minecraftforge.fml.client.IModGuiFactory;
 import net.minecraftforge.fml.common.Loader;
@@ -66,15 +70,11 @@ public class CatalogueModListScreen extends GuiScreen {
     public void initGui() {
         super.initGui();
         this.searchTextField = new CatalogueTextField(0, this.fontRenderer, 11, 25, 148, 20);
-        this.searchTextField.setFocused(true);
         this.searchTextField.setCanLoseFocus(true);
-        this.searchTextField.setText("");
         this.searchTextField.setEnableBackgroundDrawing(true);
-        this.searchTextField.setSuggestion(I18n.format("catalogue.gui.search"));
 
         this.modList = new ModList();
         this.modList.setSlotXBoundsFromLeft(10);
-        this.modList.filterAndUpdateList("");
 
         this.buttonList.add(new GuiButton(1, 10, modList.bottom + 8, 127, 20, I18n.format("gui.back")));
         this.modFolderButton = this.addButton(new CatalogueIconButton(2, 140, modList.bottom + 8, 0, 0));
@@ -95,6 +95,10 @@ public class CatalogueModListScreen extends GuiScreen {
 
         this.descriptionList = new StringList(contentWidth, this.height - 135 - 55, contentLeft, 130);
 
+        this.updatesButton = this.addButton(new CatalogueCheckBoxButton(6, this.modList.right - 14, 7, false));
+
+        this.modList.filterAndUpdateList(this.searchTextField.getText());
+
         // Resizing window causes all widgets to be recreated, therefore need to update selected info
         if(this.selectedModInfo != null) {
             this.setSelectedModInfo(this.selectedModInfo);
@@ -104,6 +108,7 @@ public class CatalogueModListScreen extends GuiScreen {
                 this.modList.selectMod(entry);
             }
         }
+        this.updateSearchField(this.searchTextField.getText());
     }
 
     @Override
@@ -136,7 +141,9 @@ public class CatalogueModListScreen extends GuiScreen {
     @Override
     protected void keyTyped(char typedChar, int key) throws IOException {
         if (this.searchTextField.textboxKeyTyped(typedChar, key)) {
-            this.modList.filterAndUpdateList(this.searchTextField.getText());
+            String s = this.searchTextField.getText();
+            this.updateSearchField(s);
+            this.modList.filterAndUpdateList(s);
             return;
         }
 
@@ -166,13 +173,13 @@ public class CatalogueModListScreen extends GuiScreen {
         }
 
         public void filterAndUpdateList(String text) {
-            this.entries.clear();
-            this.entries = Loader.instance().getActiveModList().stream()
-                    .filter(info -> info.getName().toLowerCase(Locale.ENGLISH).contains(text.toLowerCase(Locale.ENGLISH)))
-                    .map(info -> new ModEntry(info, this))
-                    .sorted(Comparator.comparing(entry -> entry.info.getName()))
-                    .collect(Collectors.toList());
-
+            List<ModEntry> entries = Loader.instance().getActiveModList().stream()
+                .filter(info -> info.getName().toLowerCase(Locale.ENGLISH).contains(text.toLowerCase(Locale.ENGLISH)))
+                .filter(info -> !updatesButton.selected() || ForgeVersion.getResult(info).status.shouldDraw())
+                .map(info -> new ModEntry(info, this))
+                .sorted(Comparator.comparing(entry -> entry.info.getName()))
+                .collect(Collectors.toList());
+            this.entries = entries;
             this.selectMod(-1);
         }
 
@@ -402,7 +409,7 @@ public class CatalogueModListScreen extends GuiScreen {
         @Override
         protected void drawTopBottomOverlay(Tessellator tessellator) {}
     }
-    
+
     private class StringEntry implements CatalogueListExtended.IGuiListEntry {
         private String line;
 
@@ -725,11 +732,11 @@ public class CatalogueModListScreen extends GuiScreen {
 
             int width = size.width;
             int height = size.height;
-            if(size.width > maxWidth) {
+            if (size.width > maxWidth) {
                 width = maxWidth;
                 height = (width * size.height) / size.width;
             }
-            if(height > maxHeight) {
+            if (height > maxHeight) {
                 height = maxHeight;
                 width = (height * size.width) / size.height;
             }
@@ -737,7 +744,7 @@ public class CatalogueModListScreen extends GuiScreen {
             x += (contentWidth - width) / 2;
             y += (maxHeight - height) / 2;
 
-            drawTexturedModalRect(x, y, 0, 0, width, height);
+            blit(x, y, width, height, 0.0F, 0.0F, size.width, size.height, size.width, size.height);
 
             GlStateManager.disableBlend();
         }
@@ -797,6 +804,23 @@ public class CatalogueModListScreen extends GuiScreen {
         }
     }
 
+    private void updateSearchField(String value) {
+        if(value.isEmpty()) {
+            this.searchTextField.setSuggestion(I18n.format("catalogue.gui.search"));
+        } else {
+            Optional<ModContainer> optional = Loader.instance().getActiveModList().stream().filter(info -> {
+                return info.getName().toLowerCase(Locale.ENGLISH).startsWith(value.toLowerCase(Locale.ENGLISH));
+            }).min(Comparator.comparing(ModContainer::getName));
+            if(optional.isPresent()) {
+                int length = value.length();
+                String displayName = optional.get().getName();
+                this.searchTextField.setSuggestion(displayName.substring(length));
+            } else {
+                this.searchTextField.setSuggestion("");
+            }
+        }
+    }
+
     private static class Size2i {
         public final int width, height;
 
@@ -804,6 +828,24 @@ public class CatalogueModListScreen extends GuiScreen {
             this.width = width;
             this.height = height;
         }
+    }
+
+    // By deepseek. It seems that it works perfectly.
+    public static void blit(int x, int y, int width, int height, float uOffset, float vOffset, int uWidth, int vHeight, int textureWidth, int textureHeight) {
+        float minU = uOffset / textureWidth;
+        float minV = vOffset / textureHeight;
+        float maxU = (uOffset + uWidth) / textureWidth;
+        float maxV = (vOffset + vHeight) / textureHeight;
+
+        Tessellator tessellator = Tessellator.getInstance();
+        BufferBuilder buffer = tessellator.getBuffer();
+
+        buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
+        buffer.pos(x, y + height, 0).tex(minU, maxV).endVertex();
+        buffer.pos(x + width, y + height, 0).tex(maxU, maxV).endVertex();
+        buffer.pos(x + width, y, 0).tex(maxU, minV).endVertex();
+        buffer.pos(x, y, 0).tex(minU, minV).endVertex();
+        tessellator.draw();
     }
 
 }
