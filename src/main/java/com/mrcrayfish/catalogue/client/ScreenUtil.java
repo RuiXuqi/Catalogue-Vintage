@@ -1,13 +1,13 @@
 package com.mrcrayfish.catalogue.client;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.ScaledResolution;
+import org.lwjgl.opengl.GL11;
 
 /**
  * Author: MrCrayfish
  */
-public class ScreenUtil
-{
+public class ScreenUtil {
     /**
      * Creates a scissor test using minecraft screen coordinates instead of pixel coordinates.
      * @param screenX
@@ -15,19 +15,21 @@ public class ScreenUtil
      * @param boxWidth
      * @param boxHeight
      */
-    public static void scissor(int screenX, int screenY, int boxWidth, int boxHeight)
-    {
-        Minecraft mc = Minecraft.getInstance();
-        int scale = (int) mc.getWindow().getGuiScale();
+    public static void scissor(int screenX, int screenY, int boxWidth, int boxHeight) {
+        Minecraft mc = Minecraft.getMinecraft();
+        ScaledResolution scaledRes = new ScaledResolution(mc);
+        int scale = scaledRes.getScaleFactor();
+
         int x = screenX * scale;
-        int y = mc.getWindow().getHeight() - screenY * scale - boxHeight * scale;
+        int y = mc.displayHeight - (screenY * scale + boxHeight * scale);
         int width = Math.max(0, boxWidth * scale);
         int height = Math.max(0, boxHeight * scale);
-        RenderSystem.enableScissor(x, y, width, height);
+
+        GL11.glEnable(GL11.GL_SCISSOR_TEST);
+        GL11.glScissor(x, y, width, height);
     }
 
-    public static boolean isMouseWithin(int x, int y, int width, int height, int mouseX, int mouseY)
-    {
+    public static boolean isMouseWithin(int x, int y, int width, int height, int mouseX, int mouseY) {
         return mouseX >= x && mouseX < x + width && mouseY >= y && mouseY < y + height;
     }
 }

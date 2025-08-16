@@ -1,0 +1,11 @@
+catalogue.gui.no_selection=No mod selected...
+catalogue.gui.info=This menu was redesigned by Catalogue. Click here to open the CurseForge page for this mod!
+catalogue.gui.version=Version: %s
+catalogue.gui.modid=ModID: %s
+catalogue.gui.config=Config
+catalogue.gui.website=Website
+catalogue.gui.issue=Issue
+catalogue.gui.filter_updates=Show only mods with updates
+catalogue.gui.search=Search...
+catalogue.gui.title=Mods
+catalogue.gui.open_mods_folder=OMF

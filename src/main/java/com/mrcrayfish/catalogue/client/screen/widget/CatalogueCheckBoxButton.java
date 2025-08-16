@@ -1,55 +1,53 @@
 package com.mrcrayfish.catalogue.client.screen.widget;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.client.gui.widget.button.CheckboxButton;
+import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 
 /**
  * Author: MrCrayfish
  */
-public class CatalogueCheckBoxButton extends CheckboxButton
+public class CatalogueCheckBoxButton extends GuiButton
 {
     private static final ResourceLocation TEXTURE = new ResourceLocation("catalogue", "textures/gui/checkbox.png");
+    private boolean selected;
 
-    private final IPressable pressable;
-
-    public CatalogueCheckBoxButton(int x, int y, IPressable pressable)
-    {
-        super(x, y, 14, 14, StringTextComponent.EMPTY, false);
-        this.pressable = pressable;
+    public CatalogueCheckBoxButton(int id, int x, int y) {
+        super(id, x, y, 14, 14, "");
     }
 
     @Override
-    public void onPress()
-    {
-        super.onPress();
-        this.pressable.onPress(this);
+    public boolean mousePressed(Minecraft minecraft, int mouseX, int mouseY) {
+        if (this.enabled && this.visible && this.hovered) {
+            this.selected = !this.selected;
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override
-    public void renderButton(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks)
-    {
-        Minecraft minecraft = Minecraft.getInstance();
-        minecraft.getTextureManager().bind(TEXTURE);
-        RenderSystem.enableDepthTest();
-        RenderSystem.color4f(1.0F, 1.0F, 1.0F, this.alpha);
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-        RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
-        blit(matrixStack, this.x, this.y, this.isHovered() ? 14 : 0, this.selected() ? 14 : 0, 14, 14, 64, 64);
-        this.renderBg(matrixStack, minecraft, mouseX, mouseY);
+    public void drawButton(Minecraft minecraft, int mouseX, int mouseY, float partial) {
+        if (this.visible) {
+            this.hovered = mouseX >= this.x && mouseY >= this.y && mouseX < this.x + this.width && mouseY < this.y + this.height;
+            minecraft.getTextureManager().bindTexture(TEXTURE);
+
+            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+            GlStateManager.enableBlend();
+            GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
+            GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+            this.drawTexturedModalRect(this.x, this.y, this.hovered ? 14 : 0, this.selected ? 14 : 0, this.width, this.height);
+            this.mouseDragged(minecraft, mouseX, mouseY);
+        }
     }
 
-    @OnlyIn(Dist.CLIENT)
-    public interface IPressable
-    {
-        void onPress(CheckboxButton button);
+    public boolean isSelected() {
+        return this.selected;
     }
+
+    public void setSelected(boolean selected) {
+        this.selected = selected;
+    }
+
 }
