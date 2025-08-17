@@ -46,13 +46,10 @@ public class CatalogueTextField extends GuiTextField {
             selectionEndRelative = visibleText.length();
         }
 
-        // Draw text
+        // Draw text before cursor
         if (!visibleText.isEmpty()) {
             String text = isCursorVisible ? visibleText.substring(0, cursorPosRelative) : visibleText;
             currentDrawX = this.fontRenderer.drawStringWithShadow(text, (float) textStartX, (float) textStartY, textColor);
-            this.fontRenderer.drawStringWithShadow(suggestion, (float) currentDrawX - 1, (float) textStartY, 0x808080);
-        } else {
-            this.fontRenderer.drawStringWithShadow(suggestion, (float) currentDrawX, (float) textStartY, 0x808080);
         }
 
         boolean isTextTruncated = this.cursorPosition < this.getText().length() || this.getText().length() >= this.getMaxStringLength();
@@ -62,6 +59,16 @@ public class CatalogueTextField extends GuiTextField {
             cursorDrawX = cursorPosRelative > 0 ? textStartX + this.width : textStartX;
         } else if (isTextTruncated) {
             cursorDrawX = currentDrawX - 1;
+        }
+
+        // Draw text after cursor
+        if (!visibleText.isEmpty()) {
+            if (isCursorVisible && cursorPosRelative < visibleText.length()){
+                currentDrawX = this.fontRenderer.drawStringWithShadow(visibleText.substring(cursorPosRelative), (float) currentDrawX, (float) textStartY, textColor);
+            }
+            this.fontRenderer.drawStringWithShadow(suggestion, (float) currentDrawX - 1, (float) textStartY, 0x808080);
+        } else {
+            this.fontRenderer.drawStringWithShadow(suggestion, (float) currentDrawX, (float) textStartY, 0x808080);
         }
 
         if (shouldDrawCursor) {
