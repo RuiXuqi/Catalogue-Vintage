@@ -7,6 +7,7 @@ import com.mrcrayfish.catalogue.client.screen.widget.CatalogueCheckBoxButton;
 import com.mrcrayfish.catalogue.client.screen.widget.CatalogueIconButton;
 import com.mrcrayfish.catalogue.client.screen.widget.CatalogueListExtended;
 import com.mrcrayfish.catalogue.client.screen.widget.CatalogueTextField;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.*;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
@@ -25,8 +26,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.common.ForgeVersion;
-import net.minecraftforge.common.ForgeVersion.CheckResult;
-import net.minecraftforge.common.ForgeVersion.Status;
 import net.minecraftforge.fml.client.FMLClientHandler;
 import net.minecraftforge.fml.client.IModGuiFactory;
 import net.minecraftforge.fml.common.Loader;
@@ -48,6 +47,7 @@ public class CatalogueModListScreen extends GuiScreen {
     private static final Map<String, Pair<ResourceLocation, Size2i>> LOGO_CACHE = new HashMap<>();
     private static final Map<String, Pair<ResourceLocation, Size2i>> ICON_CACHE = new HashMap<>();
     private static final Map<String, ItemStack> ITEM_CACHE = new HashMap<>();
+    private long lastClickTime;
     
     private CatalogueTextField searchTextField;
     private ModList modList;
@@ -180,7 +180,7 @@ public class CatalogueModListScreen extends GuiScreen {
                 .sorted(Comparator.comparing(entry -> entry.info.getName()))
                 .collect(Collectors.toList());
             this.entries = entries;
-            this.selectMod(-1);
+            this.selectMod(this.getEntryFromInfo(selectedModInfo));
         }
 
         public ModEntry getEntryFromInfo(ModContainer info) {
@@ -448,8 +448,19 @@ public class CatalogueModListScreen extends GuiScreen {
         this.searchTextField.mouseClicked(x, y, button);
         if (button == 1 && x >= this.searchTextField.x && x < this.searchTextField.x + this.searchTextField.width && y >= this.searchTextField.y && y < this.searchTextField.y + this.searchTextField.height) {
             this.searchTextField.setText("");
+            this.updateSearchField("");
             this.modList.filterAndUpdateList("");
+            return;
         }
+        String text = this.searchTextField.getText();
+        long currentTine = Minecraft.getSystemTime();
+        if (button == 0 && !text.isEmpty() && currentTine - this.lastClickTime < 250L) {
+            text += this.searchTextField.getSuggestion();
+            this.searchTextField.setText(text);
+            this.updateSearchField(text);
+            this.modList.filterAndUpdateList(text);
+        }
+        this.lastClickTime = currentTine;
     }
 
     @Override
@@ -526,21 +537,20 @@ public class CatalogueModListScreen extends GuiScreen {
             // Draw version
             this.drawStringWithLabel("catalogue.gui.version", this.selectedModInfo.getVersion(), contentLeft, 92, contentWidth, mouseX, mouseY, TextFormatting.GRAY, TextFormatting.WHITE);
 
-//            // Draws an icon if there is an update for the mod
-//            VersionC.CheckResult result = VersionChecker.getResult(this.selectedModInfo);
-//            if(result.status.shouldDraw() && result.url != null)
-//            {
-//                String version = ForgeI18n.parseMessage("fml.menu.mods.info.version", this.selectedModInfo.getVersion().toString());
-//                int versionWidth = this.font.width(version);
-//                RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-//                Minecraft.getInstance().getTextureManager().bind(VERSION_CHECK_ICONS);
-//                int vOffset = result.status.isAnimated() && (System.currentTimeMillis() / 800 & 1) == 1 ? 8 : 0;
-//                AbstractGui.blit(matrixStack, contentLeft + versionWidth + 5, 92, result.status.getSheetOffset() * 8, vOffset, 8, 8, 64, 16);
-//                if(ScreenUtil.isMouseWithin(contentLeft + versionWidth + 5, 92, 8, 8, mouseX, mouseY))
-//                {
-//                    this.setActiveTooltip(ForgeI18n.parseMessage("fml.menu.mods.info.updateavailable", result.url));
-//                }
-//            }
+            // Draws an icon if there is an update for the mod
+            ForgeVersion.CheckResult result = ForgeVersion.getResult(this.selectedModInfo);
+            if(result.status.shouldDraw() && result.url != null) {
+                String version = I18n.format("fml.menu.mods.info.version", this.selectedModInfo.getVersion());
+                int versionWidth = this.fontRenderer.getStringWidth(version);
+                GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+                mc.getTextureManager().bindTexture(VERSION_CHECK_ICONS);
+                int vOffset = result.status.isAnimated() && (System.currentTimeMillis() / 800 & 1) == 1 ? 8 : 0;
+                drawTexturedModalRect(contentLeft + versionWidth + 5, 92, result.status.getSheetOffset() * 8, vOffset, 8, 8);
+                if(ScreenUtil.isMouseWithin(contentLeft + versionWidth + 5, 92, 8, 8, mouseX, mouseY))
+                {
+                    this.setActiveTooltip(I18n.format("fml.menu.mods.info.updateavailable", result.url));
+                }
+            }
 
             ModMetadata metadata = selectedModInfo.getMetadata();
             if (metadata != null && !metadata.autogenerated) {

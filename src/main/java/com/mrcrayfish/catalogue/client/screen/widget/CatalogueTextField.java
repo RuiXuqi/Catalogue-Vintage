@@ -50,6 +50,9 @@ public class CatalogueTextField extends GuiTextField {
         if (!visibleText.isEmpty()) {
             String text = isCursorVisible ? visibleText.substring(0, cursorPosRelative) : visibleText;
             currentDrawX = this.fontRenderer.drawStringWithShadow(text, (float) textStartX, (float) textStartY, textColor);
+            this.fontRenderer.drawStringWithShadow(suggestion, (float) currentDrawX - 1, (float) textStartY, 0x808080);
+        } else {
+            this.fontRenderer.drawStringWithShadow(suggestion, (float) currentDrawX, (float) textStartY, 0x808080);
         }
 
         boolean isTextTruncated = this.cursorPosition < this.getText().length() || this.getText().length() >= this.getMaxStringLength();
