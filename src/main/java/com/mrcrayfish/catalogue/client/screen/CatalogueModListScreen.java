@@ -12,7 +12,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.*;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.renderer.texture.TextureMap;
@@ -74,6 +73,7 @@ public class CatalogueModListScreen extends GuiScreen {
 
         this.modList = new ModList();
         this.modList.setSlotXBoundsFromLeft(10);
+        this.modList.setDrawTopAndBottom(false);
 
         this.buttonList.add(new GuiButton(1, 10, modList.bottom + 8, 127, 20, I18n.format("gui.back")));
         this.modFolderButton = this.addButton(new CatalogueIconButton(2, 140, modList.bottom + 8, 0, 0));
@@ -93,6 +93,8 @@ public class CatalogueModListScreen extends GuiScreen {
         this.issueButton.visible = false;
 
         this.descriptionList = new StringList(contentWidth, this.height - 135 - 55, contentLeft, 130);
+        this.descriptionList.setDrawTopAndBottom(false);
+        this.descriptionList.setDrawBackground(false);
 
         this.updatesButton = this.addButton(new CatalogueCheckBoxButton(6, this.modList.right - 14, 7, false));
 
@@ -102,10 +104,10 @@ public class CatalogueModListScreen extends GuiScreen {
         if(this.selectedModInfo != null) {
             this.setSelectedModInfo(this.selectedModInfo);
             this.updateSelectedModList();
-            ModEntry entry = this.modList.getEntryFromInfo(this.selectedModInfo);
-            if(entry != null) {
-                this.modList.selectMod(entry);
-            }
+            //ModEntry entry = this.modList.getEntryFromInfo(this.selectedModInfo);
+            //if(entry != null) {
+            //    this.modList.selectMod(entry);
+            //}
         }
         this.updateSearchField(this.searchTextField.getText());
     }
@@ -223,12 +225,6 @@ public class CatalogueModListScreen extends GuiScreen {
         protected int getScrollBarX() {
             return this.left + this.width - 6;
         }
-
-        @Override
-        protected void overlayBackground(int startY, int endY, int startAlpha, int endAlpha) {}
-
-        @Override
-        protected void drawTopBottomOverlay(Tessellator tessellator) {}
     }
 
     private class ModEntry implements CatalogueListExtended.IGuiListEntry {
@@ -375,7 +371,7 @@ public class CatalogueModListScreen extends GuiScreen {
 
         @Override
         public void drawScreen(int mouseX, int mouseY, float partialTicks) {
-            ScreenUtil.scissor(this.left, this.top, this.width, this.height);
+            ScreenUtil.scissor(this.left, this.top, this.width, this.bottom - this.top);
             super.drawScreen(mouseX, mouseY, partialTicks);
             GL11.glDisable(GL11.GL_SCISSOR_TEST);
         }
@@ -399,15 +395,6 @@ public class CatalogueModListScreen extends GuiScreen {
         public IGuiListEntry getListEntry(int index) {
             return this.entries.get(index);
         }
-
-        @Override
-        protected void drawContainerBackground(Tessellator tessellator) {}
-
-        @Override
-        protected void overlayBackground(int startY, int endY, int startAlpha, int endAlpha) {}
-
-        @Override
-        protected void drawTopBottomOverlay(Tessellator tessellator) {}
     }
 
     private class StringEntry implements CatalogueListExtended.IGuiListEntry {

@@ -12,6 +12,8 @@ import org.lwjgl.opengl.GL11;
 public abstract class CatalogueListExtended extends GuiListExtended {
     // Noting different from the original one, but allows you to remove the shadow on the bottom and top.
     // Created to avoid mixins.
+    private boolean shouldDrawTopAndBottom = true;
+    private boolean shouldDrawBackground = true;
 
     public CatalogueListExtended(Minecraft mcIn, int widthIn, int heightIn, int topIn, int bottomIn, int slotHeightIn) {
         super(mcIn, widthIn, heightIn, topIn, bottomIn, slotHeightIn);
@@ -37,10 +39,12 @@ public abstract class CatalogueListExtended extends GuiListExtended {
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder vertexBuffer = tessellator.getBuffer();
 
-        // Dirt background
-        this.drawContainerBackground(tessellator);
+        // Shadowed dirt background. Scroll with the entries.
+        if (shouldDrawBackground) {
+            this.drawContainerBackground(tessellator);
+        }
 
-        int contentLeft = this.left + this.width / 2 - this.getListWidth() / 2 + 2;
+        int contentLeft = this.left + (shouldDrawBackground ? this.width / 2 - this.getListWidth() / 2 + 2 : 0);
         int contentTop = this.top + 4 - (int)this.amountScrolled;
 
         if (this.hasListHeader) {
@@ -51,7 +55,7 @@ public abstract class CatalogueListExtended extends GuiListExtended {
 
         GlStateManager.disableDepth();
 
-        // Shadow the background
+        // Draw overlay to hide scrolled entries
         this.overlayBackground(0, this.top, 255, 255);
         this.overlayBackground(this.bottom, this.height, 255, 255);
 
@@ -62,7 +66,9 @@ public abstract class CatalogueListExtended extends GuiListExtended {
         GlStateManager.disableTexture2D();
 
         // Shadow the top and bottom
-        this.drawTopBottomOverlay(tessellator);
+        if (shouldDrawTopAndBottom) {
+            this.drawTopAndBottom(tessellator);
+        }
 
         // Scroll Bar
         int maxScroll = this.getMaxScroll();
@@ -106,7 +112,7 @@ public abstract class CatalogueListExtended extends GuiListExtended {
         GlStateManager.disableBlend();
     }
 
-    protected void drawTopBottomOverlay(Tessellator tessellator) {
+    protected void drawTopAndBottom(Tessellator tessellator) {
         BufferBuilder buffer = tessellator.getBuffer();
         buffer.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
         buffer.pos((double)this.left, (double)(this.top + 4), 0.0D).tex(0.0D, 1.0D).color(0, 0, 0, 0).endVertex();
@@ -133,5 +139,19 @@ public abstract class CatalogueListExtended extends GuiListExtended {
         this.height = height;
         this.top = top;
         this.bottom = bottom;
+    }
+
+    /**
+     * Sets whether draw the top and bottom shadow.
+     */
+    public void setDrawTopAndBottom(boolean shouldDraw) {
+        this.shouldDrawTopAndBottom = shouldDraw;
+    }
+
+    /**
+     * Sets whether draw the shadowed dirt background, which scrolls with the entries.
+     */
+    public void setDrawBackground(boolean shouldDraw) {
+        this.shouldDrawBackground = shouldDraw;
     }
 }
