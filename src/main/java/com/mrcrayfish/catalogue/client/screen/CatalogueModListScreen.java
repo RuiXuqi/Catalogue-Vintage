@@ -45,7 +45,6 @@ public class CatalogueModListScreen extends GuiScreen {
     private static final Map<String, Pair<ResourceLocation, Size2i>> LOGO_CACHE = new HashMap<>();
     private static final Map<String, Pair<ResourceLocation, Size2i>> ICON_CACHE = new HashMap<>();
     private static final Map<String, ItemStack> ITEM_CACHE = new HashMap<>();
-    private long lastClickTime;
     
     private CatalogueTextField searchTextField;
     private ModList modList;
@@ -59,6 +58,8 @@ public class CatalogueModListScreen extends GuiScreen {
     private List<String> activeTooltip;
     private int tooltipYOffset;
     private StringList descriptionList;
+
+    private long lastClickTime;
 
     public CatalogueModListScreen() {
         super();
@@ -104,6 +105,7 @@ public class CatalogueModListScreen extends GuiScreen {
         if(this.selectedModInfo != null) {
             this.setSelectedModInfo(this.selectedModInfo);
             this.updateSelectedModList();
+            // WIP. Should scroll to the entry instead of selecting it
             //ModEntry entry = this.modList.getEntryFromInfo(this.selectedModInfo);
             //if(entry != null) {
             //    this.modList.selectMod(entry);
@@ -120,20 +122,26 @@ public class CatalogueModListScreen extends GuiScreen {
         this.drawModInfo(mouseX, mouseY, partialTicks);
         super.drawScreen(mouseX, mouseY, partialTicks);
 
-
+        ModContainer info = Loader.instance().getIndexedModList().get("catalogue");
+        if (info != null) this.loadAndCacheLogo(info);
         Pair<ResourceLocation, Size2i> pair = LOGO_CACHE.get("catalogue");
-        if(pair != null && pair.getLeft() != null) {
+        if (pair != null && pair.getLeft() != null) {
             ResourceLocation textureId = pair.getLeft();
             Size2i size = pair.getRight();
             mc.getTextureManager().bindTexture(textureId);
-            this.drawTexturedModalRect(10, 9, 0, 0, 10, 10);
+            ScreenUtil.blit(10, 9, 10, 10, 0.0F, 0.0F, size.width, size.height, size.width, size.height);
         }
 
-        if(this.modFolderButton.isMouseOver()) {
+        if (ScreenUtil.isMouseWithin(10, 9, 10, 10, mouseX, mouseY)) {
+            this.setActiveTooltip(I18n.format("catalogue.gui.info"));
+            this.tooltipYOffset = 10;
+        }
+
+        if (this.modFolderButton.isMouseOver()) {
             this.setActiveTooltip(I18n.format("fml.button.open.mods.folder"));
         }
 
-        if(this.activeTooltip != null) {
+        if (this.activeTooltip != null) {
             this.drawHoveringText(this.activeTooltip, mouseX, mouseY + this.tooltipYOffset);
             this.tooltipYOffset = 0;
         }
@@ -243,7 +251,8 @@ public class CatalogueModListScreen extends GuiScreen {
             drawString(fontRenderer, this.getFormattedModName(), left + 24, top + 2, 0xFFFFFF);
             drawString(fontRenderer, TextFormatting.GRAY + this.info.getDisplayVersion(), left + 24, top + 12, 0xFFFFFF);
 
-            CatalogueModListScreen.this.loadAndCacheIcon(this.info);
+            //WIP
+            //CatalogueModListScreen.this.loadAndCacheIcon(this.info);
 
             // Draw icon
             if(ICON_CACHE.containsKey(this.info.getModId()) && ICON_CACHE.get(this.info.getModId()).getLeft() != null) {
@@ -600,7 +609,6 @@ public class CatalogueModListScreen extends GuiScreen {
         }
     }
 
-    // 加载logo
     private void loadAndCacheLogo(ModContainer info) {
         if (LOGO_CACHE.containsKey(info.getModId())) {
             return;
@@ -637,77 +645,84 @@ public class CatalogueModListScreen extends GuiScreen {
         }
     }
 
-    // 加载图标
+    // Not working at all.
     private void loadAndCacheIcon(ModContainer info) {
-//        if(ICON_CACHE.containsKey(info.getModId()))
-//            return;
-//
-//        // Fills an empty icon as icon may not be present
-//        ICON_CACHE.put(info.getModId(), Pair.of(null, new Size2i(0, 0)));
-//
-//        // Attempts to load the real icon
-//        ModContainer modInfo = info;
-//        if(modInfo.getCustomModProperties().containsKey("catalogueImageIcon")) {
-//            String s = modInfo.getCustomModProperties().get("catalogueImageIcon");
-//
-//            if(s.isEmpty())
-//                return;
-//
-//            if(s.contains("/") || s.contains("\\"))
-//            {
-//                Catalogue.LOGGER.warn("Skipped loading Catalogue icon file from {}. The file name '{}' contained illegal characters '/' or '\\'", info.getDisplayName(), s);
-//                return;
-//            }
-//
-//            ModFileResourcePack resourcePack = ResourcePackLoader.getResourcePackFor(info.getModId()).orElse(ResourcePackLoader.getResourcePackFor("forge").orElseThrow(() -> new RuntimeException("Can't find forge, WHAT!")));
-//            try(InputStream is = resourcePack.getRootResource(s); NativeImage icon = NativeImage.read(is)) {
-//                TextureManager textureManager = this.getMinecraft().getTextureManager();
-//                ICON_CACHE.put(info.getModId(), Pair.of(textureManager.register("catalogueicon", this.createLogoTexture(icon, false)), new Size2i(icon.getWidth(), icon.getHeight())));
-//                return;
-//            } catch(IOException ignored) {}
-//        }
-//
-//        // Attempts to use the logo file if it's a square
-//        modInfo.getLogoFile().ifPresent(s ->
-//        {
-//            if(s.isEmpty())
-//                return;
-//
-//            if(s.contains("/") || s.contains("\\"))
-//            {
-//                Catalogue.LOGGER.warn("Skipped loading logo file from {}. The file name '{}' contained illegal characters '/' or '\\'", info.getDisplayName(), s);
-//                return;
-//            }
-//
-//            ModFileResourcePack resourcePack = ResourcePackLoader.getResourcePackFor(info.getModId()).orElse(ResourcePackLoader.getResourcePackFor("forge").orElseThrow(() -> new RuntimeException("Can't find forge, WHAT!")));
-//            try(InputStream is = resourcePack.getRootResource(s); NativeImage logo = NativeImage.read(is))
-//            {
-//                if(logo.getWidth() == logo.getHeight())
-//                {
-//                    TextureManager textureManager = this.getMinecraft().getTextureManager();
-//                    String modId = info.getModId();
-//
-//                    /* The first selected mod will have it's logo cached before the icon, so we
-//                     * can just use the logo instead of loading the image again. */
-//                    if(LOGO_CACHE.containsKey(modId))
-//                    {
-//                        if(LOGO_CACHE.get(modId).getLeft() != null)
-//                        {
-//                            ICON_CACHE.put(modId, LOGO_CACHE.get(modId));
-//                            return;
-//                        }
-//                    }
-//
-//                    /* Since the icon will be same as the logo, we can cache into both icon and logo cache */
-//                    DynamicTexture texture = this.createLogoTexture(logo, modInfo.getLogoBlur());
-//                    Size2i size = new Size2i(logo.getWidth(), logo.getHeight());
-//                    ResourceLocation textureId = textureManager.register("catalogueicon", texture);
-//                    ICON_CACHE.put(modId, Pair.of(textureId, size));
-//                    LOGO_CACHE.put(modId, Pair.of(textureId, size));
-//                }
-//            }
-//            catch(IOException ignored) {}
-//        });
+        if(ICON_CACHE.containsKey(info.getModId()))
+            return;
+
+        // Fills an empty icon as icon may not be present
+        ICON_CACHE.put(info.getModId(), Pair.of(null, new Size2i(0, 0)));
+
+        // Attempts to load the real icon
+        ModContainer modInfo = (ModContainer) info;
+        if (modInfo.getCustomModProperties().containsKey("catalogueImageIcon")) {
+            String s = (String) modInfo.getCustomModProperties().get("catalogueImageIcon");
+
+            if (s.isEmpty()) return;
+
+            if (s.contains("/") || s.contains("\\")) {
+                Catalogue.LOGGER.warn("Skipped loading Catalogue icon file from {}. The file name '{}' contained illegal characters '/' or '\\'", info.getName(), s);
+                //return;
+            }
+
+            IResourcePack resourcePack = FMLClientHandler.instance().getResourcePackFor(info.getModId());
+            if (resourcePack == null) FMLClientHandler.instance().getResourcePackFor("forge");
+            if (resourcePack == null) throw new RuntimeException("Can't find forge, WHAT!");
+            try (InputStream is = resourcePack.getInputStream(new ResourceLocation(s))) {
+                BufferedImage icon = TextureUtil.readBufferedImage(is);
+                TextureManager textureManager = this.mc.getTextureManager();
+                ICON_CACHE.put(info.getModId(), Pair.of(textureManager.getDynamicTextureLocation("catalogueicon", this.createLogoTexture(icon, false)), new Size2i(icon.getWidth(), icon.getHeight())));
+                return;
+            } catch(IOException ignored) {}
+        }
+
+        // Attempts to use the logo file if it's a square
+        ModMetadata metadata = modInfo.getMetadata();
+        if (metadata == null) return;
+        String s = metadata.logoFile;
+        if (s.isEmpty()) return;
+
+        if (s.contains("/") || s.contains("\\")) {
+            Catalogue.LOGGER.warn("Skipped loading logo file from {}. The file name '{}' contained illegal characters '/' or '\\'", info.getName(), s);
+            //return;
+        }
+
+        IResourcePack resourcePack = FMLClientHandler.instance().getResourcePackFor(info.getModId());
+        if (resourcePack == null) FMLClientHandler.instance().getResourcePackFor("forge");
+        if (resourcePack == null) throw new RuntimeException("Can't find forge, WHAT!");
+        try (InputStream is = resourcePack.getInputStream(new ResourceLocation(s))) {
+            BufferedImage logo = TextureUtil.readBufferedImage(is);
+            if (logo.getWidth() == logo.getHeight()) {
+                TextureManager textureManager = this.mc.getTextureManager();
+                String modId = info.getModId();
+
+                /* The first selected mod will have it's logo cached before the icon, so we
+                 * can just use the logo instead of loading the image again. */
+                if (LOGO_CACHE.containsKey(modId)) {
+                    if (LOGO_CACHE.get(modId).getLeft() != null) {
+                        ICON_CACHE.put(modId, LOGO_CACHE.get(modId));
+                        return;
+                    }
+                }
+
+                /* Since the icon will be same as the logo, we can cache into both icon and logo cache */
+                DynamicTexture texture = this.createLogoTexture(logo, true);
+                Size2i size = new Size2i(logo.getWidth(), logo.getHeight());
+                ResourceLocation textureId = textureManager.getDynamicTextureLocation("catalogueicon", texture);
+                ICON_CACHE.put(modId, Pair.of(textureId, size));
+                LOGO_CACHE.put(modId, Pair.of(textureId, size));
+            }
+        }
+        catch(IOException ignored) {}
+    }
+
+    private DynamicTexture createLogoTexture(BufferedImage image, boolean smooth) {
+        return new DynamicTexture(image) {
+            @Override
+            public void updateDynamicTexture() {
+                TextureUtil.uploadTextureImageAllocate(this.getGlTextureId(), image, smooth, false);
+            }
+        };
     }
 
     @SuppressWarnings("SameParameterValue")
