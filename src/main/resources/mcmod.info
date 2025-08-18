@@ -8,8 +8,5 @@
 	"credits": "${mod_credits}",
 	"url": "${mod_url}",
 	"updateJSON": "${mod_update_json}",
-	"logoFile": "${mod_logo_path}",
-	"customProperties": {
-		"catalogueItemIcon": "minecraft:diamond"
-	}
+	"logoFile": "${mod_logo_path}"
 }]
