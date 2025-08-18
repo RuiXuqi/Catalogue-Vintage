@@ -1,7 +1,6 @@
 package com.mrcrayfish.catalogue.client;
 
 import com.mrcrayfish.catalogue.client.screen.CatalogueModListScreen;
-import com.mrcrayfish.catalogue.client.screen.CatalogueModListScreenTemp;
 import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.fml.client.GuiModList;
 import net.minecraftforge.fml.common.Mod;
