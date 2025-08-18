@@ -21,7 +21,8 @@ import net.minecraft.client.resources.IResourcePack;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.*;
+import net.minecraft.util.text.event.ClickEvent;
 import net.minecraftforge.common.ForgeVersion;
 import net.minecraftforge.fml.client.FMLClientHandler;
 import net.minecraftforge.fml.client.IModGuiFactory;
@@ -32,6 +33,7 @@ import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import org.apache.commons.lang3.tuple.Pair;
 import org.lwjgl.opengl.GL11;
 
+import javax.annotation.Nullable;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -138,7 +140,7 @@ public class CatalogueModListScreen extends GuiScreen {
                 }
                 break;
             case 4:
-                //WIP
+                this.openLink(this.selectedModInfo);
                 break;
             case 5:
                 //WIP
@@ -476,24 +478,45 @@ public class CatalogueModListScreen extends GuiScreen {
     }
 
     @Override
-    protected void mouseClicked(int x, int y, int button) throws IOException {
-        super.mouseClicked(x, y, button);
-        this.searchTextField.mouseClicked(x, y, button);
-        if (button == 1 && x >= this.searchTextField.x && x < this.searchTextField.x + this.searchTextField.width && y >= this.searchTextField.y && y < this.searchTextField.y + this.searchTextField.height) {
-            this.searchTextField.setText("");
-            this.updateSearchField("");
-            this.modList.filterAndUpdateList("");
+    protected void mouseClicked(int mouseX, int mouseY, int button) throws IOException {
+        if (ScreenUtil.isMouseWithin(10, 9, 10, 10, mouseX, mouseY) && button == 0) {
+            this.openLink("https://www.curseforge.com/minecraft/mc-mods/catalogue");
             return;
         }
-        String text = this.searchTextField.getText();
-        long currentTine = Minecraft.getSystemTime();
-        if (button == 0 && !text.isEmpty() && currentTine - this.lastClickTime < 250L) {
-            text += this.searchTextField.getSuggestion();
-            this.searchTextField.setText(text);
-            this.updateSearchField(text);
-            this.modList.filterAndUpdateList(text);
+        if (this.selectedModInfo != null) {
+            int contentLeft = this.modList.right + 12 + 10;
+            String version = I18n.format("catalogue.gui.version", this.selectedModInfo.getDisplayVersion());
+            int versionWidth = this.fontRenderer.getStringWidth(version);
+            if(ScreenUtil.isMouseWithin(contentLeft + versionWidth + 5, 92, 8, 8, mouseX, mouseY)) {
+                ForgeVersion.CheckResult result = ForgeVersion.getResult(this.selectedModInfo);
+                if(result.status.shouldDraw() && result.url != null) {
+                    this.openLink(result.url);
+                }
+            }
         }
-        this.lastClickTime = currentTine;
+        this.searchTextField.mouseClicked(mouseX, mouseY, button);
+        if (ScreenUtil.isMouseWithin(this.searchTextField.x, this.searchTextField.y, this.searchTextField.width, this.searchTextField.height, mouseX, mouseY)) {
+            if (button == 1) {
+                this.searchTextField.setText("");
+                this.updateSearchField("");
+                this.modList.filterAndUpdateList("");
+                return;
+            }
+            if (button == 0) {
+                String text = this.searchTextField.getText();
+                long currentTine = Minecraft.getSystemTime();
+                if (!text.isEmpty() && currentTine - this.lastClickTime < 250L) {
+                    text += this.searchTextField.getSuggestion();
+                    this.searchTextField.setText(text);
+                    this.updateSearchField(text);
+                    this.modList.filterAndUpdateList(text);
+
+                }
+                this.lastClickTime = currentTine;
+                return;
+            }
+        }
+        super.mouseClicked(mouseX, mouseY, button);
     }
 
     @Override
@@ -574,8 +597,7 @@ public class CatalogueModListScreen extends GuiScreen {
             this.drawStringWithLabel("catalogue.gui.version", displayVersion, contentLeft, 92, contentWidth, mouseX, mouseY, TextFormatting.GRAY, TextFormatting.WHITE);
 
             // Draw inner version if the display version is different from it
-            String version = I18n.format("catalogue.gui.version", displayVersion);
-            int versionWidth = this.fontRenderer.getStringWidth(version);
+            int versionWidth = this.fontRenderer.getStringWidth(I18n.format("catalogue.gui.version", displayVersion));
             String innerVersion = this.selectedModInfo.getVersion();
             if (!displayVersion.equals(innerVersion) && ScreenUtil.isMouseWithin(contentLeft, 92, versionWidth, this.fontRenderer.FONT_HEIGHT, mouseX, mouseY)) {
                 this.setActiveTooltip(innerVersion);
@@ -877,5 +899,21 @@ public class CatalogueModListScreen extends GuiScreen {
                 this.searchTextField.setSuggestion("");
             }
         }
+    }
+
+    /**
+     * Opens a link with a url defined in the mod's info
+     */
+    private void openLink(@Nullable ModContainer configurable) {
+        if(configurable != null) {
+            ModMetadata metadata = configurable.getMetadata();
+            // The config button is only enabled when checked, so it is unnecessary to check again.
+            openLink(metadata.url);
+        }
+    }
+
+    private void openLink(String url) {
+        Style style = new Style().setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, url));
+        this.handleComponentClick(new TextComponentString("").setStyle(style));
     }
 }
