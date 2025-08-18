@@ -16,11 +16,9 @@ public class CatalogueTextField extends GuiTextField {
         this.fontRenderer = fontRenderer;
     }
 
+    // Values renamed by deepseek. Comments are handwrite.
     @Override
     public void drawTextBox() {
-
-        //0x808080
-
         if (!this.getVisible()) return;
 
         if (this.getEnableBackgroundDrawing()) {

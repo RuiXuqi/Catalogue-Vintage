@@ -3,13 +3,13 @@ package com.mrcrayfish.catalogue.client.screen;
 import com.google.common.collect.Lists;
 import com.mrcrayfish.catalogue.Catalogue;
 import com.mrcrayfish.catalogue.client.ScreenUtil;
+import com.mrcrayfish.catalogue.client.ScreenUtil.Size2i;
 import com.mrcrayfish.catalogue.client.screen.widget.CatalogueCheckBoxButton;
 import com.mrcrayfish.catalogue.client.screen.widget.CatalogueIconButton;
 import com.mrcrayfish.catalogue.client.screen.widget.CatalogueListExtended;
 import com.mrcrayfish.catalogue.client.screen.widget.CatalogueTextField;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.*;
-import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.Tessellator;
@@ -17,7 +17,6 @@ import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.texture.TextureUtil;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.resources.IResourcePack;
 import net.minecraft.init.Blocks;
@@ -181,6 +180,7 @@ public class CatalogueModListScreen extends GuiScreen {
                 .collect(Collectors.toList());
             this.entries = entries;
             this.selectMod(this.getEntryFromInfo(selectedModInfo));
+            this.setAmountScrolled(0);
         }
 
         public ModEntry getEntryFromInfo(ModContainer info) {
@@ -277,11 +277,11 @@ public class CatalogueModListScreen extends GuiScreen {
 
             // Draws an icon if there is an update for the mod
             ForgeVersion.CheckResult result = ForgeVersion.getResult(this.info);
-            if (result.status != ForgeVersion.Status.UP_TO_DATE) {
+            if(result.status.shouldDraw()) {
                 GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
                 mc.getTextureManager().bindTexture(VERSION_CHECK_ICONS);
                 int vOffset = result.status.isAnimated() && (System.currentTimeMillis() / 800 & 1) == 1 ? 8 : 0;
-                drawTexturedModalRect(left + rowWidth - 8 - 10, top + 6, result.status.getSheetOffset() * 8, vOffset, 8, 8);
+                ScreenUtil.blit(left + rowWidth - 8 - 10, top + 6, result.status.getSheetOffset() * 8, vOffset, 8, 8, 64, 16);
             }
         }
 
@@ -481,7 +481,7 @@ public class CatalogueModListScreen extends GuiScreen {
     private void drawModList(int mouseX, int mouseY, float partialTicks) {
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         mc.getTextureManager().bindTexture(VERSION_CHECK_ICONS);
-        this.drawTexturedModalRect(this.modList.right - 24, 10, 24, 0, 8, 8);
+        ScreenUtil.blit(this.modList.right - 24, 10, 24, 0, 8, 8, 64, 16);
 
         this.modList.drawScreen(mouseX, mouseY, partialTicks);
         drawString(this.fontRenderer, TextFormatting.BOLD + I18n.format("catalogue.gui.title"), 70, 10, 0xFFFFFF);
@@ -540,15 +540,14 @@ public class CatalogueModListScreen extends GuiScreen {
             // Draws an icon if there is an update for the mod
             ForgeVersion.CheckResult result = ForgeVersion.getResult(this.selectedModInfo);
             if(result.status.shouldDraw() && result.url != null) {
-                String version = I18n.format("fml.menu.mods.info.version", this.selectedModInfo.getVersion());
+                String version = I18n.format("catalogue.gui.version", this.selectedModInfo.getVersion());
                 int versionWidth = this.fontRenderer.getStringWidth(version);
                 GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
                 mc.getTextureManager().bindTexture(VERSION_CHECK_ICONS);
                 int vOffset = result.status.isAnimated() && (System.currentTimeMillis() / 800 & 1) == 1 ? 8 : 0;
-                drawTexturedModalRect(contentLeft + versionWidth + 5, 92, result.status.getSheetOffset() * 8, vOffset, 8, 8);
-                if(ScreenUtil.isMouseWithin(contentLeft + versionWidth + 5, 92, 8, 8, mouseX, mouseY))
-                {
-                    this.setActiveTooltip(I18n.format("fml.menu.mods.info.updateavailable", result.url));
+                ScreenUtil.blit(contentLeft + versionWidth + 5, 92, result.status.getSheetOffset() * 8, vOffset, 8, 8, 64, 16);
+                if(ScreenUtil.isMouseWithin(contentLeft + versionWidth + 5, 92, 8, 8, mouseX, mouseY)) {
+                    this.setActiveTooltip(I18n.format("catalogue.gui.update_available", result.url));
                 }
             }
 
@@ -754,7 +753,7 @@ public class CatalogueModListScreen extends GuiScreen {
             x += (contentWidth - width) / 2;
             y += (maxHeight - height) / 2;
 
-            blit(x, y, width, height, 0.0F, 0.0F, size.width, size.height, size.width, size.height);
+            ScreenUtil.blit(x, y, width, height, 0.0F, 0.0F, size.width, size.height, size.width, size.height);
 
             GlStateManager.disableBlend();
         }
@@ -831,31 +830,5 @@ public class CatalogueModListScreen extends GuiScreen {
         }
     }
 
-    private static class Size2i {
-        public final int width, height;
-
-        public Size2i(int width, int height) {
-            this.width = width;
-            this.height = height;
-        }
-    }
-
-    // By deepseek. It seems that it works perfectly.
-    public static void blit(int x, int y, int width, int height, float uOffset, float vOffset, int uWidth, int vHeight, int textureWidth, int textureHeight) {
-        float minU = uOffset / textureWidth;
-        float minV = vOffset / textureHeight;
-        float maxU = (uOffset + uWidth) / textureWidth;
-        float maxV = (vOffset + vHeight) / textureHeight;
-
-        Tessellator tessellator = Tessellator.getInstance();
-        BufferBuilder buffer = tessellator.getBuffer();
-
-        buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
-        buffer.pos(x, y + height, 0).tex(minU, maxV).endVertex();
-        buffer.pos(x + width, y + height, 0).tex(maxU, maxV).endVertex();
-        buffer.pos(x + width, y, 0).tex(maxU, minV).endVertex();
-        buffer.pos(x, y, 0).tex(minU, minV).endVertex();
-        tessellator.draw();
-    }
 
 }

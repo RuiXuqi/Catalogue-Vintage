@@ -7,6 +7,7 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.math.MathHelper;
+import org.lwjgl.opengl.GL11;
 
 public abstract class CatalogueListExtended extends GuiListExtended {
     // Noting different from the original one, but allows you to remove the shadow on the bottom and top.
@@ -16,74 +17,91 @@ public abstract class CatalogueListExtended extends GuiListExtended {
         super(mcIn, widthIn, heightIn, topIn, bottomIn, slotHeightIn);
     }
 
+    // Values renamed by deepseek. Comments are handwrite.
     @Override
-    public void drawScreen(int mouseXIn, int mouseYIn, float partialTicks) {
+    public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         if (!this.visible) return;
 
-        this.mouseX = mouseXIn;
-        this.mouseY = mouseYIn;
+        this.mouseX = mouseX;
+        this.mouseY = mouseY;
+
+        // Customized background. Empty by default.
         this.drawBackground();
-        int i = this.getScrollBarX();
-        int j = i + 6;
+
+        int scrollBarLeft = this.getScrollBarX();
+        int scrollBarRight = scrollBarLeft + 6;
+
         this.bindAmountScrolled();
         GlStateManager.disableLighting();
         GlStateManager.disableFog();
         Tessellator tessellator = Tessellator.getInstance();
-        BufferBuilder bufferbuilder = tessellator.getBuffer();
-        // Forge: background rendering moved into separate method.
+        BufferBuilder vertexBuffer = tessellator.getBuffer();
+
+        // Dirt background
         this.drawContainerBackground(tessellator);
-        int k = this.left + this.width / 2 - this.getListWidth() / 2 + 2;
-        int l = this.top + 4 - (int)this.amountScrolled;
+
+        int contentLeft = this.left + this.width / 2 - this.getListWidth() / 2 + 2;
+        int contentTop = this.top + 4 - (int)this.amountScrolled;
 
         if (this.hasListHeader) {
-            this.drawListHeader(k, l, tessellator);
+            this.drawListHeader(contentLeft, contentTop, tessellator);
         }
 
-        this.drawSelectionBox(k, l, mouseXIn, mouseYIn, partialTicks);
+        this.drawSelectionBox(contentLeft, contentTop, mouseX, mouseY, partialTicks);
+
         GlStateManager.disableDepth();
+
+        // Shadow the background
         this.overlayBackground(0, this.top, 255, 255);
         this.overlayBackground(this.bottom, this.height, 255, 255);
+
         GlStateManager.enableBlend();
         GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ZERO, GlStateManager.DestFactor.ONE);
         GlStateManager.disableAlpha();
-        GlStateManager.shadeModel(7425);
+        GlStateManager.shadeModel(GL11.GL_SMOOTH);
         GlStateManager.disableTexture2D();
-        int i1 = 4;
+
+        // Shadow the top and bottom
         this.drawTopBottomOverlay(tessellator);
-        int j1 = this.getMaxScroll();
 
-        if (j1 > 0 && this.getContentHeight() != 0) {
-            int k1 = (this.bottom - this.top) * (this.bottom - this.top) / this.getContentHeight();
-            k1 = MathHelper.clamp(k1, 32, this.bottom - this.top - 8);
-            int l1 = (int)this.amountScrolled * (this.bottom - this.top - k1) / j1 + this.top;
+        // Scroll Bar
+        int maxScroll = this.getMaxScroll();
+        if (maxScroll > 0 && this.getContentHeight() != 0) {
+            int scrollThumbHeight = (this.bottom - this.top) * (this.bottom - this.top) / this.getContentHeight();
+            scrollThumbHeight = MathHelper.clamp(scrollThumbHeight, 32, this.bottom - this.top - 8);
+            int scrollThumbTop = (int)this.amountScrolled * (this.bottom - this.top - scrollThumbHeight) / maxScroll + this.top;
+            scrollThumbTop = Math.max(scrollThumbTop, this.top);
 
-            if (l1 < this.top) {
-                l1 = this.top;
-            }
-
-            bufferbuilder.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
-            bufferbuilder.pos((double)i, (double)this.bottom, 0.0D).tex(0.0D, 1.0D).color(0, 0, 0, 255).endVertex();
-            bufferbuilder.pos((double)j, (double)this.bottom, 0.0D).tex(1.0D, 1.0D).color(0, 0, 0, 255).endVertex();
-            bufferbuilder.pos((double)j, (double)this.top, 0.0D).tex(1.0D, 0.0D).color(0, 0, 0, 255).endVertex();
-            bufferbuilder.pos((double)i, (double)this.top, 0.0D).tex(0.0D, 0.0D).color(0, 0, 0, 255).endVertex();
+            // Background
+            vertexBuffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR);
+            vertexBuffer.pos(scrollBarLeft, this.bottom, 0).tex(0, 1).color(0, 0, 0, 255).endVertex();
+            vertexBuffer.pos(scrollBarRight, this.bottom, 0).tex(1, 1).color(0, 0, 0, 255).endVertex();
+            vertexBuffer.pos(scrollBarRight, this.top, 0).tex(1, 0).color(0, 0, 0, 255).endVertex();
+            vertexBuffer.pos(scrollBarLeft, this.top, 0).tex(0, 0).color(0, 0, 0, 255).endVertex();
             tessellator.draw();
-            bufferbuilder.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
-            bufferbuilder.pos((double)i, (double)(l1 + k1), 0.0D).tex(0.0D, 1.0D).color(128, 128, 128, 255).endVertex();
-            bufferbuilder.pos((double)j, (double)(l1 + k1), 0.0D).tex(1.0D, 1.0D).color(128, 128, 128, 255).endVertex();
-            bufferbuilder.pos((double)j, (double)l1, 0.0D).tex(1.0D, 0.0D).color(128, 128, 128, 255).endVertex();
-            bufferbuilder.pos((double)i, (double)l1, 0.0D).tex(0.0D, 0.0D).color(128, 128, 128, 255).endVertex();
+
+            // Main
+            vertexBuffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR);
+            vertexBuffer.pos(scrollBarLeft, scrollThumbTop + scrollThumbHeight, 0).tex(0, 1).color(128, 128, 128, 255).endVertex();
+            vertexBuffer.pos(scrollBarRight, scrollThumbTop + scrollThumbHeight, 0).tex(1, 1).color(128, 128, 128, 255).endVertex();
+            vertexBuffer.pos(scrollBarRight, scrollThumbTop, 0).tex(1, 0).color(128, 128, 128, 255).endVertex();
+            vertexBuffer.pos(scrollBarLeft, scrollThumbTop, 0).tex(0, 0).color(128, 128, 128, 255).endVertex();
             tessellator.draw();
-            bufferbuilder.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
-            bufferbuilder.pos((double)i, (double)(l1 + k1 - 1), 0.0D).tex(0.0D, 1.0D).color(192, 192, 192, 255).endVertex();
-            bufferbuilder.pos((double)(j - 1), (double)(l1 + k1 - 1), 0.0D).tex(1.0D, 1.0D).color(192, 192, 192, 255).endVertex();
-            bufferbuilder.pos((double)(j - 1), (double)l1, 0.0D).tex(1.0D, 0.0D).color(192, 192, 192, 255).endVertex();
-            bufferbuilder.pos((double)i, (double)l1, 0.0D).tex(0.0D, 0.0D).color(192, 192, 192, 255).endVertex();
+
+            // Border
+            vertexBuffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR);
+            vertexBuffer.pos(scrollBarLeft, scrollThumbTop + scrollThumbHeight - 1, 0).tex(0, 1).color(192, 192, 192, 255).endVertex();
+            vertexBuffer.pos(scrollBarRight - 1, scrollThumbTop + scrollThumbHeight - 1, 0).tex(1, 1).color(192, 192, 192, 255).endVertex();
+            vertexBuffer.pos(scrollBarRight - 1, scrollThumbTop, 0).tex(1, 0).color(192, 192, 192, 255).endVertex();
+            vertexBuffer.pos(scrollBarLeft, scrollThumbTop, 0).tex(0, 0).color(192, 192, 192, 255).endVertex();
             tessellator.draw();
         }
 
-        this.renderDecorations(mouseXIn, mouseYIn);
+        // Customized decorations. Empty by default.
+        this.renderDecorations(mouseX, mouseY);
+
         GlStateManager.enableTexture2D();
-        GlStateManager.shadeModel(7424);
+        GlStateManager.shadeModel(GL11.GL_FLAT);
         GlStateManager.enableAlpha();
         GlStateManager.disableBlend();
     }

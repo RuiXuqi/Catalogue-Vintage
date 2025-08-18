@@ -10,3 +10,4 @@ catalogue.gui.search=Search...
 catalogue.gui.title=Mods
 catalogue.gui.credits=Credits: %s
 catalogue.gui.authors=Authors: %s
+catalogue.gui.update_available=Update Available: %s
