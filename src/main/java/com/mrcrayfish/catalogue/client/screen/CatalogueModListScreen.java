@@ -308,8 +308,10 @@ public class CatalogueModListScreen extends GuiScreen {
                 GlStateManager.disableBlend();
             } else {
                 try {
+                    GlStateManager.enableDepth();
                     RenderHelper.enableGUIStandardItemLighting();
                     CatalogueModListScreen.this.mc.getRenderItem().renderItemIntoGUI(this.getItemIcon(), left + 4, top + 2);
+                    GlStateManager.disableDepth();
                     RenderHelper.disableStandardItemLighting();
                 } catch(Exception e) {
                     ITEM_CACHE.put(this.info.getModId(), new ItemStack(Blocks.GRASS));
