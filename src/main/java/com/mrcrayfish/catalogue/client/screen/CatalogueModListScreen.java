@@ -479,9 +479,11 @@ public class CatalogueModListScreen extends GuiScreen {
      * @param partialTicks the partial ticks
      */
     private void drawModList(int mouseX, int mouseY, float partialTicks) {
+        GlStateManager.enableBlend();
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         mc.getTextureManager().bindTexture(VERSION_CHECK_ICONS);
         ScreenUtil.blit(this.modList.right - 24, 10, 24, 0, 8, 8, 64, 16);
+        GlStateManager.disableBlend();
 
         this.modList.drawScreen(mouseX, mouseY, partialTicks);
         drawString(this.fontRenderer, TextFormatting.BOLD + I18n.format("catalogue.gui.title"), 70, 10, 0xFFFFFF);
