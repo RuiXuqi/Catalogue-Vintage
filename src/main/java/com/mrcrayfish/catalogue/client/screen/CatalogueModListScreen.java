@@ -9,7 +9,8 @@ import com.mrcrayfish.catalogue.client.screen.widget.CatalogueIconButton;
 import com.mrcrayfish.catalogue.client.screen.widget.CatalogueListExtended;
 import com.mrcrayfish.catalogue.client.screen.widget.CatalogueTextField;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.*;
+import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.texture.DynamicTexture;
@@ -21,7 +22,9 @@ import net.minecraft.client.resources.IResourcePack;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.*;
+import net.minecraft.util.text.Style;
+import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.event.ClickEvent;
 import net.minecraftforge.common.ForgeVersion;
 import net.minecraftforge.fml.client.FMLClientHandler;
@@ -34,12 +37,11 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.lwjgl.opengl.GL11;
 
 import javax.annotation.Nullable;
-import java.awt.*;
+import java.awt.Desktop;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
-import java.util.List;
 import java.util.stream.Collectors;
 
 public class CatalogueModListScreen extends GuiScreen {
@@ -108,7 +110,6 @@ public class CatalogueModListScreen extends GuiScreen {
         if(this.selectedModInfo != null) {
             this.setSelectedModInfo(this.selectedModInfo);
             this.updateSelectedModList();
-            // WIP. Should scroll to the entry instead of selecting it
             ModEntry entry = this.modList.getEntryFromInfo(this.selectedModInfo);
             if(entry != null) {
                 this.modList.centerScrollOn(entry);
