@@ -479,43 +479,51 @@ public class CatalogueModListScreen extends GuiScreen {
 
     @Override
     protected void mouseClicked(int mouseX, int mouseY, int button) throws IOException {
+        // Catalogue button
         if (ScreenUtil.isMouseWithin(10, 9, 10, 10, mouseX, mouseY) && button == 0) {
             this.openLink("https://www.curseforge.com/minecraft/mc-mods/catalogue");
             return;
         }
+
+        // Version check button
         if (this.selectedModInfo != null) {
             int contentLeft = this.modList.right + 12 + 10;
             String version = I18n.format("catalogue.gui.version", this.selectedModInfo.getDisplayVersion());
             int versionWidth = this.fontRenderer.getStringWidth(version);
-            if(ScreenUtil.isMouseWithin(contentLeft + versionWidth + 5, 92, 8, 8, mouseX, mouseY)) {
+            if (ScreenUtil.isMouseWithin(contentLeft + versionWidth + 5, 92, 8, 8, mouseX, mouseY)) {
                 ForgeVersion.CheckResult result = ForgeVersion.getResult(this.selectedModInfo);
-                if(result.status.shouldDraw() && result.url != null) {
+                if (result.status.shouldDraw() && result.url != null) {
                     this.openLink(result.url);
                 }
             }
         }
-        this.searchTextField.mouseClicked(mouseX, mouseY, button);
+
+        // Search Text Field
         if (ScreenUtil.isMouseWithin(this.searchTextField.x, this.searchTextField.y, this.searchTextField.width, this.searchTextField.height, mouseX, mouseY)) {
+            // Right click to empty
             if (button == 1) {
                 this.searchTextField.setText("");
                 this.updateSearchField("");
                 this.modList.filterAndUpdateList("");
                 return;
             }
+            // Left click to apply suggestions
             if (button == 0) {
                 String text = this.searchTextField.getText();
                 long currentTine = Minecraft.getSystemTime();
-                if (!text.isEmpty() && currentTine - this.lastClickTime < 250L) {
+                if (!text.isEmpty() && currentTine - this.lastClickTime < 250L && !this.searchTextField.getIsTextTruncated()) {
                     text += this.searchTextField.getSuggestion();
                     this.searchTextField.setText(text);
                     this.updateSearchField(text);
                     this.modList.filterAndUpdateList(text);
-
+                    this.lastClickTime = currentTine;
+                    return;
                 }
                 this.lastClickTime = currentTine;
-                return;
             }
         }
+        this.searchTextField.mouseClicked(mouseX, mouseY, button);
+
         super.mouseClicked(mouseX, mouseY, button);
     }
 

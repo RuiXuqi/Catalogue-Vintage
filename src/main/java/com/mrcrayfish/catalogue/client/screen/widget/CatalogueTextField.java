@@ -10,6 +10,7 @@ public class CatalogueTextField extends GuiTextField {
 
     private final FontRenderer fontRenderer;
     private String suggestion = "";
+    private boolean isTextTruncated;
 
     public CatalogueTextField(int id, FontRenderer fontRenderer, int x, int y, int width, int height) {
         super(id, fontRenderer, x, y, width, height);
@@ -22,7 +23,8 @@ public class CatalogueTextField extends GuiTextField {
         if (!this.getVisible()) return;
 
         if (this.getEnableBackgroundDrawing()) {
-            drawRect(this.x - 1, this.y - 1, this.x + this.width + 1, this.y + this.height + 1, this.isFocused() ? 0xFFFFFFFF : 0xFFA0A0A0);
+            int borderColor = this.isFocused() ? 0xFFFFFFFF : 0xFFA0A0A0;
+            drawRect(this.x - 1, this.y - 1, this.x + this.width + 1, this.y + this.height + 1, borderColor);
             drawRect(this.x, this.y, this.x + this.width, this.y + this.height, 0xFF000000);
         }
 
@@ -50,23 +52,27 @@ public class CatalogueTextField extends GuiTextField {
             currentDrawX = this.fontRenderer.drawStringWithShadow(text, (float) textStartX, (float) textStartY, textColor);
         }
 
-        boolean isTextTruncated = this.cursorPosition < this.getText().length() || this.getText().length() >= this.getMaxStringLength();
+        isTextTruncated = this.cursorPosition < this.getText().length() || this.getText().length() >= this.getMaxStringLength();
         int cursorDrawX = currentDrawX;
 
         if (!isCursorVisible) {
             cursorDrawX = cursorPosRelative > 0 ? textStartX + this.width : textStartX;
         } else if (isTextTruncated) {
             cursorDrawX = currentDrawX - 1;
+            --currentDrawX;
         }
 
         // Draw text after cursor
-        if (!visibleText.isEmpty()) {
-            if (isCursorVisible && cursorPosRelative < visibleText.length()){
-                currentDrawX = this.fontRenderer.drawStringWithShadow(visibleText.substring(cursorPosRelative), (float) currentDrawX, (float) textStartY, textColor);
+        if (!visibleText.isEmpty() && isCursorVisible && cursorPosRelative < visibleText.length()) {
+            currentDrawX = this.fontRenderer.drawStringWithShadow(visibleText.substring(cursorPosRelative), (float) currentDrawX, (float) textStartY, textColor);
+        }
+
+        if (!isTextTruncated && this.suggestion != null) {
+            if (!this.getText().isEmpty()) {
+                this.fontRenderer.drawStringWithShadow(this.suggestion, (float) currentDrawX - 1, (float) textStartY, 0x808080);
+            } else {
+                this.fontRenderer.drawStringWithShadow(this.suggestion, (float) currentDrawX, (float) textStartY, 0x808080);
             }
-            this.fontRenderer.drawStringWithShadow(suggestion, (float) currentDrawX - 1, (float) textStartY, 0x808080);
-        } else {
-            this.fontRenderer.drawStringWithShadow(suggestion, (float) currentDrawX, (float) textStartY, 0x808080);
         }
 
         if (shouldDrawCursor) {
@@ -89,6 +95,10 @@ public class CatalogueTextField extends GuiTextField {
 
     public String getSuggestion() {
         return this.suggestion;
+    }
+
+    public boolean getIsTextTruncated() {
+        return this.isTextTruncated;
     }
 
 }
