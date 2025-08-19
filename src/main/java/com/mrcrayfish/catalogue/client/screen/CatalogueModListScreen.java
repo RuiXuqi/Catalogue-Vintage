@@ -109,10 +109,10 @@ public class CatalogueModListScreen extends GuiScreen {
             this.setSelectedModInfo(this.selectedModInfo);
             this.updateSelectedModList();
             // WIP. Should scroll to the entry instead of selecting it
-            //ModEntry entry = this.modList.getEntryFromInfo(this.selectedModInfo);
-            //if(entry != null) {
-            //    this.modList.selectMod(entry);
-            //}
+            ModEntry entry = this.modList.getEntryFromInfo(this.selectedModInfo);
+            if(entry != null) {
+                this.modList.centerScrollOn(entry);
+            }
         }
         this.updateSearchField(this.searchTextField.getText());
     }
@@ -241,6 +241,10 @@ public class CatalogueModListScreen extends GuiScreen {
 
         public void selectMod(IGuiListEntry entry) {
             this.selectMod(this.getEntryIndex(entry));
+        }
+
+        public void centerScrollOn(IGuiListEntry entry) {
+            this.setAmountScrolled(this.slotHeight * this.getEntryIndex(entry));
         }
 
         @Override
@@ -532,8 +536,6 @@ public class CatalogueModListScreen extends GuiScreen {
         super.updateScreen();
         this.searchTextField.updateCursorCounter();
     }
-
-    // 工具方法
 
     /**
      * Draws everything considered left of the screen; title, search bar and mod list.

@@ -40,11 +40,11 @@ public abstract class CatalogueListExtended extends GuiListExtended {
         BufferBuilder vertexBuffer = tessellator.getBuffer();
 
         // Shadowed dirt background. Scroll with the entries.
-        if (shouldDrawBackground) {
+        if (this.shouldDrawBackground) {
             this.drawContainerBackground(tessellator);
         }
 
-        int contentLeft = this.left + (shouldDrawBackground ? this.width / 2 - this.getListWidth() / 2 + 2 : 0);
+        int contentLeft = this.left + (this.shouldDrawBackground ? this.width / 2 - this.getListWidth() / 2 + 2 : 0);
         int contentTop = this.top + 4 - (int)this.amountScrolled;
 
         if (this.hasListHeader) {
@@ -66,7 +66,7 @@ public abstract class CatalogueListExtended extends GuiListExtended {
         GlStateManager.disableTexture2D();
 
         // Shadow the top and bottom
-        if (shouldDrawTopAndBottom) {
+        if (this.shouldDrawTopAndBottom) {
             this.drawTopAndBottom(tessellator);
         }
 
