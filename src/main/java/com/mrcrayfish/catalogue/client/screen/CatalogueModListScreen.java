@@ -187,7 +187,7 @@ public class CatalogueModListScreen extends GuiScreen {
     }
 
     @Override
-    protected void keyTyped(char typedChar, int key) {
+    protected void keyTyped(char typedChar, int key) throws IOException {
         if (this.searchTextField.textboxKeyTyped(typedChar, key)) {
             String s = this.searchTextField.getText();
             this.updateSearchField(s);
@@ -476,14 +476,14 @@ public class CatalogueModListScreen extends GuiScreen {
 
 
     @Override
-    public void handleMouseInput() {
+    public void handleMouseInput() throws IOException {
         super.handleMouseInput();
         this.modList.handleMouseInput();
         this.descriptionList.handleMouseInput();
     }
 
     @Override
-    protected void mouseClicked(int mouseX, int mouseY, int button) {
+    protected void mouseClicked(int mouseX, int mouseY, int button) throws IOException {
         // Catalogue button
         if (ScreenUtil.isMouseWithin(10, 9, 10, 10, mouseX, mouseY) && button == 0) {
             this.openLink("https://www.curseforge.com/minecraft/mc-mods/catalogue");
