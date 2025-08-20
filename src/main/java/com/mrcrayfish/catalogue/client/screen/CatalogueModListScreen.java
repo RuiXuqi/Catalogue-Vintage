@@ -380,7 +380,7 @@ public class CatalogueModListScreen extends GuiScreen {
                     // If the item is in a creative tab, Catalogue will use the tab's icon
                     if (item.getItem().getCreativeTab() != null) {
                         ItemStack tabItem = item.getItem().getCreativeTab().getIcon();
-                        if (tabItem != null && !tabItem.isEmpty()) {
+                        if (tabItem != null && !tabItem.isEmpty() && tabItem.getItem().getRegistryName().getNamespace().equals(this.info.getModId())) {
                             item = tabItem;
                         }
                     }
