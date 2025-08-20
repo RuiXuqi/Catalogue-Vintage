@@ -224,7 +224,7 @@ public class CatalogueModListScreen extends GuiScreen {
         public void filterAndUpdateList(String text) {
             List<ModEntry> entries = Loader.instance().getActiveModList().stream()
                     .filter(info -> info.getName().toLowerCase(Locale.ENGLISH).contains(text.toLowerCase(Locale.ENGLISH)))
-                    .filter(info -> !updatesButton.selected() || ForgeVersion.getResult(info).status.shouldDraw())
+                    .filter(info -> !updatesButton.selected() || shouldUpdate(ForgeVersion.getCleanResult(info)))
                     .map(info -> new ModEntry(info, this))
                     .sorted(Comparator.comparing(entry -> entry.info.getName()))
                     .collect(Collectors.toList());
@@ -327,8 +327,8 @@ public class CatalogueModListScreen extends GuiScreen {
             }
 
             // Draws an icon if there is an update for the mod
-            ForgeVersion.CheckResult result = ForgeVersion.getResult(this.info);
-            if (result.status.shouldDraw()) {
+            ForgeVersion.CheckResult result = ForgeVersion.getCleanResult(this.info);
+            if (shouldDraw(result)) {
                 GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
                 mc.getTextureManager().bindTexture(VERSION_CHECK_ICONS);
                 int vOffset = result.status.isAnimated() && (System.currentTimeMillis() / 800 & 1) == 1 ? 8 : 0;
@@ -508,9 +508,9 @@ public class CatalogueModListScreen extends GuiScreen {
             String version = I18n.format("catalogue.gui.version", this.selectedModInfo.getDisplayVersion());
             int versionWidth = this.fontRenderer.getStringWidth(version);
             if (ScreenUtil.isMouseWithin(contentLeft + versionWidth + 5, 92, 8, 8, mouseX, mouseY)) {
-                ForgeVersion.CheckResult result = ForgeVersion.getResult(this.selectedModInfo);
-                if (result.status.shouldDraw() && result.url != null) {
-                    this.openLink(result.url);
+                ForgeVersion.CheckResult result = ForgeVersion.getCleanResult(this.selectedModInfo);
+                if (shouldUpdate(result) && result.homepage != null) {
+                    this.openLink(result.homepage);
                 }
             }
         }
@@ -627,14 +627,35 @@ public class CatalogueModListScreen extends GuiScreen {
             }
 
             // Draws an icon if there is an update for the mod
-            ForgeVersion.CheckResult result = ForgeVersion.getResult(this.selectedModInfo);
-            if (result.status.shouldDraw() && result.url != null) {
+            ForgeVersion.CheckResult result = ForgeVersion.getCleanResult(this.selectedModInfo);
+            if (shouldDraw(result) && result.url != null) {
                 GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
                 mc.getTextureManager().bindTexture(VERSION_CHECK_ICONS);
                 int vOffset = result.status.isAnimated() && (System.currentTimeMillis() / 800 & 1) == 1 ? 8 : 0;
                 ScreenUtil.blit(contentLeft + versionWidth + 5, 92, result.status.getSheetOffset() * 8, vOffset, 8, 8, 64, 16);
                 if (ScreenUtil.isMouseWithin(contentLeft + versionWidth + 5, 92, 8, 8, mouseX, mouseY)) {
-                    this.setActiveTooltip(I18n.format("catalogue.gui.update_available", result.url));
+                    switch (result.status) {
+                        case BETA:
+                            this.setActiveTooltip(TextFormatting.GOLD + I18n.format("catalogue.gui.beta_cr"));
+                            break;
+                        case AHEAD:
+                            this.setActiveTooltip(TextFormatting.LIGHT_PURPLE + I18n.format("catalogue.gui.ahead_cr", result.latestFound));
+                            break;
+                        case BETA_OUTDATED:
+                            if (result.homepage != null) {
+                                this.setActiveTooltip(TextFormatting.GOLD + I18n.format("catalogue.gui.beta_update_available_cr", result.latestFound, result.homepage));
+                            } else {
+                                this.setActiveTooltip(TextFormatting.GOLD + I18n.format("catalogue.gui.beta_update_available_no_page_cr", result.latestFound));
+                            }
+                            break;
+                        case OUTDATED:
+                            if (result.homepage != null) {
+                                this.setActiveTooltip(TextFormatting.GREEN + I18n.format("catalogue.gui.update_available_cr", result.latestFound, result.homepage));
+                            } else {
+                                this.setActiveTooltip(TextFormatting.GREEN + I18n.format("catalogue.gui.update_available_no_page_cr", result.latestFound));
+                            }
+                            break;
+                    }
                 }
             }
 
@@ -941,5 +962,15 @@ public class CatalogueModListScreen extends GuiScreen {
     private void openLink(String url) {
         Style style = new Style().setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, url));
         this.handleComponentClick(new TextComponentString("").setStyle(style));
+    }
+
+    private boolean shouldDraw(ForgeVersion.CheckResult result) {
+        return result != null && result.status.shouldDraw();
+    }
+
+    private boolean shouldUpdate(ForgeVersion.CheckResult result) {
+        if (result == null) return false;
+        ForgeVersion.Status status = result.status;
+        return status == ForgeVersion.Status.OUTDATED || status == ForgeVersion.Status.BETA_OUTDATED;
     }
 }
