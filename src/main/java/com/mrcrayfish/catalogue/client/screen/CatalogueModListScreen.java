@@ -377,12 +377,11 @@ public class CatalogueModListScreen extends GuiScreen {
             if (optional.isPresent()) {
                 ItemStack item = optional.get();
                 if (!item.isEmpty()) {
-                    //看看这个物品有没有tap？
+                    // If the item is in a creative tab, Catalogue will use the tab's icon
                     if (item.getItem().getCreativeTab() != null) {
-                        ItemStack tap = item.getItem().getCreativeTab().getIcon();
-                        if (tap != null && !tap.isEmpty()) {
-                            //如果有则从tap拿渲染的物品
-                            item = tap;
+                        ItemStack tabItem = item.getItem().getCreativeTab().getIcon();
+                        if (tabItem != null && !tabItem.isEmpty()) {
+                            item = tabItem;
                         }
                     }
                     ITEM_CACHE.put(this.info.getModId(), item);
