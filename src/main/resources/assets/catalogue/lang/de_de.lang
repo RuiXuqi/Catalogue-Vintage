@@ -1,0 +1,12 @@
+catalogue.gui.authors=Authors: %s
+catalogue.gui.config=Config
+catalogue.gui.credits=Credits: %s
+catalogue.gui.filter_updates=Zeige nur Mods mit Aktualisierungen.
+catalogue.gui.issue=Submit Bug
+catalogue.gui.modid=Mod ID: %s
+catalogue.gui.no_selection=No mod selected...
+catalogue.gui.search=Search...
+catalogue.gui.title=Mods
+catalogue.gui.update_available=Update Available: %scatalogue.gui.info
+catalogue.gui.version=Version: %s
+catalogue.gui.website=Website
