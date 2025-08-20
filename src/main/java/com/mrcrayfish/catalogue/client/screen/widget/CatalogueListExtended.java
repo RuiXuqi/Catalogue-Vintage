@@ -1,7 +1,6 @@
 package com.mrcrayfish.catalogue.client.screen.widget;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiListExtended;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
@@ -126,19 +125,6 @@ public abstract class CatalogueListExtended extends GuiListExtended {
         buffer.pos((double)this.right, (double)this.bottom, 0.0D).tex(1.0D, 1.0D).color(0, 0, 0, 255).endVertex();
         buffer.pos((double)this.right, (double)(this.bottom - 4), 0.0D).tex(1.0D, 0.0D).color(0, 0, 0, 0).endVertex();
         buffer.pos((double)this.left, (double)(this.bottom - 4), 0.0D).tex(0.0D, 0.0D).color(0, 0, 0, 0).endVertex();
-        tessellator.draw();
-    }
-
-    protected void drawContainerBackground(Tessellator tessellator) {
-        BufferBuilder buffer = tessellator.getBuffer();
-        this.mc.getTextureManager().bindTexture(Gui.OPTIONS_BACKGROUND);
-        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-        float f = 32.0F;
-        buffer.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
-        buffer.pos((double)this.left,  (double)this.bottom, 0.0D).tex((double)((float)this.left  / f), (double)((float)(this.bottom + (int)this.amountScrolled) / f)).color(32, 32, 32, 255).endVertex();
-        buffer.pos((double)this.right, (double)this.bottom, 0.0D).tex((double)((float)this.right / f), (double)((float)(this.bottom + (int)this.amountScrolled) / f)).color(32, 32, 32, 255).endVertex();
-        buffer.pos((double)this.right, (double)this.top,    0.0D).tex((double)((float)this.right / f), (double)((float)(this.top    + (int)this.amountScrolled) / f)).color(32, 32, 32, 255).endVertex();
-        buffer.pos((double)this.left,  (double)this.top,    0.0D).tex((double)((float)this.left  / f), (double)((float)(this.top    + (int)this.amountScrolled) / f)).color(32, 32, 32, 255).endVertex();
         tessellator.draw();
     }
 
