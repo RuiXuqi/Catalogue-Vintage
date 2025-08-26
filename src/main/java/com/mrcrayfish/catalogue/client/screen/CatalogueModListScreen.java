@@ -37,11 +37,10 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.lwjgl.opengl.GL11;
 
 import javax.annotation.Nullable;
-import java.awt.*;
+import java.awt.Desktop;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -142,10 +141,10 @@ public class CatalogueModListScreen extends GuiScreen {
                 }
                 break;
             case 4:
-                this.openLink(this.selectedModInfo);
+                this.openLink(0, this.selectedModInfo);
                 break;
             case 5:
-                //WIP
+                this.openLink(1, this.selectedModInfo);
                 break;
             case 6:
                 this.modList.filterAndUpdateList(this.searchTextField.getText());
@@ -295,7 +294,7 @@ public class CatalogueModListScreen extends GuiScreen {
             drawString(fontRenderer, this.getFormattedModName(), left + 24, top + 2, 0xFFFFFF);
             drawString(fontRenderer, TextFormatting.GRAY + this.info.getDisplayVersion(), left + 24, top + 12, 0xFFFFFF);
 
-            //WIP
+            // WIP
             CatalogueModListScreen.this.loadAndCacheIcon(this.info);
 
             // Draw icon
@@ -350,6 +349,9 @@ public class CatalogueModListScreen extends GuiScreen {
             // Put grass as default item icon
             ITEM_CACHE.put(this.info.getModId(), new ItemStack(Blocks.GRASS));
 
+            // Minecraft is a grass block
+            if (this.info.getModId().equals("minecraft")) return new ItemStack(Blocks.GRASS);
+
             // Special case for Forge to set item icon to anvil
             if (this.info.getModId().equals("forge")) {
                 ItemStack anvil = new ItemStack(Blocks.ANVIL);
@@ -357,20 +359,6 @@ public class CatalogueModListScreen extends GuiScreen {
                 return anvil;
             }
 
-            // Not working
-//            // Gets the raw item icon resource string
-//            String itemIcon = this.info.getCustomModProperties().get("catalogueItemIcon");
-//
-//            if(!itemIcon.isEmpty()) {
-//                try {
-//                    String[] parts = itemIcon.split(":");
-//                    Item item = Item.getByNameOrId(parts[0]);
-//                    int meta = parts.length > 1 ? Integer.parseInt(parts[1]) : 0;
-//                    ItemStack itemStack = new ItemStack(item, 1, meta);
-//                    ITEM_CACHE.put(this.info.getModId(), itemStack);
-//                    return itemStack;
-//                } catch(Exception ignored) {}
-//            }
 
             // If the mod doesn't specify an item to use, Catalogue will attempt to get an item from the mod
             Optional<ItemStack> optional = ForgeRegistries.ITEMS.getValuesCollection().stream().filter(item -> item.getRegistryName().getNamespace().equals(this.info.getModId())).map(ItemStack::new).findFirst();
@@ -398,7 +386,7 @@ public class CatalogueModListScreen extends GuiScreen {
             if (CatalogueModListScreen.this.fontRenderer.getStringWidth(name) > width) {
                 name = CatalogueModListScreen.this.fontRenderer.trimStringToWidth(name, width - 10) + "...";
             }
-            if (this.info.getModId().equals("forge") || this.info.getModId().equals("minecraft")) {
+            if (this.info.getModId().equals("forge") || this.info.getModId().equals("minecraft") || this.info.getModId().equals("cleanroom")) {
                 return TextFormatting.DARK_GRAY + name;
             }
             return name;
@@ -606,8 +594,8 @@ public class CatalogueModListScreen extends GuiScreen {
             drawString(this.fontRenderer, modId, contentLeft + contentWidth - modIdWidth, 92, 0xFFFFFF);
 
 //            // Set tooltip for secure mod features forge has
-//            if(ScreenUtil.isMouseWithin(contentLeft + contentWidth - modIdWidth, 92, modIdWidth, this.font.lineHeight, mouseX, mouseY)) {
-//                if(FMLEnvironment.secureJarsEnabled) {
+//            if (ScreenUtil.isMouseWithin(contentLeft + contentWidth - modIdWidth, 92, modIdWidth, this.font.lineHeight, mouseX, mouseY)) {
+//                if (FMLEnvironment.secureJarsEnabled) {
 //                    this.setActiveTooltip(ForgeI18n.parseMessage("fml.menu.mods.info.signature", ((ModInfo) this.selectedModInfo).getOwningFile().getCodeSigningFingerprint().orElse(ForgeI18n.parseMessage("fml.menu.mods.info.signature.unsigned"))));
 //                    this.setActiveTooltip(ForgeI18n.parseMessage("fml.menu.mods.info.trust", ((ModInfo) this.selectedModInfo).getOwningFile().getTrustData().orElse(ForgeI18n.parseMessage("fml.menu.mods.info.trust.noauthority"))));
 //                } else {
@@ -643,10 +631,6 @@ public class CatalogueModListScreen extends GuiScreen {
 
                 int labelOffset = this.height - 20;
 
-//            // Draw license
-//            String license = this.selectedModInfo.getMetadata().getLicense();
-//            this.drawStringWithLabel("fml.menu.mods.info.license", license, contentLeft, labelOffset, contentWidth, mouseX, mouseY, TextFormatting.GRAY, TextFormatting.WHITE);
-//            labelOffset -= 15;
 
                 // Draw credits
                 String credits = metadata.credits;
@@ -705,24 +689,20 @@ public class CatalogueModListScreen extends GuiScreen {
         LOGO_CACHE.put(info.getModId(), Pair.of(null, new Size2i(0, 0)));
 
         // Attempts to load the real logo
-        ModContainer modInfo = (ModContainer) info;
-        ModMetadata metadata = modInfo.getMetadata();
+        ModMetadata metadata = info.getMetadata();
         if (metadata == null) return;
         String s = metadata.logoFile;
         if (s.isEmpty()) return;
 
-//        if(s.contains("/") || s.contains("\\")) {
-//            Catalogue.LOGGER.warn("Skipped loading logo file from {}. The file name '{}' contained illegal characters '/' or '\\'", info.getName(), s);
-//            return;
-//        }
-
         IResourcePack resourcePack = FMLClientHandler.instance().getResourcePackFor(info.getModId());
         BufferedImage logo = null;
         try {
-            // Amazing. Forge's banner cannot be loaded though its resource pack is not null.
-            if (resourcePack != null && !info.getModId().equals("forge")) {
+            if (resourcePack != null && !s.startsWith("/")) {
                 logo = resourcePack.getPackImage();
             } else {
+                if (!s.startsWith("/")) {
+                    s = "/" + s;
+                }
                 InputStream is = getClass().getResourceAsStream(s);
                 if (is != null) logo = TextureUtil.readBufferedImage(is);
             }
@@ -734,78 +714,51 @@ public class CatalogueModListScreen extends GuiScreen {
     }
 
     private void loadAndCacheIcon(ModContainer info) {
-        if (ICON_CACHE.containsKey(info.getModId()))
-            return;
+        if (ICON_CACHE.containsKey(info.getModId())) return;
 
         // Fills an empty icon as icon may not be present
         ICON_CACHE.put(info.getModId(), Pair.of(null, new Size2i(0, 0)));
 
-        // Not working
-        // Attempts to load the real icon
-        ModContainer modInfo = (ModContainer) info;
-        if (modInfo.getCustomModProperties().containsKey("catalogueImageIcon")) {
-            String s = (String) modInfo.getCustomModProperties().get("catalogueImageIcon");
-
-            if (s.isEmpty()) return;
-
-//            if (s.contains("/") || s.contains("\\")) {
-//                Catalogue.LOGGER.warn("Skipped loading Catalogue icon file from {}. The file name '{}' contained illegal characters '/' or '\\'", info.getName(), s);
-//                return;
-//            }
-
-            try (InputStream is = getClass().getResourceAsStream(s)) {
-                BufferedImage icon = null;
-                if (is != null) icon = TextureUtil.readBufferedImage(is);
-                if (icon == null) return;
-                TextureManager textureManager = this.mc.getTextureManager();
-                ICON_CACHE.put(info.getModId(), Pair.of(textureManager.getDynamicTextureLocation("catalogueicon", this.createLogoTexture(icon, true)), new Size2i(icon.getWidth(), icon.getHeight())));
-                return;
-            } catch (IOException ignored) {
-            }
-        }
+        ModMetadata metadata = info.getMetadata();
+        if (metadata == null) return;
 
         // Attempts to use the logo file if it's a square
-        ModMetadata metadata = modInfo.getMetadata();
-        if (metadata == null) return;
-        String s = metadata.logoFile;
-        if (s.isEmpty()) return;
-
-//        if (s.contains("/") || s.contains("\\")) {
-//            Catalogue.LOGGER.warn("Skipped loading logo file from {}. The file name '{}' contained illegal characters '/' or '\\'", info.getName(), s);
-//            return;
-//        }
-
-        IResourcePack resourcePack = FMLClientHandler.instance().getResourcePackFor(info.getModId());
-        BufferedImage logo = null;
-        try {
-            if (resourcePack != null) {
-                logo = resourcePack.getPackImage();
-            } else {
-                InputStream is = getClass().getResourceAsStream(s);
-                if (is != null) logo = TextureUtil.readBufferedImage(is);
-            }
-            if (logo == null) return;
-            if (logo.getWidth() == logo.getHeight()) {
-                TextureManager textureManager = this.mc.getTextureManager();
-                String modId = info.getModId();
-
-                /* The first selected mod will have its logo cached before the icon, so we
-                 * can just use the logo instead of loading the image again. */
-                if (LOGO_CACHE.containsKey(modId)) {
-                    if (LOGO_CACHE.get(modId).getLeft() != null) {
-                        ICON_CACHE.put(modId, LOGO_CACHE.get(modId));
-                        return;
+        String logoString = metadata.logoFile;
+        if (!logoString.isEmpty()) {
+            IResourcePack resourcePack = FMLClientHandler.instance().getResourcePackFor(info.getModId());
+            BufferedImage logo = null;
+            try {
+                if (resourcePack != null && !logoString.startsWith("/")) {
+                    logo = resourcePack.getPackImage();
+                } else {
+                    if (!logoString.startsWith("/")) {
+                        logoString = "/" + logoString;
                     }
+                    InputStream is = getClass().getResourceAsStream(logoString);
+                    if (is != null) logo = TextureUtil.readBufferedImage(is);
                 }
+                if (logo != null && logo.getWidth() == logo.getHeight()) {
+                    TextureManager textureManager = this.mc.getTextureManager();
+                    String modId = info.getModId();
 
-                /* Since the icon will be same as the logo, we can cache into both icon and logo cache */
-                DynamicTexture texture = this.createLogoTexture(logo, true);
-                Size2i size = new Size2i(logo.getWidth(), logo.getHeight());
-                ResourceLocation textureId = textureManager.getDynamicTextureLocation("catalogueicon", texture);
-                ICON_CACHE.put(modId, Pair.of(textureId, size));
-                LOGO_CACHE.put(modId, Pair.of(textureId, size));
+                    /* The first selected mod will have its logo cached before the icon, so we
+                     * can just use the logo instead of loading the image again. */
+                    if (LOGO_CACHE.containsKey(modId)) {
+                        if (LOGO_CACHE.get(modId).getLeft() != null) {
+                            ICON_CACHE.put(modId, LOGO_CACHE.get(modId));
+                            return;
+                        }
+                    }
+
+                    /* Since the icon will be same as the logo, we can cache into both icon and logo cache */
+                    DynamicTexture texture = this.createLogoTexture(logo, true);
+                    Size2i size = new Size2i(logo.getWidth(), logo.getHeight());
+                    ResourceLocation textureId = textureManager.getDynamicTextureLocation("catalogueicon", texture);
+                    ICON_CACHE.put(modId, Pair.of(textureId, size));
+                    LOGO_CACHE.put(modId, Pair.of(textureId, size));
+                }
+            } catch (IOException ignored) {
             }
-        } catch (IOException ignored) {
         }
     }
 
@@ -880,7 +833,6 @@ public class CatalogueModListScreen extends GuiScreen {
         }
 
         this.issueButton.enabled = false;
-//        this.issueButton.active = ((ModInfo) selectedModInfo).getOwningFile().getConfigElement("issueTrackerURL").isPresent();
 
         int contentLeft = this.modList.right + 12 + 10;
         int contentWidth = this.width - contentLeft - 10;
@@ -892,14 +844,13 @@ public class CatalogueModListScreen extends GuiScreen {
     }
 
     private int getLabelCount(ModContainer selectedModInfo) {
-        int count = 1; //1 by default since license property will always exist
-
+        int count = 0;
         ModMetadata metadata = selectedModInfo.getMetadata();
         if (metadata != null && !metadata.autogenerated) {
+            //if (!metadata.license.isEmpty()) count++;
             if (!metadata.credits.isEmpty()) count++;
             if (!metadata.authorList.isEmpty()) count++;
         }
-
         return count;
     }
 
@@ -930,11 +881,18 @@ public class CatalogueModListScreen extends GuiScreen {
     /**
      * Opens a link with a url defined in the mod's info
      */
-    private void openLink(@Nullable ModContainer configurable) {
+    private void openLink(int key, @Nullable ModContainer configurable) {
         if (configurable != null) {
             ModMetadata metadata = configurable.getMetadata();
             // The config button is only enabled when checked, so it is unnecessary to check again.
-            openLink(metadata.url);
+            switch (key) {
+                case 0:
+                    this.openLink(metadata.url);
+                    break;
+                case 1:
+                    //this.openLink(metadata.issueTrackerUrl);
+                    break;
+            }
         }
     }
 
