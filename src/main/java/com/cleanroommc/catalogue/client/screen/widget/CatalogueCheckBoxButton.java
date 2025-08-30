@@ -1,15 +1,17 @@
 package com.cleanroommc.catalogue.client.screen.widget;
 
+import com.cleanroommc.catalogue.CatalogueConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.ResourceLocation;
+import com.cleanroommc.catalogue.client.ClientHelper;
 
 /**
  * Author: MrCrayfish
  */
 public class CatalogueCheckBoxButton extends GuiButton {
-    private static final ResourceLocation TEXTURE = new ResourceLocation("catalogue", "textures/gui/checkbox.png");
+    private static final ResourceLocation TEXTURE = new ResourceLocation(CatalogueConstants.MOD_ID, "textures/gui/checkbox.png");
     private boolean selected;
 
     public CatalogueCheckBoxButton(int id, int x, int y, boolean selectedDefault) {
@@ -37,7 +39,7 @@ public class CatalogueCheckBoxButton extends GuiButton {
             GlStateManager.enableBlend();
             GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
             GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
-            this.drawTexturedModalRect(this.x, this.y, this.hovered ? 14 : 0, this.selected ? 14 : 0, this.width, this.height);
+            drawModalRectWithCustomSizedTexture(this.x, this.y, this.hovered ? 14 : 0, this.selected() ? 14 : 0, 14, 14, 64, 64);
             this.mouseDragged(minecraft, mouseX, mouseY);
         }
     }
