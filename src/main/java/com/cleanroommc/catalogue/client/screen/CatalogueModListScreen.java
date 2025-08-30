@@ -71,7 +71,6 @@ public class CatalogueModListScreen extends GuiScreen {
     private static boolean loaded = false;
     private static String lastSearch = "";
 
-    private final GuiScreen parentScreen;
     private CatalogueTextField searchTextField;
     private ModList modList;
     private ModContainer selectedModData;
@@ -89,7 +88,6 @@ public class CatalogueModListScreen extends GuiScreen {
 
     public CatalogueModListScreen(GuiScreen parent) {
         super();
-        this.parentScreen = parent;
         if (!loaded) {
             Loader.instance().getActiveModList().forEach(data -> CACHED_MODS.put(data.getModId(), data));
             BANNER_CACHE.put("minecraft", new ImageInfo(MINECRAFT_LOGO, new Dimension(1024, 256)));
@@ -147,7 +145,7 @@ public class CatalogueModListScreen extends GuiScreen {
     public void actionPerformed(GuiButton button) {
         switch (button.id) {
             case 1:
-                this.mc.displayGuiScreen(parentScreen);
+                this.mc.displayGuiScreen(null);
                 break;
             case 2:
                 try {
