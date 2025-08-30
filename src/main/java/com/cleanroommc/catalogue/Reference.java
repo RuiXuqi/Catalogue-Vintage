@@ -1,4 +1,4 @@
-package com.mrcrayfish.catalogue;
+package com.cleanroommc.catalogue;
 
 /**
  * Tags storage class, you can change at will

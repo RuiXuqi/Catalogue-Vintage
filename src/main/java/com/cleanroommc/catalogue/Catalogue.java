@@ -1,4 +1,4 @@
-package com.mrcrayfish.catalogue;
+package com.cleanroommc.catalogue;
 
 import net.minecraftforge.fml.common.Mod;
 import org.apache.logging.log4j.LogManager;

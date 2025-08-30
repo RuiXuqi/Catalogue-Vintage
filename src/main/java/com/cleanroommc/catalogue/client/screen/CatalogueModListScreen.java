@@ -1,13 +1,13 @@
-package com.mrcrayfish.catalogue.client.screen;
+package com.cleanroommc.catalogue.client.screen;
 
 import com.google.common.collect.Lists;
-import com.mrcrayfish.catalogue.Catalogue;
-import com.mrcrayfish.catalogue.client.ScreenUtil;
-import com.mrcrayfish.catalogue.client.ScreenUtil.Size2i;
-import com.mrcrayfish.catalogue.client.screen.widget.CatalogueCheckBoxButton;
-import com.mrcrayfish.catalogue.client.screen.widget.CatalogueIconButton;
-import com.mrcrayfish.catalogue.client.screen.widget.CatalogueListExtended;
-import com.mrcrayfish.catalogue.client.screen.widget.CatalogueTextField;
+import com.cleanroommc.catalogue.Catalogue;
+import com.cleanroommc.catalogue.client.ScreenUtil;
+import com.cleanroommc.catalogue.client.ScreenUtil.Size2i;
+import com.cleanroommc.catalogue.client.screen.widget.CatalogueCheckBoxButton;
+import com.cleanroommc.catalogue.client.screen.widget.CatalogueIconButton;
+import com.cleanroommc.catalogue.client.screen.widget.CatalogueListExtended;
+import com.cleanroommc.catalogue.client.screen.widget.CatalogueTextField;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;

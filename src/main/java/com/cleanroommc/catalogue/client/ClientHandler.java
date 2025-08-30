@@ -1,6 +1,6 @@
-package com.mrcrayfish.catalogue.client;
+package com.cleanroommc.catalogue.client;
 
-import com.mrcrayfish.catalogue.client.screen.CatalogueModListScreen;
+import com.cleanroommc.catalogue.client.screen.CatalogueModListScreen;
 import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.fml.client.GuiModList;
 import net.minecraftforge.fml.common.Mod;
