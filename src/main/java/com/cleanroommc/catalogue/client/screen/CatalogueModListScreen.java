@@ -86,7 +86,7 @@ public class CatalogueModListScreen extends GuiScreen {
 
     private long lastClickTime;
 
-    public CatalogueModListScreen(GuiScreen parent) {
+    public CatalogueModListScreen() {
         super();
         if (!loaded) {
             Loader.instance().getActiveModList().forEach(data -> CACHED_MODS.put(data.getModId(), data));
