@@ -21,5 +21,13 @@ catalogue.gui.beta_update_available=Beta Update (%s) Available: %s
 catalogue.gui.beta_update_available_no_page=Beta Update (%s) Available
 catalogue.gui.mod_count=%s Mods
 catalogue.gui.library_count=%s Libraries
+catalogue.gui.options=Options
+catalogue.gui.filters=Filters
+catalogue.gui.filters.configs_only=Mods with Configs
+catalogue.gui.filters.updates_only=Mods with Updates
+catalogue.gui.sort=Sort
+catalogue.gui.sort.alphabetically=A-Z
+catalogue.gui.sort.alphabetically_reverse=Z-A
+catalogue.gui.hide_libraries=Hide Libraries
 
 catalogue.config.library_list=Library List

@@ -58,7 +58,7 @@ public class CatalogueIconButton extends GuiButton {
 
     }
 
-    private int getFGColor() {
+    protected int getFGColor() {
         if (packedFGColour != 0) {
             return packedFGColour;
         } else if (!this.enabled) {
