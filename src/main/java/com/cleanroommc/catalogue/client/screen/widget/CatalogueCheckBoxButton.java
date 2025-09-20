@@ -33,6 +33,7 @@ public class CatalogueCheckBoxButton extends GuiButton {
     public void drawButton(Minecraft minecraft, int mouseX, int mouseY, float partial) {
         if (this.visible) {
             this.hovered = mouseX >= this.x && mouseY >= this.y && mouseX < this.x + this.width && mouseY < this.y + this.height;
+            this.mouseDragged(minecraft, mouseX, mouseY);
             minecraft.getTextureManager().bindTexture(TEXTURE);
 
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
@@ -40,7 +41,6 @@ public class CatalogueCheckBoxButton extends GuiButton {
             GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
             GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
             drawModalRectWithCustomSizedTexture(this.x, this.y, this.hovered ? 14 : 0, this.selected() ? 14 : 0, 14, 14, 64, 64);
-            this.mouseDragged(minecraft, mouseX, mouseY);
         }
     }
 

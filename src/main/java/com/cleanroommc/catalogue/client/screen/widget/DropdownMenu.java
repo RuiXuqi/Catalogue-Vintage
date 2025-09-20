@@ -79,16 +79,16 @@ public class DropdownMenu extends Gui {
     }
 
     private void updatePosition(Gui source) {
-        this.layout.arrangeElements();
-        this.width = this.layout.getWidth();
-        this.height = this.layout.getHeight();
         if (source instanceof GuiButton button) {
             this.alignment.aligner.accept(this, button.x, button.y, button.width, button.height);
-        } else if (source instanceof MenuItem item) {
+        } else if (source instanceof LayoutElement item) {
             this.alignment.aligner.accept(this, item.getX(), item.getY(), item.getWidth(), item.getHeight());
         }
         this.layout.setX(this.x);
         this.layout.setY(this.y);
+        this.layout.arrangeElements();
+        this.width = this.layout.getWidth();
+        this.height = this.layout.getHeight();
     }
 
     public void addItem(MenuItem item) {
@@ -119,10 +119,13 @@ public class DropdownMenu extends Gui {
 
         AtomicBoolean clicked = new AtomicBoolean();
         this.layout.visitWidgets(widget -> {
-            if (widget instanceof MenuItem && ((MenuItem) widget).mousePressed(minecraft, mouseX, mouseY)) {
+            if (widget instanceof MenuItem item && item.mousePressed(minecraft, mouseX, mouseY)) {
                 clicked.set(true);
             }
         });
+        if (this.subMenu != null && this.subMenu.mousePressed(minecraft, mouseX, mouseY)) {
+            clicked.set(true);
+        }
         return clicked.get();
     }
 
