@@ -1,6 +1,6 @@
 package com.cleanroommc.catalogue.client.screen.layout;
 
-import net.minecraft.client.gui.Gui;
+import com.cleanroommc.catalogue.client.screen.widget.DropdownMenu;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -12,10 +12,15 @@ import java.util.function.Consumer;
 @SideOnly(Side.CLIENT)
 public interface LayoutElement {
     void setX(int x);
+
     void setY(int y);
+
     int getX();
+
     int getY();
+
     int getWidth();
+
     int getHeight();
 
     default void setPosition(int x, int y) {
@@ -23,5 +28,9 @@ public interface LayoutElement {
         setY(y);
     }
 
-    void visitWidgets(Consumer<Gui> consumer);
+    default DropdownMenu.ScreenRectangle getRectangle() {
+        return new DropdownMenu.ScreenRectangle(this.getX(), this.getY(), this.getWidth(), this.getHeight());
+    }
+
+    void visitWidgets(Consumer<LayoutElement> consumer);
 }

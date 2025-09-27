@@ -15,7 +15,7 @@ public class CatalogueConfig {
             "They will have grey names in the mod list."
     })
     @Config.LangKey("catalogue.config.library_list")
-    public static String[] libraryList = new String[] {
+    public static String[] libraryList = new String[]{
             "minecraft",
             "forge",
             "FML",

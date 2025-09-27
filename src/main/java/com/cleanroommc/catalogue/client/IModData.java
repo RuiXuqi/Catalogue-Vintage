@@ -20,33 +20,47 @@ public interface IModData {
 
     String getDisplayName();
 
-    @Nonnull String getVersion();
+    @Nonnull
+    String getVersion();
 
-    @Nonnull String getInnerVersion();
+    @Nonnull
+    String getInnerVersion();
 
-    @Nonnull String getDescription();
+    @Nonnull
+    String getDescription();
 
-    @Nonnull String getItemIcon();
+    @Nonnull
+    String getItemIcon();
 
-    @Nonnull String getImageIcon();
+    @Nonnull
+    String getImageIcon();
 
-    @Nonnull String getLicense();
+    @Nonnull
+    String getLicense();
 
-    @Nonnull String getCredits();
+    @Nonnull
+    String getCredits();
 
-    @Nonnull String getAuthors();
+    @Nonnull
+    String getAuthors();
 
-    @Nonnull String getHomepage();
+    @Nonnull
+    String getHomepage();
 
-    @Nonnull String getIssueTracker();
+    @Nonnull
+    String getIssueTracker();
 
-    @Nonnull String getBanner();
+    @Nonnull
+    String getBanner();
 
-    @Nonnull String getBackground();
+    @Nonnull
+    String getBackground();
 
-    @Nullable Update getUpdate();
+    @Nullable
+    Update getUpdate();
 
-    @Nullable IResourcePack getResourcePack();
+    @Nullable
+    IResourcePack getResourcePack();
 
     Set<String> getDependencies(); //TODO lazily
 
@@ -62,9 +76,11 @@ public interface IModData {
 
     void drawUpdateIcon(Minecraft minecraft, Update update, int x, int y);
 
-    @Nonnull String getUpdateText(Update update);
+    @Nonnull
+    String getUpdateText(Update update);
 
-    record Update(boolean animated, String url, int texOffset, ResourceLocation textures, boolean updatable, String latestFound, String homepage) {
+    record Update(boolean animated, String url, int texOffset, ResourceLocation textures, boolean updatable,
+                  String latestFound, String homepage) {
     }
 
     enum Type {

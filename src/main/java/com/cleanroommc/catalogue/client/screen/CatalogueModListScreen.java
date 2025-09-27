@@ -121,8 +121,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
 
     @Override
     public void setMenu(@Nullable DropdownMenu menu) {
-        if(this.menu != null && this.menu != menu)
-        {
+        if (this.menu != null && this.menu != menu) {
             this.menu.hide();
         }
         this.menu = menu;
@@ -134,7 +133,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         this.searchTextField = new CatalogueTextField(0, this.fontRenderer, 11, 25, 148, 20) {
             @Override
             public int getWidth() {
-                if(this.getText().startsWith("@")) {
+                if (this.getText().startsWith("@")) {
                     return super.getWidth() - 16;
                 }
                 return super.getWidth();
@@ -259,14 +258,13 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         boolean inMenu = false;
         super.drawScreen(mouseX, mouseY, partialTicks);
 
-        if(OPTION_QUERY.getValue().startsWith("@")) {
+        if (OPTION_QUERY.getValue().startsWith("@")) {
             int iconX = this.searchTextField.x + this.searchTextField.width - 15;
             int iconY = this.searchTextField.y + (this.searchTextField.height - 10) / 2;
             this.mc.getTextureManager().bindTexture(CatalogueIconButton.TEXTURE);
             drawModalRectWithCustomSizedTexture(iconX, iconY, 20, 10, 10, 10, 64, 64);
 
-            if(this.menu == null && ClientHelper.isMouseWithin(iconX, iconY, 10, 10, mouseX, mouseY))
-            {
+            if (this.menu == null && ClientHelper.isMouseWithin(iconX, iconY, 10, 10, mouseX, mouseY)) {
                 this.setActiveTooltip(I18n.format("catalogue.gui.advanced_search.info"));
             }
         }
@@ -313,12 +311,16 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
 
     @Override
     protected void mouseClicked(int mouseX, int mouseY, int button) throws IOException {
-
-        if(this.menu != null) {
-            if(!this.menu.mousePressed(this.mc, mouseX, mouseY)) {
+        // Menu widget
+        if (this.menu != null) {
+            if (!this.menu.mousePressed(this.mc, mouseX, mouseY)) {
                 this.setMenu(null);
             }
         }
+
+        // Mod List
+        if (this.modList.mouseClicked(mouseX, mouseY, button)) return;
+
         // Catalogue button
         if (ClientHelper.isMouseWithin(10, 9, 10, 10, mouseX, mouseY) && button == 0) {
             this.openLink("https://www.curseforge.com/minecraft/mc-mods/catalogue");
@@ -377,7 +379,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         }
         if (this.searchTextField.textboxKeyTyped(typedChar, key)) {
             String s = this.searchTextField.getText();
-            if(!OPTION_QUERY.getValue().equals(s)) {
+            if (!OPTION_QUERY.getValue().equals(s)) {
                 OPTION_QUERY.setValue(s);
                 this.updateSearchFieldSuggestion(s);
                 this.modList.filterAndUpdateList();
@@ -427,7 +429,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
     private class ModList extends CatalogueListExtended {
         private static final Predicate<IModData> SEARCH_PREDICATE = data -> {
             String query = OPTION_QUERY.getValue();
-            if(query.startsWith("@")) {
+            if (query.startsWith("@")) {
                 return performSearchFilter(query, data);
             }
             return data.getDisplayName()
@@ -437,7 +439,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         private static final Predicate<IModData> FILTER_PREDICATE = data -> {
             // We ignore filters when using special query
             String query = OPTION_QUERY.getValue();
-            if(query.startsWith("@")) {
+            if (query.startsWith("@")) {
                 return true;
             }
             if (OPTION_CONFIGS_ONLY.booleanValue() && !data.hasConfig()) {
@@ -474,14 +476,6 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                 int top = this.top + (this.bottom - this.top - CatalogueModListScreen.this.fontRenderer.FONT_HEIGHT) / 2;
                 drawCenteredString(CatalogueModListScreen.this.fontRenderer, text, left, top, 0xFFFFFFFF);
             }
-        }
-
-        @Override
-        protected void elementClicked(int slotIndex, boolean isDoubleClick, int mouseX, int mouseY) {
-            ModListEntry entry = entries.get(slotIndex);
-            if (entry.button.mousePressed(this.mc, mouseX, mouseY)) return;
-            selectedIndex = slotIndex;
-            CatalogueModListScreen.this.setSelectedModData(entry.data);
         }
 
         public void filterAndUpdateList() {
@@ -590,17 +584,16 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         }
     }
 
-    private static boolean performSearchFilter(String query, IModData data)
-    {
-        if(!query.startsWith("@"))
+    private static boolean performSearchFilter(String query, IModData data) {
+        if (!query.startsWith("@"))
             return false;
 
         int end = query.indexOf(":");
-        if(end == -1)
+        if (end == -1)
             return false;
 
         String type = query.substring(1, end).toLowerCase(Locale.ENGLISH);
-        if(!SEARCH_FILTERS.containsKey(type))
+        if (!SEARCH_FILTERS.containsKey(type))
             return false;
 
         String value = query.substring(end + 1);
@@ -764,7 +757,23 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
 
         @Override
         public boolean mousePressed(int slotIndex, int mouseX, int mouseY, int mouseEvent, int relativeX, int relativeY) {
-            return true;
+            if (this.button.mousePressed(CatalogueModListScreen.this.mc, mouseX, mouseY)) return false;
+            if (mouseEvent == 1) {
+                DropdownMenu menu = DropdownMenu.builder(CatalogueModListScreen.this)
+                        .setMinItemSize(0, 16)
+                        .setAlignment(DropdownMenu.Alignment.BELOW_LEFT)
+                        .addItem(I18n.format("catalogue.gui.show_dependencies"), () -> {
+                            String filter = "@dependencies:" + this.data.getModId();
+                            CatalogueModListScreen.this.searchTextField.setText(filter);
+                        }).build();
+                menu.toggle(mouseX, mouseY);
+                return false;
+            } else if (mouseEvent == 0) {
+                CatalogueModListScreen.this.setSelectedModData(this.data);
+                this.list.selectMod(slotIndex);
+                return true;
+            }
+            return false;
         }
 
         @Override
@@ -800,6 +809,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                 if (super.mousePressed(mc, mouseX, mouseY)) {
                     FAVOURITES.toggle(this.modId);
                     ModListEntry.this.list.filterAndUpdateList();
+                    this.playPressSound(mc.getSoundHandler());
                     return true;
                 }
                 return false;
@@ -893,7 +903,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
     }
 
     private class StringList extends CatalogueListExtended {
-        private List<StringEntry> entries = Lists.newArrayList();
+        private final List<StringEntry> entries = Lists.newArrayList();
 
         public StringList(int width, int height, int left, int top) {
             super(CatalogueModListScreen.this.mc, width, height, top, top + height, 10);
@@ -977,7 +987,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
     }
 
     private class StringEntry implements CatalogueListExtended.IGuiListEntry {
-        private String line;
+        private final String line;
 
         public StringEntry(String line) {
             this.line = line;
@@ -1294,28 +1304,21 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
     private void updateSearchFieldSuggestion(String value) {
         if (value.isEmpty()) {
             this.searchTextField.setSuggestion(I18n.format("catalogue.gui.search") + "...");
-        }         else if(value.startsWith("@"))
-        {
+        } else if (value.startsWith("@")) {
             // Mark as special search
             int end = value.indexOf(":");
-            if(end != -1)
-            {
+            if (end != -1) {
                 String type = value.substring(1, end);
                 Optional<String> optional = SEARCH_FILTERS.keySet().stream().filter(filter -> {
                     return filter.startsWith(type.toLowerCase(Locale.ENGLISH));
                 }).min(Comparator.comparing(String::length));
-                if(optional.isPresent())
-                {
+                if (optional.isPresent()) {
                     int length = type.length();
                     this.searchTextField.setSuggestion(optional.get().substring(length));
-                }
-                else
-                {
+                } else {
                     this.searchTextField.setSuggestion("");
                 }
-            }
-            else
-            {
+            } else {
                 this.searchTextField.setSuggestion("");
             }
         } else {

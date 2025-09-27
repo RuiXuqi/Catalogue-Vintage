@@ -23,7 +23,7 @@ import java.util.function.Function;
 /**
  * Author: MrCrayfish
  */
-public class DropdownMenu extends Gui {
+public class DropdownMenu extends Gui implements LayoutElement {
     private final DropdownMenuHandler handler;
     private final BorderedLinearLayout layout = BorderedLinearLayout.vertical().border(1);
     private final List<MenuItem> items = new ArrayList<>();
@@ -50,16 +50,24 @@ public class DropdownMenu extends Gui {
         this.alignment = alignment;
     }
 
-    public void toggle(GuiButton source) {
+    public void toggle(int mouseX, int mouseY) {
+        this.toggle(new ScreenRectangle(mouseX, mouseY, 0, 0));
+    }
+
+    public void toggle(GuiButton widget) {
+        this.toggle(new ScreenRectangle(widget.x, widget.y, widget.width, widget.height));
+    }
+
+    public void toggle(ScreenRectangle rect) {
         if (!this.visible) {
-            this.show(source);
+            this.show(rect);
         } else {
             this.hide();
         }
     }
 
-    public void show(Gui source) {
-        this.updatePosition(source);
+    private void show(ScreenRectangle rect) {
+        this.updatePosition(rect);
         this.items.forEach(child -> child.visible = true);
         this.visible = true;
         if (this.parent == null) {
@@ -78,12 +86,8 @@ public class DropdownMenu extends Gui {
         this.visible = false;
     }
 
-    private void updatePosition(Gui source) {
-        if (source instanceof GuiButton button) {
-            this.alignment.aligner.accept(this, button.x, button.y, button.width, button.height);
-        } else if (source instanceof LayoutElement item) {
-            this.alignment.aligner.accept(this, item.getX(), item.getY(), item.getWidth(), item.getHeight());
-        }
+    private void updatePosition(ScreenRectangle rect) {
+        this.alignment.aligner.accept(this, rect);
         this.layout.setX(this.x);
         this.layout.setY(this.y);
         this.layout.arrangeElements();
@@ -129,7 +133,7 @@ public class DropdownMenu extends Gui {
         return clicked.get();
     }
 
-    public void visitWidgets(Consumer<Gui> consumer) {
+    public void visitWidgets(Consumer<LayoutElement> consumer) {
         this.layout.visitWidgets(consumer);
     }
 
@@ -243,7 +247,7 @@ public class DropdownMenu extends Gui {
         }
 
         @Override
-        public void visitWidgets(Consumer<Gui> pConsumer) {
+        public void visitWidgets(Consumer<LayoutElement> pConsumer) {
             pConsumer.accept(this);
         }
     }
@@ -330,11 +334,11 @@ public class DropdownMenu extends Gui {
                 }
             }
             this.parent.subMenu = this.subMenu;
-            this.subMenu.show(this);
+            this.subMenu.show(getRectangle());
         }
 
         @Override
-        public void visitWidgets(Consumer<Gui> consumer) {
+        public void visitWidgets(Consumer<LayoutElement> consumer) {
             consumer.accept(this);
             this.subMenu.visitWidgets(consumer);
         }
@@ -355,34 +359,35 @@ public class DropdownMenu extends Gui {
     }
 
     private interface MenuAligner {
-        void accept(DropdownMenu menu, int x, int y, int width, int height);
+        void accept(DropdownMenu menu, ScreenRectangle rectangle);
     }
 
     public enum Alignment {
-        ABOVE_LEFT((menu, x, y, width, height) -> {
-            menu.x = x;
-            menu.y = y - menu.height;
+        ABOVE_LEFT((menu, rectangle) -> {
+            menu.setX(rectangle.left());
+            menu.setY(rectangle.top() - menu.getHeight());
         }),
-        ABOVE_RIGHT((menu, x, y, width, height) -> {
-            menu.x = x + width - menu.width;
-            menu.y = y - menu.height;
+        ABOVE_RIGHT((menu, rectangle) -> {
+            menu.setX(rectangle.right() - menu.getWidth());
+            menu.setY(rectangle.top() - menu.getHeight());
         }),
-        BELOW_LEFT((menu, x, y, width, height) -> {
-            menu.x = x - 1;
-            menu.y = y + height;
+        BELOW_LEFT((menu, rectangle) -> {
+            menu.setX(rectangle.left() - 1);
+            menu.setY(rectangle.bottom());
         }),
-        BELOW_RIGHT((menu, x, y, width, height) -> {
-            menu.x = x + width - menu.width + 1;
-            menu.y = y + height;
+        BELOW_RIGHT((menu, rectangle) -> {
+            menu.setX(rectangle.right() - menu.getWidth() + 1);
+            menu.setY(rectangle.bottom());
         }),
-        END_TOP((menu, x, y, width, height) -> {
-            menu.x = x + width;
-            menu.y = y - 1;
+        END_TOP((menu, rectangle) -> {
+            menu.setX(rectangle.right());
+            menu.setY(rectangle.top() - 1);
         }),
-        END_BOTTOM((menu, x, y, width, height) -> {
-            menu.x = x + width;
-            menu.y = y + height - menu.height + 1;
+        END_BOTTOM((menu, rectangle) -> {
+            menu.setX(rectangle.right());
+            menu.setY(rectangle.bottom() - menu.getHeight() + 1);
         });
+
 
         private final MenuAligner aligner;
 
@@ -448,5 +453,45 @@ public class DropdownMenu extends Gui {
     }
 
     private record WidgetSprites(ResourceLocation normal, ResourceLocation hovered) {
+    }
+
+    public record ScreenRectangle(int left, int top, int width, int height) {
+        public int right() {
+            return left + width;
+        }
+
+        public int bottom() {
+            return top + height;
+        }
+    }
+
+    @Override
+    public void setX(int x) {
+        this.x = x;
+    }
+
+    @Override
+    public void setY(int y) {
+        this.y = y;
+    }
+
+    @Override
+    public int getX() {
+        return this.x;
+    }
+
+    @Override
+    public int getY() {
+        return this.y;
+    }
+
+    @Override
+    public int getWidth() {
+        return this.width;
+    }
+
+    @Override
+    public int getHeight() {
+        return this.height;
     }
 }

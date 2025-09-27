@@ -53,11 +53,11 @@ public class ClientHelper {
     /**
      * Draw nine slice with independent horizontal and vertical border sizes.
      *
-     * @param x X pos
-     * @param y Y pos
-     * @param width The width to draw
-     * @param height The height to draw
-     * @param borderSize Borders size
+     * @param x           X pos
+     * @param y           Y pos
+     * @param width       The width to draw
+     * @param height      The height to draw
+     * @param borderSize  Borders size
      * @param textureSize Texture size
      */
     public static void drawNineSlice(int x, int y, int width, int height, int borderSize, int textureSize) {
@@ -67,13 +67,13 @@ public class ClientHelper {
     /**
      * Draw nine slice with independent horizontal and vertical border sizes.
      *
-     * @param x X pos
-     * @param y Y pos
-     * @param width The width to draw
-     * @param height The height to draw
-     * @param borderWidth Left & right border size
-     * @param borderHeight Top & bottom border size
-     * @param textureWidth The width of the texture
+     * @param x             X pos
+     * @param y             Y pos
+     * @param width         The width to draw
+     * @param height        The height to draw
+     * @param borderWidth   Left & right border size
+     * @param borderHeight  Top & bottom border size
+     * @param textureWidth  The width of the texture
      * @param textureHeight The height of the texture
      */
     public static void drawNineSlice(int x, int y, int width, int height, int borderWidth, int borderHeight, int textureWidth, int textureHeight) {
@@ -83,15 +83,15 @@ public class ClientHelper {
     /**
      * Draw nine slice with independent horizontal and vertical border sizes.
      *
-     * @param x X pos
-     * @param y Y pos
-     * @param width The width to draw
-     * @param height The height to draw
-     * @param borderLeft Left border size
-     * @param borderRight Right border size
-     * @param borderTop Top border size
-     * @param borderBottom Bottom border size
-     * @param textureWidth The width of the texture
+     * @param x             X pos
+     * @param y             Y pos
+     * @param width         The width to draw
+     * @param height        The height to draw
+     * @param borderLeft    Left border size
+     * @param borderRight   Right border size
+     * @param borderTop     Top border size
+     * @param borderBottom  Bottom border size
+     * @param textureWidth  The width of the texture
      * @param textureHeight The height of the texture
      */
     public static void drawNineSlice(int x, int y, int width, int height,

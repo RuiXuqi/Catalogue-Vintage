@@ -1,6 +1,5 @@
 package com.cleanroommc.catalogue.client.screen.layout;
 
-import net.minecraft.client.gui.Gui;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -101,7 +100,7 @@ public class LinearLayout implements LayoutElement {
     }
 
     @Override
-    public void visitWidgets(Consumer<Gui> consumer) {
+    public void visitWidgets(Consumer<LayoutElement> consumer) {
         for (LayoutElement child : children) {
             child.visitWidgets(consumer);
         }

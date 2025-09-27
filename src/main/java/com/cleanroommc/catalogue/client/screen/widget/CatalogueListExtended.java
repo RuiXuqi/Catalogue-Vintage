@@ -98,7 +98,7 @@ public abstract class CatalogueListExtended extends GuiListExtended {
 
         int scrollThumbHeight = (this.bottom - this.top) * (this.bottom - this.top) / this.getContentHeight();
         scrollThumbHeight = MathHelper.clamp(scrollThumbHeight, 32, this.bottom - this.top - 8);
-        int scrollThumbTop = (int)this.amountScrolled * (this.bottom - this.top - scrollThumbHeight) / maxScroll + this.top;
+        int scrollThumbTop = (int) this.amountScrolled * (this.bottom - this.top - scrollThumbHeight) / maxScroll + this.top;
         scrollThumbTop = Math.max(scrollThumbTop, this.top);
 
         // Background
@@ -194,11 +194,11 @@ public abstract class CatalogueListExtended extends GuiListExtended {
     }
 
     protected int getListTop() {
-        return this.top + 4 - (int)this.amountScrolled;
+        return this.top + 4 - (int) this.amountScrolled;
     }
 
     protected int getRowTop(int pIndex) {
-        return this.top + 4 - (int)this.amountScrolled + pIndex * this.slotHeight + this.headerPadding;
+        return this.top + 4 - (int) this.amountScrolled + pIndex * this.slotHeight + this.headerPadding;
     }
 
     protected int getRowBottom(int pIndex) {
