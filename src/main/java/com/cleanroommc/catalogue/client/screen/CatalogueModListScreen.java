@@ -86,6 +86,9 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             .put("dependencies", new SearchFilter((query, data) -> {
                 IModData target = CACHED_MODS.get(query.toLowerCase(Locale.ENGLISH));
                 return target != null && target.getDependencies().contains(data.getModId());
+            }))
+            .put("dependents", new SearchFilter((query, data) -> {
+                return data.getDependencies().contains(query.toLowerCase(Locale.ENGLISH));
             })).build();
     private static final Style SEARCH_FILTER_KEY = new Style().setColor(TextFormatting.GOLD);
     private static final Style SEARCH_FILTER_VALUE = new Style().setColor(TextFormatting.WHITE);
@@ -142,6 +145,14 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         this.searchTextField.setCanLoseFocus(true);
         this.searchTextField.setEnableBackgroundDrawing(true);
         this.searchTextField.setText(OPTION_QUERY.getValue());
+        this.searchTextField.setResponder(s -> {
+            if(!OPTION_QUERY.getValue().equals(s)) {
+                OPTION_QUERY.setValue(s);
+                this.updateSearchFieldSuggestion(s);
+                this.modList.filterAndUpdateList();
+                this.updateSelectedModList();
+            }
+        });
 
         this.modList = new ModList();
         this.modList.setSlotXBoundsFromLeft(10);
@@ -316,6 +327,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             if (!this.menu.mousePressed(this.mc, mouseX, mouseY)) {
                 this.setMenu(null);
             }
+            return;
         }
 
         // Mod List
@@ -346,9 +358,6 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             // Right click to empty
             if (button == 1) {
                 this.searchTextField.setText("");
-                this.updateSearchFieldSuggestion("");
-                OPTION_QUERY.setValue("");
-                this.modList.filterAndUpdateList();
                 return;
             }
             // Left click to apply suggestions
@@ -358,9 +367,6 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                 if (!text.isEmpty() && currentTine - this.lastClickTime < 250L && !this.searchTextField.getIsTextTruncated()) {
                     text += this.searchTextField.getSuggestion();
                     this.searchTextField.setText(text);
-                    this.updateSearchFieldSuggestion(text);
-                    OPTION_QUERY.setValue(text);
-                    this.modList.filterAndUpdateList();
                     this.lastClickTime = currentTine;
                     return;
                 }
@@ -377,16 +383,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             this.searchTextField.setFocused(true);
             return;
         }
-        if (this.searchTextField.textboxKeyTyped(typedChar, key)) {
-            String s = this.searchTextField.getText();
-            if (!OPTION_QUERY.getValue().equals(s)) {
-                OPTION_QUERY.setValue(s);
-                this.updateSearchFieldSuggestion(s);
-                this.modList.filterAndUpdateList();
-                this.updateSelectedModList();
-            }
-            return;
-        }
+        if (this.searchTextField.textboxKeyTyped(typedChar, key)) return;
         super.keyTyped(typedChar, key);
     }
 
@@ -764,6 +761,10 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                         .setAlignment(DropdownMenu.Alignment.BELOW_LEFT)
                         .addItem(I18n.format("catalogue.gui.show_dependencies"), () -> {
                             String filter = "@dependencies:" + this.data.getModId();
+                            CatalogueModListScreen.this.searchTextField.setText(filter);
+                        })
+                        .addItem(I18n.format("catalogue.gui.show_dependents"), () -> {
+                            String filter = "@dependents:" + this.data.getModId();
                             CatalogueModListScreen.this.searchTextField.setText(filter);
                         }).build();
                 menu.toggle(mouseX, mouseY);

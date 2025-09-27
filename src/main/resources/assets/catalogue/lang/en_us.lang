@@ -24,6 +24,7 @@ catalogue.gui.mod_count=%s Mods
 catalogue.gui.library_count=%s Libraries
 catalogue.gui.advanced_search.info=Advanced search queries will ignore any active filters
 catalogue.gui.show_dependencies=Show Dependencies
+catalogue.gui.show_dependents=Show Dependents
 catalogue.gui.favourite=Mark as Favorite
 catalogue.gui.remove_favourite=Remove as Favorite
 catalogue.gui.options=Options

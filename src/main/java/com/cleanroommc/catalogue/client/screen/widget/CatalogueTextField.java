@@ -4,13 +4,15 @@ import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiTextField;
 
-public class CatalogueTextField extends GuiTextField {
-    // GuiTextField with suggestions.
-    // Also, lit it!
+import javax.annotation.Nullable;
+import java.util.function.Consumer;
 
+public class CatalogueTextField extends GuiTextField {
     private final FontRenderer fontRenderer;
     private String suggestion = "";
     private boolean isTextTruncated;
+    @Nullable
+    private Consumer<String> responder;
 
     public CatalogueTextField(int id, FontRenderer fontRenderer, int x, int y, int width, int height) {
         super(id, fontRenderer, x, y, width, height);
@@ -87,6 +89,38 @@ public class CatalogueTextField extends GuiTextField {
             int selectionEndX = textStartX + this.fontRenderer.getStringWidth(visibleText.substring(0, selectionEndRelative));
             this.drawSelectionBox(cursorDrawX, textStartY - 1, selectionEndX - 1, textStartY + 1 + this.fontRenderer.FONT_HEIGHT);
         }
+    }
+
+    public void setResponder(Consumer<String> pResponder) {
+        this.responder = pResponder;
+    }
+
+    private void onTextChange(String pNewText) {
+        if (this.responder != null) {
+            this.responder.accept(pNewText);
+        }
+    }
+
+    @Override
+    public void setText(String textIn) {
+        super.setText(textIn);
+        if (this.validator.apply(textIn)) {
+            this.onTextChange(textIn);
+        }
+    }
+
+    @Override
+    public void setMaxStringLength(int length) {
+        super.setMaxStringLength(length);
+        if (this.getText().length() > length) {
+            this.onTextChange(this.getText());
+        }
+    }
+
+    @Override
+    public void moveCursorBy(int num) {
+        super.moveCursorBy(num);
+        this.onTextChange(this.getText());
     }
 
     public void setSuggestion(String suggestion) {

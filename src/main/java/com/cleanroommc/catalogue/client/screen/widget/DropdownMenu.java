@@ -6,10 +6,13 @@ import com.cleanroommc.catalogue.client.screen.DropdownMenuHandler;
 import com.cleanroommc.catalogue.client.screen.layout.BorderedLinearLayout;
 import com.cleanroommc.catalogue.client.screen.layout.LayoutElement;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.audio.PositionedSoundRecord;
+import net.minecraft.client.audio.SoundHandler;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.init.SoundEvents;
 import net.minecraft.util.ResourceLocation;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.jetbrains.annotations.Nullable;
@@ -190,6 +193,7 @@ public class DropdownMenu extends Gui implements LayoutElement {
         public boolean mousePressed(Minecraft mc, int mouseX, int mouseY) {
             if (this.enabled && this.visible && this.hovered) {
                 this.onClick(mouseX, mouseY);
+                this.playPressSound(mc.getSoundHandler());
                 return true;
             }
             return false;
@@ -209,6 +213,10 @@ public class DropdownMenu extends Gui implements LayoutElement {
 
         public boolean isMouseOver() {
             return this.hovered;
+        }
+
+        public void playPressSound(SoundHandler soundHandlerIn) {
+            soundHandlerIn.playSound(PositionedSoundRecord.getMasterRecord(SoundEvents.UI_BUTTON_CLICK, 1.0F));
         }
 
         @Override
