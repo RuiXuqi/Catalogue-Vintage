@@ -64,7 +64,7 @@ public interface IModData {
 
     @Nonnull String getUpdateText(Update update);
 
-    record Update(boolean animated, String url, int texOffset, ResourceLocation textures, boolean clickable, String latestFound, String homepage) {
+    record Update(boolean animated, String url, int texOffset, ResourceLocation textures, boolean updatable, String latestFound, String homepage) {
     }
 
     enum Type {

@@ -332,7 +332,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             int versionWidth = this.fontRenderer.getStringWidth(version);
             if (ClientHelper.isMouseWithin(contentLeft + versionWidth + 5, 92, 8, 8, mouseX, mouseY)) {
                 IModData.Update update = this.selectedModData.getUpdate();
-                if (update != null && update.homepage() != null && !update.homepage().isBlank() && update.clickable()) {
+                if (update != null && update.homepage() != null && !update.homepage().isBlank() && update.updatable()) {
                     this.openLink(update.homepage());
                 }
             }
@@ -443,7 +443,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             if (OPTION_CONFIGS_ONLY.booleanValue() && !data.hasConfig()) {
                 return false;
             }
-            if (OPTION_UPDATES_ONLY.booleanValue() && data.getUpdate() == null) {
+            if (OPTION_UPDATES_ONLY.booleanValue() && (data.getUpdate() == null || data.getUpdate().updatable())) {
                 return false;
             }
             if (OPTION_HIDE_LIBRARIES.booleanValue() && data.isLibrary()) {
