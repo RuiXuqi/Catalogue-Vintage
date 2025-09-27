@@ -38,6 +38,7 @@ import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.ModContainer;
 import net.minecraftforge.fml.common.ModMetadata;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
+import net.minecraftforge.fml.common.versioning.ArtifactVersion;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.apache.commons.lang3.tuple.Pair;
@@ -56,6 +57,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.List;
+import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
@@ -91,7 +93,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
     private static final Map<String, SearchFilter> SEARCH_FILTERS = ImmutableMap.<String, SearchFilter>builder()
             .put("dependencies", new SearchFilter((query, data) -> {
                 ModContainer target = CACHED_MODS.get(query.toLowerCase(Locale.ENGLISH));
-                return target != null && target.getDependencies().contains(data.getModId());
+                return target != null && analyzeDependencies(target).contains(data.getModId());
             })).build();
     private static final Style SEARCH_FILTER_KEY = new Style().setColor(TextFormatting.GOLD);
     private static final Style SEARCH_FILTER_VALUE = new Style().setColor(TextFormatting.WHITE);
@@ -136,7 +138,15 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
     @Override
     public void initGui() {
         super.initGui();
-        this.searchTextField = new CatalogueTextField(0, this.fontRenderer, 11, 25, 148, 20);
+        this.searchTextField = new CatalogueTextField(0, this.fontRenderer, 11, 25, 148, 20) {
+            @Override
+            public int getWidth() {
+                if(this.getText().startsWith("@")) {
+                    return super.getWidth() - 16;
+                }
+                return super.getWidth();
+            }
+        };
         this.searchTextField.setCanLoseFocus(true);
         this.searchTextField.setEnableBackgroundDrawing(true);
         this.searchTextField.setText(OPTION_QUERY.getValue());
@@ -264,6 +274,18 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         boolean inMenu = false;
         super.drawScreen(mouseX, mouseY, partialTicks);
 
+        if(OPTION_QUERY.getValue().startsWith("@")) {
+            int iconX = this.searchTextField.x + this.searchTextField.width - 15;
+            int iconY = this.searchTextField.y + (this.searchTextField.height - 10) / 2;
+            this.mc.getTextureManager().bindTexture(CatalogueIconButton.TEXTURE);
+            drawModalRectWithCustomSizedTexture(iconX, iconY, 20, 10, 10, 10, 64, 64);
+
+            if(this.menu == null && ClientHelper.isMouseWithin(iconX, iconY, 10, 10, mouseX, mouseY))
+            {
+                this.setActiveTooltip(I18n.format("catalogue.gui.advanced_search.info"));
+            }
+        }
+
         Optional<ModContainer> optional = Optional.ofNullable(CACHED_MODS.get(CatalogueConstants.MOD_ID));
         optional.ifPresent(this::loadAndCacheLogo);
         ImageInfo imageInfo = BANNER_CACHE.get(CatalogueConstants.MOD_ID);
@@ -371,10 +393,12 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         }
         if (this.searchTextField.textboxKeyTyped(typedChar, key)) {
             String s = this.searchTextField.getText();
-            OPTION_QUERY.setValue(s);
-            this.updateSearchFieldSuggestion(s);
-            this.modList.filterAndUpdateList();
-            this.updateSelectedModList();
+            if(!OPTION_QUERY.getValue().equals(s)) {
+                OPTION_QUERY.setValue(s);
+                this.updateSearchFieldSuggestion(s);
+                this.modList.filterAndUpdateList();
+                this.updateSelectedModList();
+            }
             return;
         }
         super.keyTyped(typedChar, key);
@@ -419,11 +443,19 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
     private class ModList extends CatalogueListExtended {
         private static final Predicate<ModContainer> SEARCH_PREDICATE = data -> {
             String query = OPTION_QUERY.getValue();
+            if(query.startsWith("@")) {
+                return performSearchFilter(query, data);
+            }
             return data.getName()
                     .toLowerCase(Locale.ENGLISH)
                     .contains(query.toLowerCase(Locale.ENGLISH));
         };
         private static final Predicate<ModContainer> FILTER_PREDICATE = data -> {
+            // We ignore filters when using special query
+            String query = OPTION_QUERY.getValue();
+            if(query.startsWith("@")) {
+                return true;
+            }
             if (OPTION_CONFIGS_ONLY.booleanValue() && !hasConfigGui(data)) {
                 return false;
             }
@@ -573,6 +605,23 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         public boolean shouldHideFavourites() {
             return this.hideFavourites;
         }
+    }
+
+    private static boolean performSearchFilter(String query, ModContainer data)
+    {
+        if(!query.startsWith("@"))
+            return false;
+
+        int end = query.indexOf(":");
+        if(end == -1)
+            return false;
+
+        String type = query.substring(1, end).toLowerCase(Locale.ENGLISH);
+        if(!SEARCH_FILTERS.containsKey(type))
+            return false;
+
+        String value = query.substring(end + 1);
+        return SEARCH_FILTERS.get(type).predicate().test(value, data);
     }
 
     private class ModListEntry implements CatalogueListExtended.IGuiListEntry {
@@ -1316,6 +1365,30 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
     private void updateSearchFieldSuggestion(String value) {
         if (value.isEmpty()) {
             this.searchTextField.setSuggestion(I18n.format("catalogue.gui.search") + "...");
+        }         else if(value.startsWith("@"))
+        {
+            // Mark as special search
+            int end = value.indexOf(":");
+            if(end != -1)
+            {
+                String type = value.substring(1, end);
+                Optional<String> optional = SEARCH_FILTERS.keySet().stream().filter(filter -> {
+                    return filter.startsWith(type.toLowerCase(Locale.ENGLISH));
+                }).min(Comparator.comparing(String::length));
+                if(optional.isPresent())
+                {
+                    int length = type.length();
+                    this.searchTextField.setSuggestion(optional.get().substring(length));
+                }
+                else
+                {
+                    this.searchTextField.setSuggestion("");
+                }
+            }
+            else
+            {
+                this.searchTextField.setSuggestion("");
+            }
         } else {
             Optional<ModContainer> optional = CACHED_MODS.values().stream().filter(data -> {
                 return data.getName().toLowerCase(Locale.ENGLISH).startsWith(value.toLowerCase(Locale.ENGLISH));
@@ -1370,6 +1443,15 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         return guiFactory.hasConfigGui();
     }
 
+    private static Set<String> analyzeDependencies(ModContainer source)
+    {
+        List<? extends ArtifactVersion> versions = source.getDependencies();
+        return versions.stream()
+                .map(ArtifactVersion::getLabel)
+                .filter(modid -> !modid.equals("minecraft") && !modid.equals("neoforge"))
+                .collect(Collectors.toUnmodifiableSet());
+    }
+
     private static boolean isKeyComboCtrlF(int keyID) {
         return keyID == Keyboard.KEY_F && isCtrlKeyDown() && !isShiftKeyDown() && !isAltKeyDown();
     }
@@ -1378,6 +1460,9 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
     }
 
     private record ImageInfo(ResourceLocation resource, Dimension size) {
+    }
+
+    private record SearchFilter(BiPredicate<String, ModContainer> predicate) {
     }
 
     private static class Favourites {

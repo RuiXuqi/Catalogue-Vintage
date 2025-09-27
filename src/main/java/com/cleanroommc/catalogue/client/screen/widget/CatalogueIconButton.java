@@ -12,7 +12,7 @@ import net.minecraft.util.math.MathHelper;
  * Author: MrCrayfish
  */
 public class CatalogueIconButton extends GuiButton {
-    private static final ResourceLocation TEXTURE = new ResourceLocation(CatalogueConstants.MOD_ID, "textures/gui/icons.png");
+    public static final ResourceLocation TEXTURE = new ResourceLocation(CatalogueConstants.MOD_ID, "textures/gui/icons.png");
 
     private final String label;
     private final int u, v;
