@@ -1,18 +1,18 @@
 package com.cleanroommc.catalogue.client.screen;
 
-import com.cleanroommc.catalogue.CatalogueConfig;
 import com.cleanroommc.catalogue.CatalogueConstants;
 import com.cleanroommc.catalogue.client.ClientHelper;
+import com.cleanroommc.catalogue.client.IModData;
 import com.cleanroommc.catalogue.client.screen.widget.CatalogueIconButton;
 import com.cleanroommc.catalogue.client.screen.widget.CatalogueListExtended;
 import com.cleanroommc.catalogue.client.screen.widget.CatalogueTextField;
 import com.cleanroommc.catalogue.client.screen.widget.DropdownMenu;
+import com.cleanroommc.catalogue.platform.ClientServices;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
-import net.minecraft.client.gui.GuiOptions;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
@@ -25,20 +25,14 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.resources.IResourcePack;
 import net.minecraft.init.Blocks;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.event.ClickEvent;
-import net.minecraftforge.common.ForgeVersion;
-import net.minecraftforge.fml.client.FMLClientHandler;
-import net.minecraftforge.fml.client.IModGuiFactory;
-import net.minecraftforge.fml.common.Loader;
-import net.minecraftforge.fml.common.ModContainer;
-import net.minecraftforge.fml.common.ModMetadata;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
-import net.minecraftforge.fml.common.versioning.ArtifactVersion;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.apache.commons.lang3.tuple.Pair;
@@ -65,7 +59,7 @@ import java.util.stream.Collectors;
 
 public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHandler {
     private static final Favourites FAVOURITES = new Favourites();
-    private static final Comparator<ModListEntry> SORT_ALPHABETICALLY = Comparator.comparing(o -> o.getData().getName());
+    private static final Comparator<ModListEntry> SORT_ALPHABETICALLY = Comparator.comparing(o -> o.getData().getDisplayName());
     private static final Comparator<ModListEntry> SORT_ALPHABETICALLY_REVERSED = SORT_ALPHABETICALLY.reversed();
     private static final Comparator<ModListEntry> SORT_FAVOURITES_FIRST = Comparator.comparing(ModListEntry::getData, Comparator.comparing(data -> FAVOURITES.has(data.getModId()))).reversed().thenComparing(SORT_ALPHABETICALLY);
     private static final MutableObject<String> OPTION_QUERY = new MutableObject<>("");
@@ -76,24 +70,22 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
     private static final MutableObject<Comparator<ModListEntry>> OPTION_SORT = new MutableObject<>(SORT_ALPHABETICALLY);
     private static final ResourceLocation MISSING_BANNER = new ResourceLocation(CatalogueConstants.MOD_ID, "textures/gui/missing_banner.png");
     private static final ResourceLocation MISSING_BACKGROUND = new ResourceLocation(CatalogueConstants.MOD_ID, "textures/gui/missing_background.png");
-    private static final ResourceLocation VERSION_CHECK_ICONS = new ResourceLocation(ForgeVersion.MOD_ID, "textures/gui/version_check_icons.png");
     private static final ResourceLocation MINECRAFT_LOGO = new ResourceLocation(CatalogueConstants.MOD_ID, "textures/gui/minecraft.png");
     private static final ImageInfo MISSING_BANNER_INFO = new ImageInfo(MISSING_BANNER, new Dimension(120, 120));
     private static final Map<String, ImageInfo> BANNER_CACHE = new HashMap<>();
     private static final Map<String, ImageInfo> IMAGE_ICON_CACHE = new HashMap<>();
     private static final Map<String, ItemStack> ITEM_ICON_CACHE = new HashMap<>();
-    private static final Map<String, ModContainer> CACHED_MODS = new HashMap<>();
+    private static final Map<String, IModData> CACHED_MODS = new HashMap<>();
     private static final Pattern MOD_ID_PATTERN = Pattern.compile("^[a-zA-Z][a-zA-Z0-9_]{1,63}$");
-    private static final List<String> LIB_MODS = Arrays.asList(CatalogueConfig.libraryList);
     private static final Supplier<Pair<Integer, Integer>> COUNTS = Suppliers.memoize(() -> {
         int[] counts = new int[2];
-        CACHED_MODS.forEach((modId, data) -> counts[LIB_MODS.contains(data.getModId()) ? 1 : 0]++);
+        CACHED_MODS.forEach((modId, data) -> counts[data.isLibrary() ? 1 : 0]++);
         return Pair.of(counts[0], counts[1]);
     });
     private static final Map<String, SearchFilter> SEARCH_FILTERS = ImmutableMap.<String, SearchFilter>builder()
             .put("dependencies", new SearchFilter((query, data) -> {
-                ModContainer target = CACHED_MODS.get(query.toLowerCase(Locale.ENGLISH));
-                return target != null && analyzeDependencies(target).contains(data.getModId());
+                IModData target = CACHED_MODS.get(query.toLowerCase(Locale.ENGLISH));
+                return target != null && target.getDependencies().contains(data.getModId());
             })).build();
     private static final Style SEARCH_FILTER_KEY = new Style().setColor(TextFormatting.GOLD);
     private static final Style SEARCH_FILTER_VALUE = new Style().setColor(TextFormatting.WHITE);
@@ -103,7 +95,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
     private GuiButton optionsButton;
     private CatalogueTextField searchTextField;
     private ModList modList;
-    private ModContainer selectedModData;
+    private IModData selectedModData;
     private CatalogueIconButton modFolderButton;
     private CatalogueIconButton configButton;
     private CatalogueIconButton websiteButton;
@@ -119,7 +111,8 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
     public CatalogueModListScreen() {
         super();
         if (!loaded) {
-            Loader.instance().getActiveModList().forEach(data -> CACHED_MODS.put(data.getModId(), data));
+            ClientServices.PLATFORM.getAllModData().forEach(data -> CACHED_MODS.put(data.getModId(), data));
+            CACHED_MODS.put("minecraft", new MinecraftModData()); // Override minecraft
             BANNER_CACHE.put("minecraft", new ImageInfo(MINECRAFT_LOGO, new Dimension(1024, 256)));
             FAVOURITES.load();
             loaded = true;
@@ -197,29 +190,21 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                 break;
             case 2:
                 try {
-                    Desktop.getDesktop().open(Loader.instance().getConfigDir().getParentFile().toPath().resolve("mods").toFile());
+                    Desktop.getDesktop().open(ClientServices.PLATFORM.getModDirectory());
                 } catch (Exception e) {
                     CatalogueConstants.LOG.error("Problem opening mods folder", e);
                 }
                 break;
             case 3:
-                if (!this.selectedModData.getModId().equals("minecraft")) {
-                    try {
-                        IModGuiFactory guiFactory = FMLClientHandler.instance().getGuiFactoryFor(this.selectedModData);
-                        GuiScreen newScreen = guiFactory.createConfigGui(this);
-                        this.mc.displayGuiScreen(newScreen);
-                    } catch (Exception e) {
-                        CatalogueConstants.LOG.error("There was a critical issue trying to build the config GUI for {}", this.selectedModData.getModId(), e);
-                    }
-                } else {
-                    this.mc.displayGuiScreen(new GuiOptions(this, this.mc.gameSettings));
+                if (this.selectedModData != null) {
+                    this.selectedModData.openConfigScreen(this.mc, this);
                 }
                 break;
             case 4:
-                this.openLink(0, this.selectedModData);
+                this.openLink(this.selectedModData.getHomepage());
                 break;
             case 5:
-                this.openLink(1, this.selectedModData);
+                this.openLink(this.selectedModData.getIssueTracker());
                 break;
             case 6:
                 DropdownMenu menu = DropdownMenu.builder(this)
@@ -286,7 +271,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             }
         }
 
-        Optional<ModContainer> optional = Optional.ofNullable(CACHED_MODS.get(CatalogueConstants.MOD_ID));
+        Optional<IModData> optional = Optional.ofNullable(CACHED_MODS.get(CatalogueConstants.MOD_ID));
         optional.ifPresent(this::loadAndCacheLogo);
         ImageInfo imageInfo = BANNER_CACHE.get(CatalogueConstants.MOD_ID);
         if (imageInfo != null) {
@@ -343,13 +328,12 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         // Version check button
         if (this.selectedModData != null) {
             int contentLeft = this.modList.right + 12 + 10;
-            String version = I18n.format("catalogue.gui.version", this.selectedModData.getDisplayVersion());
+            String version = this.selectedModData.getVersion();
             int versionWidth = this.fontRenderer.getStringWidth(version);
             if (ClientHelper.isMouseWithin(contentLeft + versionWidth + 5, 92, 8, 8, mouseX, mouseY)) {
-                ForgeVersion.CheckResult update = ForgeVersion.getCleanResult(this.selectedModData);
-                if (shouldUpdate(update) && update.homepage != null && !update.homepage.isBlank()) {
-                    this.openLink(update.homepage);
-                    return;
+                IModData.Update update = this.selectedModData.getUpdate();
+                if (update != null && update.homepage() != null && !update.homepage().isBlank() && update.clickable()) {
+                    this.openLink(update.homepage());
                 }
             }
         }
@@ -441,28 +425,28 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
     }
 
     private class ModList extends CatalogueListExtended {
-        private static final Predicate<ModContainer> SEARCH_PREDICATE = data -> {
+        private static final Predicate<IModData> SEARCH_PREDICATE = data -> {
             String query = OPTION_QUERY.getValue();
             if(query.startsWith("@")) {
                 return performSearchFilter(query, data);
             }
-            return data.getName()
+            return data.getDisplayName()
                     .toLowerCase(Locale.ENGLISH)
                     .contains(query.toLowerCase(Locale.ENGLISH));
         };
-        private static final Predicate<ModContainer> FILTER_PREDICATE = data -> {
+        private static final Predicate<IModData> FILTER_PREDICATE = data -> {
             // We ignore filters when using special query
             String query = OPTION_QUERY.getValue();
             if(query.startsWith("@")) {
                 return true;
             }
-            if (OPTION_CONFIGS_ONLY.booleanValue() && !hasConfigGui(data)) {
+            if (OPTION_CONFIGS_ONLY.booleanValue() && !data.hasConfig()) {
                 return false;
             }
-            if (OPTION_UPDATES_ONLY.booleanValue() && !shouldUpdate(ForgeVersion.getCleanResult(data))) {
+            if (OPTION_UPDATES_ONLY.booleanValue() && data.getUpdate() == null) {
                 return false;
             }
-            if (OPTION_HIDE_LIBRARIES.booleanValue() && LIB_MODS.contains(data.getModId())) {
+            if (OPTION_HIDE_LIBRARIES.booleanValue() && data.isLibrary()) {
                 return false;
             }
             if (OPTION_FAVOURITES_ONLY.booleanValue() && !FAVOURITES.has(data.getModId())) {
@@ -512,7 +496,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             this.setAmountScrolled(0);
         }
 
-        public ModListEntry getEntryFromInfo(ModContainer data) {
+        public ModListEntry getEntryFromInfo(IModData data) {
             return this.entries.stream().filter(entry -> entry.data == data).findFirst().orElse(null);
         }
 
@@ -590,7 +574,6 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                 this.hideFavourites = button == 0 && mouseX >= this.getScrollBarX() && mouseY < this.getScrollBarX() + 6;
                 return true;
             }
-            ;
             return false;
         }
 
@@ -607,7 +590,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         }
     }
 
-    private static boolean performSearchFilter(String query, ModContainer data)
+    private static boolean performSearchFilter(String query, IModData data)
     {
         if(!query.startsWith("@"))
             return false;
@@ -625,12 +608,12 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
     }
 
     private class ModListEntry implements CatalogueListExtended.IGuiListEntry {
-        private final ModContainer data;
+        private final IModData data;
         private final ModList list;
         private final PinnedButton button;
         private ItemStack icon;
 
-        public ModListEntry(ModContainer data, ModList list) {
+        public ModListEntry(IModData data, ModList list) {
             this.data = data;
             this.list = list;
             this.button = new PinnedButton(data.getModId());
@@ -649,10 +632,10 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             this.drawIcon(top, left);
 
             // Draws an icon if there is an update for the mod
-            ForgeVersion.CheckResult update = ForgeVersion.getCleanResult(this.data);
-            if (shouldDraw(update)) {
+            IModData.Update update = this.data.getUpdate();
+            if (update != null) {
                 int iconLeft = left + rowWidth - 8 - 9 + (drawFavouriteIcon ? -14 : 0);
-                drawUpdateIcon(update, iconLeft, top + 7);
+                this.data.drawUpdateIcon(mc, update, iconLeft, top + 7);
             }
 
             if (drawFavouriteIcon) {
@@ -713,26 +696,23 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                 return anvil;
             }
 
-/*            // Gets the raw item icon resource string
-            ModMetadata metadata = this.data.getMetadata();
-            if (metadata != null && !metadata.autogenerated) {
-                String itemIcon = metadata.iconItem;
-                if (!itemIcon.isBlank()) {
-                    try {
-                        // 0:mod id 1:item name (2:metadata)
-                        String[] parts = itemIcon.split(":");
-                        Item item = Item.getByNameOrId(parts[0] + ":" + parts[1]);
-                        if (item != null) {
-                            int meta = parts.length > 2 ? Integer.parseInt(parts[2]) : 0;
-                            ItemStack itemStack = new ItemStack(item, 1, meta);
-                            ITEM_ICON_CACHE.put(this.data.getModId(), itemStack);
-                            return itemStack;
-                        }
-                    } catch (Exception e) {
-                        CatalogueConstants.LOG.debug("Failed to get customized item icon for mod '{}'", this.data.getModId(), e);
+            // Gets the raw item icon resource string
+            String itemIcon = data.getItemIcon();
+            if (!itemIcon.isBlank()) {
+                try {
+                    // 0:mod id 1:item name (2:metadata)
+                    String[] parts = itemIcon.split(":");
+                    Item item = Item.getByNameOrId(parts[0] + ":" + parts[1]);
+                    if (item != null) {
+                        int meta = parts.length > 2 ? Integer.parseInt(parts[2]) : 0;
+                        ItemStack itemStack = new ItemStack(item, 1, meta);
+                        ITEM_ICON_CACHE.put(this.data.getModId(), itemStack);
+                        return itemStack;
                     }
+                } catch (Exception e) {
+                    CatalogueConstants.LOG.debug("Failed to get customized item icon for mod '{}'", this.data.getModId(), e);
                 }
-            }*/
+            }
 
             // If the mod doesn't specify an item to use, Catalogue will attempt to get an item from the mod
             Optional<ItemStack> optional = ForgeRegistries.ITEMS.getValuesCollection().stream().filter(item -> item.getRegistryName().getNamespace().equals(this.data.getModId())).map(ItemStack::new).findFirst();
@@ -759,10 +739,11 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         }
 
         private String getFormattedModName(boolean favouriteIconVisible) {
-            String name = this.data.getName();
+            String name = this.data.getDisplayName();
             int paddingEnd = 4;
             int trimWidth = this.list.getListWidth() - 24 - paddingEnd;
-            if (shouldDraw(ForgeVersion.getCleanResult(this.data))) {
+            IModData.Update update = this.data.getUpdate();
+            if (update != null) {
                 trimWidth -= 12;
             }
             if (favouriteIconVisible) {
@@ -771,13 +752,13 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             if (CatalogueModListScreen.this.fontRenderer.getStringWidth(name) > trimWidth) {
                 name = CatalogueModListScreen.this.fontRenderer.trimStringToWidth(name, trimWidth - 8).trim() + "...";
             }
-            if (LIB_MODS.contains(this.data.getModId())) {
-                name = TextFormatting.DARK_GRAY + name;
+            if (this.data.isLibrary()) {
+                return TextFormatting.DARK_GRAY + name;
             }
             return name;
         }
 
-        public ModContainer getData() {
+        public IModData getData() {
             return this.data;
         }
 
@@ -834,24 +815,25 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
      * @param partialTicks the partial ticks
      */
     private void drawModInfo(int mouseX, int mouseY, float partialTicks) {
-        this.drawVerticalLine(this.modList.right + 11, -1, this.height, 0xFF707070);
-        drawRect(this.modList.right + 12, 0, this.width, this.height, 0x66000000);
+        int listRight = this.modList.right;
+        this.drawVerticalLine(listRight + 11, -1, this.height, 0xFF707070);
+        drawRect(listRight + 12, 0, this.width, this.height, 0x66000000);
         this.descriptionList.drawScreen(mouseX, mouseY, partialTicks);
 
-        int contentLeft = this.modList.right + 12 + 10;
+        int contentLeft = listRight + 12 + 10;
         int contentWidth = this.width - contentLeft - 10;
 
         if (this.selectedModData != null) {
-            this.drawBackground(this.width - contentLeft + 10, this.modList.right + 12, 0);
+            this.drawBackground(this.width - contentLeft + 10, listRight + 12, 0);
 
             // Draw mod logo
-            this.drawBanner(contentWidth, contentLeft, 10, this.width - (this.modList.right + 12 + 10) - 10, 50);
+            this.drawBanner(contentWidth, contentLeft, 10, this.width - (listRight + 12 + 10) - 10, 50);
 
             // Draw mod name
             GlStateManager.pushMatrix();
             GlStateManager.translate(contentLeft, 70, 0);
             GlStateManager.scale(2.0F, 2.0F, 2.0F);
-            drawString(this.fontRenderer, this.selectedModData.getName(), 0, 0, 0xFFFFFF);
+            drawString(this.fontRenderer, this.selectedModData.getDisplayName(), 0, 0, 0xFFFFFF);
             GlStateManager.popMatrix();
 
             // Draw mod id
@@ -860,73 +842,49 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             drawString(this.fontRenderer, modId, contentLeft + contentWidth - modIdWidth, 92, 0xFFFFFF);
 
             // Draw version
-            String displayVersion = this.selectedModData.getDisplayVersion();
+            String displayVersion = this.selectedModData.getVersion();
             this.drawStringWithLabel("catalogue.gui.version", displayVersion, contentLeft, 92, contentWidth, mouseX, mouseY, TextFormatting.GRAY, TextFormatting.WHITE);
 
             // Draw inner version if the display version is different from it
             int versionWidth = this.fontRenderer.getStringWidth(I18n.format("catalogue.gui.version", displayVersion));
-            String innerVersion = this.selectedModData.getVersion();
+            String innerVersion = this.selectedModData.getInnerVersion();
             if (!displayVersion.equals(innerVersion) && ClientHelper.isMouseWithin(contentLeft, 92, versionWidth, this.fontRenderer.FONT_HEIGHT, mouseX, mouseY)) {
-                this.setActiveTooltip(innerVersion);
+                this.setActiveTooltip(I18n.format("catalogue.gui.inner_version", innerVersion));
             }
 
             // Draws an icon if there is an update for the mod
-            ForgeVersion.CheckResult update = ForgeVersion.getCleanResult(this.selectedModData);
-            if (shouldDraw(update) && update.url != null && !update.url.isBlank()) {
-                this.drawUpdateIcon(update, contentLeft + versionWidth + 5, 92);
+            IModData.Update update = this.selectedModData.getUpdate();
+            if (update != null && update.url() != null && !update.url().isBlank()) {
+                this.selectedModData.drawUpdateIcon(this.mc, update, contentLeft + versionWidth + 5, 92);
                 if (ClientHelper.isMouseWithin(contentLeft + versionWidth + 5, 92, 8, 8, mouseX, mouseY)) {
-                    switch (update.status) {
-                        case BETA:
-                            this.setActiveTooltip(TextFormatting.GOLD + I18n.format("catalogue.gui.beta"));
-                            break;
-                        case AHEAD:
-                            this.setActiveTooltip(TextFormatting.LIGHT_PURPLE + I18n.format("catalogue.gui.ahead", update.latestFound));
-                            break;
-                        case BETA_OUTDATED:
-                            if (update.homepage != null) {
-                                this.setActiveTooltip(TextFormatting.GOLD + I18n.format("catalogue.gui.beta_update_available", update.latestFound, update.homepage));
-                            } else {
-                                this.setActiveTooltip(TextFormatting.GOLD + I18n.format("catalogue.gui.beta_update_available_no_page", update.latestFound));
-                            }
-                            break;
-                        case OUTDATED:
-                            if (update.homepage != null) {
-                                this.setActiveTooltip(TextFormatting.GREEN + I18n.format("catalogue.gui.update_available", update.latestFound, update.homepage));
-                            } else {
-                                this.setActiveTooltip(TextFormatting.GREEN + I18n.format("catalogue.gui.update_available_no_page", update.latestFound));
-                            }
-                            break;
-                    }
+                    String message = this.selectedModData.getUpdateText(update);
+                    this.setActiveTooltip(message);
                 }
             }
 
-            ModMetadata metadata = selectedModData.getMetadata();
-            if (metadata != null && !metadata.autogenerated) {
+            // Draw fade from the bottom
+            drawGradientRect(listRight + 12, this.height - 50, this.width, this.height, 0x00000000, 0x66000000);
 
-                // Draw fade from the bottom
-                drawGradientRect(this.modList.right + 12, this.height - 50, this.width, this.height, 0x00000000, 0x66000000);
+            int labelOffset = this.height - 18;
 
-                int labelOffset = this.height - 18;
+            // Draw license
+            String license = this.selectedModData.getLicense();
+            if (!license.isBlank()) {
+                this.drawStringWithLabel("catalogue.gui.licenses", license, contentLeft, labelOffset, contentWidth, mouseX, mouseY, TextFormatting.GRAY, TextFormatting.WHITE);
+                labelOffset -= 15;
+            }
 
-/*                // Draw license
-                String license = metadata.license;
-                if (!license.isBlank()) {
-                    this.drawStringWithLabel("catalogue.gui.license", license, contentLeft, labelOffset, contentWidth, mouseX, mouseY, TextFormatting.GRAY, TextFormatting.WHITE);
-                    labelOffset -= 15;
-                }*/
+            // Draw credits
+            String credits = this.selectedModData.getCredits();
+            if (!credits.isBlank()) {
+                this.drawStringWithLabel("catalogue.gui.credits", credits, contentLeft, labelOffset, contentWidth, mouseX, mouseY, TextFormatting.GRAY, TextFormatting.WHITE);
+                labelOffset -= 15;
+            }
 
-                // Draw credits
-                String credits = metadata.credits;
-                if (!credits.isBlank()) {
-                    this.drawStringWithLabel("catalogue.gui.credits", credits, contentLeft, labelOffset, contentWidth, mouseX, mouseY, TextFormatting.GRAY, TextFormatting.WHITE);
-                    labelOffset -= 15;
-                }
-
-                // Draw authors
-                String authors = metadata.getAuthorList();
-                if (!authors.isBlank()) {
-                    this.drawStringWithLabel("catalogue.gui.authors", authors, contentLeft, labelOffset, contentWidth, mouseX, mouseY, TextFormatting.GRAY, TextFormatting.WHITE);
-                }
+            // Draw authors
+            String authors = this.selectedModData.getAuthors();
+            if (!authors.isBlank()) {
+                this.drawStringWithLabel("catalogue.gui.authors", authors, contentLeft, labelOffset, contentWidth, mouseX, mouseY, TextFormatting.GRAY, TextFormatting.WHITE);
             }
         } else {
             String message = TextFormatting.GRAY + I18n.format("catalogue.gui.no_selection");
@@ -943,19 +901,16 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             this.visible = false;
         }
 
-        public void setTextFromInfo(ModContainer data) {
+        public void setTextFromInfo(IModData data) {
             this.entries.clear();
             this.visible = true;
-            if (data.getMetadata().description.trim().isBlank()) {
+            if (data.getDescription().trim().isBlank()) {
                 this.visible = false;
                 return;
             }
-            String description = data.getMetadata().description.trim();
-            List<String> lines = CatalogueModListScreen.this.fontRenderer.listFormattedStringToWidth(description, this.getListWidth());
-
+            List<String> lines = CatalogueModListScreen.this.fontRenderer.listFormattedStringToWidth(data.getDescription().trim(), this.getListWidth());
             for (String line : lines) {
-                String cleanLine = line.replace("\n", "").replace("\r", "").trim();
-                this.entries.add(new StringEntry(cleanLine));
+                this.entries.add(new StringEntry(line.replace("\n", "").replace("\r", "").trim()));
             }
         }
 
@@ -1080,19 +1035,17 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         }
     }
 
-    private void loadAndCacheLogo(ModContainer data) {
+    private void loadAndCacheLogo(IModData data) {
         if (BANNER_CACHE.containsKey(data.getModId())) return;
 
         // Fills an empty logo as logo may not be present
         BANNER_CACHE.put(data.getModId(), null);
 
         // Attempts to load the real logo
-        ModMetadata metadata = data.getMetadata();
-        if (metadata == null) return;
-        String banner = metadata.logoFile;
+        String banner = data.getBanner();
         if (banner.isBlank()) return;
 
-        IResourcePack resourcePack = FMLClientHandler.instance().getResourcePackFor(data.getModId());
+        IResourcePack resourcePack = data.getResourcePack();
         BufferedImage image = null;
         try {
             if (resourcePack != null && !banner.startsWith("/")) {
@@ -1106,46 +1059,43 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             }
             if (image == null) return;
             TextureManager manager = this.mc.getTextureManager();
-            ResourceLocation resource = manager.getDynamicTextureLocation("modlogo", this.createLogoTexture(image, true));
+            ResourceLocation resource = manager.getDynamicTextureLocation("modlogo", this.createLogoTexture(image, data.isLogoSmooth()));
             Dimension size = new Dimension(image.getWidth(), image.getHeight());
             BANNER_CACHE.put(data.getModId(), new ImageInfo(resource, size));
         } catch (IOException ignored) {
         }
     }
 
-    private void loadAndCacheIcon(ModContainer data) {
+    private void loadAndCacheIcon(IModData data) {
         if (IMAGE_ICON_CACHE.containsKey(data.getModId())) return;
 
         // Fills an empty icon as icon may not be present
         IMAGE_ICON_CACHE.put(data.getModId(), null);
 
-        ModMetadata metadata = data.getMetadata();
-        if (metadata == null) return;
-
-/*        // Attempts to load the real icon
-        String iconFile = metadata.iconFile;
-        if (!iconFile.isBlank()) {
-            if (!iconFile.startsWith("/")) {
-                iconFile = "/" + iconFile;
+        // Attempts to load the real icon
+        String imageIcon = data.getImageIcon();
+        if (!imageIcon.isBlank()) {
+            if (!imageIcon.startsWith("/")) {
+                imageIcon = "/" + imageIcon;
             }
             BufferedImage image = null;
-            try (InputStream is = getClass().getResourceAsStream(iconFile)) {
+            try (InputStream is = getClass().getResourceAsStream(imageIcon)) {
                 if (is != null) image = TextureUtil.readBufferedImage(is);
                 if (image != null) {
                     TextureManager manager = this.mc.getTextureManager();
-                    ResourceLocation resource = manager.getDynamicTextureLocation("catalogueicon", this.createLogoTexture(image, metadata.logoBlur));
+                    ResourceLocation resource = manager.getDynamicTextureLocation("catalogueicon", this.createLogoTexture(image, data.isIconSmooth()));
                     Dimension size = new Dimension(image.getWidth(), image.getHeight());
                     IMAGE_ICON_CACHE.put(data.getModId(), new ImageInfo(resource, size));
                     return;
                 }
             } catch (IOException ignored) {
             }
-        }*/
+        }
 
         // Attempts to use the logo file if it's a square
-        String logoFile = metadata.logoFile;
+        String logoFile = data.getBanner();
         if (!logoFile.isBlank()) {
-            IResourcePack resourcePack = FMLClientHandler.instance().getResourcePackFor(data.getModId());
+            IResourcePack resourcePack = data.getResourcePack();
             BufferedImage image = null;
             try {
                 if (resourcePack != null && !logoFile.startsWith("/")) {
@@ -1169,7 +1119,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
 
                 /* Since the icon will be same as the logo, we can cache into both icon and logo cache */
                 TextureManager manager = this.mc.getTextureManager();
-                DynamicTexture texture = this.createLogoTexture(image, true);
+                DynamicTexture texture = this.createLogoTexture(image, data.isLogoSmooth());
                 Dimension size = new Dimension(image.getWidth(), image.getHeight());
                 ResourceLocation resource = manager.getDynamicTextureLocation("catalogueicon", texture);
                 IMAGE_ICON_CACHE.put(modId, new ImageInfo(resource, size));
@@ -1179,16 +1129,14 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         }
     }
 
-    private void loadAndCacheBackground(ModContainer data) {
+    private void loadAndCacheBackground(IModData data) {
         // Deletes the last cached background since they are large images
         if (cachedBackground != null) {
             this.mc.getTextureManager().deleteTexture(cachedBackground);
         }
         cachedBackground = null;
 
-/*        ModMetadata metadata = data.getMetadata();
-        if (metadata == null) return;
-        String background = metadata.backgroundFile;
+        String background = data.getBackground();
         if (background.isBlank()) return;
 
         if (!background.startsWith("/")) {
@@ -1202,7 +1150,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             TextureManager textureManager = this.mc.getTextureManager();
             cachedBackground = textureManager.getDynamicTextureLocation("cataloguebackground", this.createLogoTexture(image, false));
         } catch (IOException ignored) {
-        }*/
+        }
     }
 
     private DynamicTexture createLogoTexture(BufferedImage image, boolean smooth) {
@@ -1291,13 +1239,6 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         return MISSING_BANNER_INFO;
     }
 
-    private void drawUpdateIcon(ForgeVersion.CheckResult update, int x, int y) {
-        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-        this.mc.getTextureManager().bindTexture(VERSION_CHECK_ICONS);
-        int vOffset = update.status.isAnimated() && (System.currentTimeMillis() / 800 & 1) == 1 ? 8 : 0;
-        drawModalRectWithCustomSizedTexture(x, y, update.status.getSheetOffset() * 8, vOffset, 8, 8, 64, 16);
-    }
-
     private void setActiveTooltip(String content) {
         this.activeTooltip = this.fontRenderer.listFormattedStringToWidth(content, 200);
         this.tooltipYOffset = 0;
@@ -1308,7 +1249,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         this.tooltipYOffset = 0;
     }
 
-    private void setSelectedModData(ModContainer data) {
+    private void setSelectedModData(IModData data) {
         this.selectedModData = data;
         this.loadAndCacheLogo(data);
         this.loadAndCacheBackground(data);
@@ -1316,18 +1257,9 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         this.websiteButton.visible = true;
         this.issueButton.visible = true;
 
-        if (!this.selectedModData.getModId().equals("minecraft")) {
-            this.configButton.enabled = hasConfigGui(data);
-        } else {
-            this.configButton.enabled = true;
-        }
-
-        ModMetadata metadata = data.getMetadata();
-        if (metadata != null && !metadata.autogenerated) {
-            this.websiteButton.enabled = !metadata.url.isBlank();
-            //this.issueButton.enabled = !metadata.issueTrackerUrl.isBlank();
-            this.issueButton.enabled = false;
-        }
+        this.configButton.enabled = data.hasConfig();
+        this.websiteButton.enabled = !data.getHomepage().isBlank();
+        this.issueButton.enabled = !data.getIssueTracker().isBlank();
 
         int contentLeft = this.modList.right + 12 + 10;
         int contentWidth = this.width - contentLeft - 10;
@@ -1339,14 +1271,11 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         this.descriptionList.setAmountScrolled(0);
     }
 
-    private int getLabelCount(ModContainer selectedModInfo) {
+    private int getLabelCount(IModData selectedModData) {
         int count = 0;
-        ModMetadata metadata = selectedModInfo.getMetadata();
-        if (metadata != null && !metadata.autogenerated) {
-            //if (!metadata.license.isBlank()) count++;
-            if (!metadata.credits.isBlank()) count++;
-            if (!metadata.authorList.isEmpty()) count++;
-        }
+        if (!selectedModData.getLicense().isBlank()) count++;
+        if (!selectedModData.getCredits().isBlank()) count++;
+        if (!selectedModData.getAuthors().isBlank()) count++;
         return count;
     }
 
@@ -1390,12 +1319,12 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                 this.searchTextField.setSuggestion("");
             }
         } else {
-            Optional<ModContainer> optional = CACHED_MODS.values().stream().filter(data -> {
-                return data.getName().toLowerCase(Locale.ENGLISH).startsWith(value.toLowerCase(Locale.ENGLISH));
-            }).min(Comparator.comparing(ModContainer::getName));
+            Optional<IModData> optional = CACHED_MODS.values().stream().filter(data -> {
+                return data.getDisplayName().toLowerCase(Locale.ENGLISH).startsWith(value.toLowerCase(Locale.ENGLISH));
+            }).min(Comparator.comparing(IModData::getDisplayName));
             if (optional.isPresent()) {
                 int length = value.length();
-                String displayName = optional.get().getName();
+                String displayName = optional.get().getDisplayName();
                 this.searchTextField.setSuggestion(displayName.substring(length));
             } else {
                 this.searchTextField.setSuggestion("");
@@ -1403,53 +1332,9 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         }
     }
 
-    /**
-     * Opens a link with a url defined in the mod's info
-     */
-    private void openLink(int key, @Nullable ModContainer configurable) {
-        if (configurable != null) {
-            ModMetadata metadata = configurable.getMetadata();
-            // The config button is only enabled when checked, so it is unnecessary to check again.
-            switch (key) {
-                case 0:
-                    this.openLink(metadata.url);
-                    break;
-                case 1:
-                    //this.openLink(metadata.issueTrackerUrl);
-                    break;
-            }
-        }
-    }
-
     private void openLink(String url) {
         Style style = new Style().setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, url));
         this.handleComponentClick(new TextComponentString("").setStyle(style));
-    }
-
-    private static boolean shouldDraw(ForgeVersion.CheckResult update) {
-        return update != null && update.status.shouldDraw();
-    }
-
-    private static boolean shouldUpdate(@Nullable ForgeVersion.CheckResult update) {
-        if (update == null) return false;
-        ForgeVersion.Status status = update.status;
-        return status == ForgeVersion.Status.OUTDATED || status == ForgeVersion.Status.BETA_OUTDATED;
-    }
-
-    private static boolean hasConfigGui(@Nullable ModContainer data) {
-        if (data == null) return false;
-        IModGuiFactory guiFactory = FMLClientHandler.instance().getGuiFactoryFor(data);
-        if (guiFactory == null) return false;
-        return guiFactory.hasConfigGui();
-    }
-
-    private static Set<String> analyzeDependencies(ModContainer source)
-    {
-        List<? extends ArtifactVersion> versions = source.getDependencies();
-        return versions.stream()
-                .map(ArtifactVersion::getLabel)
-                .filter(modid -> !modid.equals("minecraft") && !modid.equals("neoforge"))
-                .collect(Collectors.toUnmodifiableSet());
     }
 
     private static boolean isKeyComboCtrlF(int keyID) {
@@ -1462,7 +1347,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
     private record ImageInfo(ResourceLocation resource, Dimension size) {
     }
 
-    private record SearchFilter(BiPredicate<String, ModContainer> predicate) {
+    private record SearchFilter(BiPredicate<String, IModData> predicate) {
     }
 
     private static class Favourites {
@@ -1483,7 +1368,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
 
         private void init() {
             try {
-                Path configDir = Loader.instance().getConfigDir().toPath();
+                Path configDir = ClientServices.PLATFORM.getConfigDirectory();
                 Path file = configDir.resolve("catalogue_favourites.txt");
                 if (!Files.exists(file)) {
                     Files.createFile(file);
@@ -1500,7 +1385,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                 this.mods.clear();
                 Predicate<String> modIdRegex = MOD_ID_PATTERN.asMatchPredicate();
                 Files.readAllLines(file).forEach(s -> {
-                    if (modIdRegex.test(s) && Loader.isModLoaded(s)) {
+                    if (modIdRegex.test(s) && ClientServices.PLATFORM.isModLoaded(s)) {
                         this.mods.add(s);
                     }
                 });
