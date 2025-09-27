@@ -5,7 +5,6 @@ import net.minecraft.client.gui.ScaledResolution;
 import org.lwjgl.opengl.GL11;
 
 import static net.minecraft.client.gui.Gui.drawModalRectWithCustomSizedTexture;
-import static net.minecraft.client.gui.Gui.drawScaledCustomSizeModalRect;
 
 /**
  * Author: MrCrayfish
