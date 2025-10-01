@@ -90,8 +90,8 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             .put("dependents", new SearchFilter((query, data) -> {
                 return data.getDependencies().contains(query.toLowerCase(Locale.ENGLISH));
             })).build();
-    private static final Style SEARCH_FILTER_KEY = new Style().setColor(TextFormatting.GOLD);
-    private static final Style SEARCH_FILTER_VALUE = new Style().setColor(TextFormatting.WHITE);
+    private static final TextFormatting SEARCH_FILTER_KEY = TextFormatting.GOLD;
+    private static final TextFormatting SEARCH_FILTER_VALUE = TextFormatting.WHITE;
     private static ResourceLocation cachedBackground;
     private static boolean loaded = false;
 
@@ -142,8 +142,8 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                 return super.getWidth();
             }
         };
-        this.searchTextField.setCanLoseFocus(true);
-        this.searchTextField.setEnableBackgroundDrawing(true);
+        this.searchTextField.setFormatter(this::formatQuery);
+        this.searchTextField.setMaxStringLength(128);
         this.searchTextField.setText(OPTION_QUERY.getValue());
         this.searchTextField.setResponder(s -> {
             if(!OPTION_QUERY.getValue().equals(s)) {
@@ -595,6 +595,34 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
 
         String value = query.substring(end + 1);
         return SEARCH_FILTERS.get(type).predicate().test(value, data);
+    }
+
+    private String formatQuery(String partial, int displayPos) {
+        String query = OPTION_QUERY.getValue();
+        if (!query.startsWith("@")) {
+            return partial;
+        }
+
+        int split = query.indexOf(":");
+        if (split == -1) {
+            return SEARCH_FILTER_KEY + partial + TextFormatting.RESET;
+        }
+
+        if (displayPos > split) {
+            return SEARCH_FILTER_VALUE + partial + TextFormatting.RESET;
+        }
+
+        if (displayPos + partial.length() < split) {
+            return SEARCH_FILTER_KEY + partial + TextFormatting.RESET;
+        }
+
+        split = partial.indexOf(":");
+        if (split == -1) {
+            return SEARCH_FILTER_KEY + partial + TextFormatting.RESET;
+        }
+
+        return SEARCH_FILTER_KEY + partial.substring(0, split + 1) +
+                SEARCH_FILTER_VALUE + partial.substring(split + 1) + TextFormatting.RESET;
     }
 
     private class ModListEntry implements CatalogueListExtended.IGuiListEntry {
