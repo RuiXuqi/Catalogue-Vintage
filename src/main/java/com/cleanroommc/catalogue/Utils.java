@@ -25,10 +25,6 @@ public class Utils {
         return start + delta * (end - start);
     }
 
-    public static double lerp(double delta, double start, double end) {
-        return start + delta * (end - start);
-    }
-
     public static int roundToward(int value, int factor) {
         return positiveCeilDiv(value, factor) * factor;
     }
