@@ -109,9 +109,9 @@ public class CatalogueTextField extends GuiTextField {
         this.responder = pResponder;
     }
 
-    private void onTextChange(String pNewText) {
+    private void onTextChange(String textIn) {
         if (this.responder != null) {
-            this.responder.accept(pNewText);
+            this.responder.accept(textIn);
         }
     }
 

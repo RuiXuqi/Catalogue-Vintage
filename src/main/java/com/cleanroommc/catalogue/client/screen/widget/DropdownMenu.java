@@ -318,15 +318,10 @@ public class DropdownMenu extends Gui implements LayoutElement {
 
         @Override
         public void drawWidget(Minecraft minecraft, int mouseX, int mouseY, float deltaTick) {
-            GlStateManager.pushMatrix();
-            if (this.selected()) {
-                GlStateManager.translate(0, 0, 51);
-            }
             super.drawWidget(minecraft, mouseX, mouseY, deltaTick);
             FontRenderer font = minecraft.fontRenderer;
             int top = this.getY() + (this.getHeight() - font.FONT_HEIGHT) / 2 + 1;
             drawString(font, ">", this.getX() + this.getWidth() - 10, top, 0xFFFFFFFF);
-            GlStateManager.popMatrix();
         }
 
         @Override
@@ -344,7 +339,7 @@ public class DropdownMenu extends Gui implements LayoutElement {
                 }
             }
             this.parent.subMenu = this.subMenu;
-            this.subMenu.show(getRectangle());
+            this.subMenu.show(this.getRectangle());
         }
 
         @Override

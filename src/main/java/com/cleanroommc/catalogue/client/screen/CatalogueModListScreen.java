@@ -261,12 +261,14 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         this.activeTooltip = null;
-        this.drawDefaultBackground();
-        this.drawModList(mouseX, mouseY, partialTicks);
-        this.drawModInfo(mouseX, mouseY, partialTicks);
 
-        boolean inMenu = false;
-        super.drawScreen(mouseX, mouseY, partialTicks);
+        boolean inMenu = this.menu != null;
+        this.drawDefaultBackground();
+        int disableableMouseX = inMenu ? -1000 : mouseX;
+        int disableableMouseY = inMenu ? -1000 : mouseY;
+        this.drawModList(disableableMouseX, disableableMouseY, partialTicks);
+        this.drawModInfo(disableableMouseX, disableableMouseY, partialTicks);
+        super.drawScreen(disableableMouseX, disableableMouseY, partialTicks);
 
         if (OPTION_QUERY.getValue().startsWith("@")) {
             int iconX = this.searchTextField.x + this.searchTextField.width - 15;
