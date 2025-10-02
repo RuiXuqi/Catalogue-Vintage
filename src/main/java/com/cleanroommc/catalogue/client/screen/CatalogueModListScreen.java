@@ -146,7 +146,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         this.searchTextField.setMaxStringLength(128);
         this.searchTextField.setText(OPTION_QUERY.getValue());
         this.searchTextField.setResponder(s -> {
-            if(!OPTION_QUERY.getValue().equals(s)) {
+            if (!OPTION_QUERY.getValue().equals(s)) {
                 OPTION_QUERY.setValue(s);
                 this.updateSearchFieldSuggestion(s);
                 this.modList.filterAndUpdateList();
