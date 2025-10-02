@@ -7,7 +7,7 @@ public class BorderedLinearLayout extends LinearLayout {
     private int border;
 
     public BorderedLinearLayout(Orientation orientation) {
-        super(orientation);
+        super(0, 0, orientation);
     }
 
     public BorderedLinearLayout border(int size) {

@@ -5,6 +5,7 @@ import com.cleanroommc.catalogue.client.ClientHelper;
 import com.cleanroommc.catalogue.client.screen.DropdownMenuHandler;
 import com.cleanroommc.catalogue.client.screen.layout.BorderedLinearLayout;
 import com.cleanroommc.catalogue.client.screen.layout.LayoutElement;
+import com.cleanroommc.catalogue.client.screen.layout.ScreenRectangle;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.client.audio.SoundHandler;
@@ -28,7 +29,8 @@ import java.util.function.Function;
  */
 public class DropdownMenu extends Gui implements LayoutElement {
     private final DropdownMenuHandler handler;
-    private final BorderedLinearLayout layout = BorderedLinearLayout.vertical().border(1);
+    private final BorderedLinearLayout layout = (BorderedLinearLayout)
+            BorderedLinearLayout.vertical().border(1).spacing(1);
     private final List<MenuItem> items = new ArrayList<>();
     private Alignment alignment = Alignment.BELOW_LEFT;
     private @Nullable DropdownMenu parent;
@@ -90,12 +92,12 @@ public class DropdownMenu extends Gui implements LayoutElement {
     }
 
     private void updatePosition(ScreenRectangle rect) {
-        this.alignment.aligner.accept(this, rect);
-        this.layout.setX(this.x);
-        this.layout.setY(this.y);
         this.layout.arrangeElements();
         this.width = this.layout.getWidth();
         this.height = this.layout.getHeight();
+        this.alignment.aligner.accept(this, rect);
+        this.layout.setX(this.getX());
+        this.layout.setY(this.getY());
     }
 
     public void addItem(MenuItem item) {
@@ -141,7 +143,7 @@ public class DropdownMenu extends Gui implements LayoutElement {
     }
 
     public static class MenuItem extends Gui implements LayoutElement {
-        protected static final WidgetSprites SPRITES = new WidgetSprites(
+        static final WidgetSprites SPRITES = new WidgetSprites(
                 new ResourceLocation(CatalogueConstants.MOD_ID, "textures/gui/sprites/dropdown/item.png"),
                 new ResourceLocation(CatalogueConstants.MOD_ID, "textures/gui/sprites/dropdown/item_highlighted.png")
         );
@@ -461,16 +463,6 @@ public class DropdownMenu extends Gui implements LayoutElement {
     }
 
     private record WidgetSprites(ResourceLocation normal, ResourceLocation hovered) {
-    }
-
-    public record ScreenRectangle(int left, int top, int width, int height) {
-        public int right() {
-            return left + width;
-        }
-
-        public int bottom() {
-            return top + height;
-        }
     }
 
     @Override

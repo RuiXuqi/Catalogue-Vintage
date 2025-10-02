@@ -1,113 +1,119 @@
 package com.cleanroommc.catalogue.client.screen.layout;
 
+import com.cleanroommc.catalogue.Utils;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Consumer;
 
-/**
- * 简化的布局系统，专门用于 DropdownMenu
- */
 @SideOnly(Side.CLIENT)
-public class LinearLayout implements LayoutElement {
-    private final Orientation orientation;
-    private final List<LayoutElement> children = new ArrayList<>();
-    private int x;
-    private int y;
-    private int width;
-    private int height;
+public class LinearLayout implements Layout {
+    private final GridLayout wrapped;
+    private final LinearLayout.Orientation orientation;
+    private int nextChildIndex = 0;
 
-    public LinearLayout(Orientation orientation) {
+    private LinearLayout(LinearLayout.Orientation orientation) {
+        this(0, 0, orientation);
+    }
+
+    public LinearLayout(int width, int height, LinearLayout.Orientation orientation) {
+        this.wrapped = new GridLayout(width, height);
         this.orientation = orientation;
     }
 
-    public void arrangeElements() {
-        if (children.isEmpty()) return;
+    public LinearLayout spacing(int spacing) {
+        this.orientation.setSpacing(this.wrapped, spacing);
+        return this;
+    }
 
-        int totalPrimary = 0;
-        int maxSecondary = 0;
+    public LayoutSettings newCellSettings() {
+        return this.wrapped.newCellSettings();
+    }
 
-        // 计算总长度和最大宽度/高度
-        for (LayoutElement child : children) {
-            if (orientation == Orientation.HORIZONTAL) {
-                totalPrimary += child.getWidth();
-                maxSecondary = Math.max(maxSecondary, child.getHeight());
-            } else {
-                totalPrimary += child.getHeight();
-                maxSecondary = Math.max(maxSecondary, child.getWidth());
-            }
-        }
+    public LayoutSettings defaultCellSetting() {
+        return this.wrapped.defaultCellSetting();
+    }
 
-        // 设置位置
-        int currentPos = 0;
-        for (LayoutElement child : children) {
-            if (orientation == Orientation.HORIZONTAL) {
-                child.setX(x + currentPos);
-                child.setY(y);
-                currentPos += child.getWidth();
-            } else {
-                child.setX(x);
-                child.setY(y + currentPos);
-                currentPos += child.getHeight();
-            }
-        }
-
-        // 更新容器尺寸
-        if (orientation == Orientation.HORIZONTAL) {
-            this.width = totalPrimary;
-            this.height = maxSecondary;
-        } else {
-            this.width = maxSecondary;
-            this.height = totalPrimary;
-        }
+    public <T extends LayoutElement> T addChild(T child, LayoutSettings layoutSettings) {
+        return this.orientation.addChild(this.wrapped, child, this.nextChildIndex++, layoutSettings);
     }
 
     public <T extends LayoutElement> T addChild(T child) {
-        children.add(child);
-        return child;
+        return this.addChild(child, this.newCellSettings());
+    }
+
+    public <T extends LayoutElement> T addChild(T child, Consumer<LayoutSettings> layoutSettingsFactory) {
+        return this.orientation.addChild(this.wrapped, child, this.nextChildIndex++, Utils.make(this.newCellSettings(), layoutSettingsFactory));
     }
 
     @Override
-    public int getX() {
-        return x;
+    public void visitChildren(Consumer<LayoutElement> visitor) {
+        this.wrapped.visitChildren(visitor);
     }
 
     @Override
-    public void setX(int x) {
-        this.x = x;
-    }
-
-    @Override
-    public int getY() {
-        return y;
-    }
-
-    @Override
-    public void setY(int y) {
-        this.y = y;
+    public void arrangeElements() {
+        this.wrapped.arrangeElements();
     }
 
     @Override
     public int getWidth() {
-        return width;
+        return this.wrapped.getWidth();
     }
 
     @Override
     public int getHeight() {
-        return height;
+        return this.wrapped.getHeight();
     }
 
     @Override
-    public void visitWidgets(Consumer<LayoutElement> consumer) {
-        for (LayoutElement child : children) {
-            child.visitWidgets(consumer);
-        }
+    public void setX(int x) {
+        this.wrapped.setX(x);
     }
 
-    public enum Orientation {
+    @Override
+    public void setY(int y) {
+        this.wrapped.setY(y);
+    }
+
+    @Override
+    public int getX() {
+        return this.wrapped.getX();
+    }
+
+    @Override
+    public int getY() {
+        return this.wrapped.getY();
+    }
+
+    public static LinearLayout vertical() {
+        return new LinearLayout(LinearLayout.Orientation.VERTICAL);
+    }
+
+    public static LinearLayout horizontal() {
+        return new LinearLayout(LinearLayout.Orientation.HORIZONTAL);
+    }
+
+    @SideOnly(Side.CLIENT)
+    public static enum Orientation {
         HORIZONTAL,
-        VERTICAL
+        VERTICAL;
+
+        void setSpacing(GridLayout layout, int spacing) {
+            switch (this) {
+                case HORIZONTAL:
+                    layout.columnSpacing(spacing);
+                    break;
+                case VERTICAL:
+                    layout.rowSpacing(spacing);
+            }
+        }
+
+        public <T extends LayoutElement> T addChild(GridLayout layout, T element, int index, LayoutSettings layoutSettings) {
+            return (T) (switch (this) {
+                case HORIZONTAL -> (LayoutElement) layout.addChild(element, 0, index, layoutSettings);
+                case VERTICAL -> (LayoutElement) layout.addChild(element, index, 0, layoutSettings);
+            });
+        }
     }
 }
