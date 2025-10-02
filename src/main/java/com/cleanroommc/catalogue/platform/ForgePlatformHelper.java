@@ -1,5 +1,7 @@
 package com.cleanroommc.catalogue.platform;
 
+import com.cleanroommc.catalogue.CatalogueConfig;
+import com.cleanroommc.catalogue.client.Branding;
 import com.cleanroommc.catalogue.client.ForgeModData;
 import com.cleanroommc.catalogue.client.IModData;
 import com.cleanroommc.catalogue.platform.services.IPlatformHelper;
@@ -43,5 +45,15 @@ public class ForgePlatformHelper implements IPlatformHelper {
     @Override
     public boolean isModLoaded(String modId) {
         return Loader.isModLoaded(modId);
+    }
+
+    @Override
+    public boolean getEnableBannerLimit() {
+        return CatalogueConfig.enableBannerLimit;
+    }
+
+    @Override
+    public Branding.BannerLimit getBannerLimit() {
+        return new Branding.BannerLimit(CatalogueConfig.bannerMaxWidth, CatalogueConfig.bannerMaxHeight);
     }
 }

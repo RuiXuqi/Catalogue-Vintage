@@ -1,5 +1,6 @@
 package com.cleanroommc.catalogue.platform.services;
 
+import com.cleanroommc.catalogue.client.Branding;
 import com.cleanroommc.catalogue.client.IModData;
 
 import java.awt.image.BufferedImage;
@@ -18,4 +19,8 @@ public interface IPlatformHelper {
     BufferedImage loadImageFromModResource(String modid, String resource) throws IOException;
 
     boolean isModLoaded(String modId);
+
+    boolean getEnableBannerLimit();
+
+    Branding.BannerLimit getBannerLimit();
 }

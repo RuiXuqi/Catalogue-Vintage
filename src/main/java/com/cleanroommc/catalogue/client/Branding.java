@@ -23,7 +23,7 @@ public record Branding(String prefix, int imageWidth, int imageHeight,
                        BiPredicate<BufferedImage, Branding> predicate,
                        Function<IModData, String> locator, boolean override) {
     public static final Branding ICON = new Branding("icon", 256, 256, ImagePredicate.SQUARE.and(ImagePredicate.LESS_THAN_OR_EQUAL), IModData::getImageIcon, false);
-    public static final Branding BANNER = new Branding("banner", 1280, 256, ImagePredicate.LESS_THAN_OR_EQUAL, IModData::getBanner, false);
+    public static final Branding BANNER = new Branding("banner", ClientServices.PLATFORM.getBannerLimit().maxWidth(), ClientServices.PLATFORM.getBannerLimit().maxHeight(), ClientServices.PLATFORM.getEnableBannerLimit() ? ImagePredicate.LESS_THAN_OR_EQUAL : ImagePredicate.ANY, IModData::getBanner, false);
     public static final Branding BACKGROUND = new Branding("background", 512, 256, ImagePredicate.EQUAL, IModData::getBackground, true);
 
     public Optional<ImageInfo> loadResource(IModData data) {
@@ -57,5 +57,8 @@ public record Branding(String prefix, int imageWidth, int imageHeight,
         }
 
         return Optional.empty();
+    }
+
+    public record BannerLimit(int maxWidth, int maxHeight) {
     }
 }

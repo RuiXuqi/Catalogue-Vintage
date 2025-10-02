@@ -27,6 +27,29 @@ public class CatalogueConfig {
             "scalar"
     };
 
+    @Config.RequiresMcRestart
+    @Config.Comment({
+            "Whether limit the size of mods' banners."
+    })
+    @Config.LangKey("catalogue.config.enable_banner_limit")
+    public static boolean enableBannerLimit = true;
+
+    @Config.RequiresMcRestart
+    @Config.Comment({
+            "The maximum of banner's width. Will not work if Enable Banner Limit is false."
+    })
+    @Config.LangKey("catalogue.config.banner_max_width")
+    @Config.RangeInt(min = 0)
+    public static int bannerMaxWidth = 1280;
+
+    @Config.RequiresMcRestart
+    @Config.Comment({
+            "The maximum of banner's height. Will not work if Enable Banner Limit is false."
+    })
+    @Config.LangKey("catalogue.config.banner_max_height")
+    @Config.RangeInt(min = 0)
+    public static int bannerMaxHeight = 256;
+
     @SubscribeEvent
     public static void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent event) {
         if (event.getModID().equals(CatalogueConstants.MOD_ID)) {
