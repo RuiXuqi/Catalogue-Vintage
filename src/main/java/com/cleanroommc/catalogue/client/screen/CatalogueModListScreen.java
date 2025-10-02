@@ -404,7 +404,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         this.modList.drawScreen(mouseX, mouseY, partialTicks);
         this.searchTextField.drawTextBox();
 
-        String modsLabel = TextFormatting.BOLD + I18n.format("catalogue.gui.title");
+        String modsLabel = TextFormatting.BOLD + I18n.format("catalogue.gui.mod_list");
         String countLabel = TextFormatting.GRAY + "(" + CACHED_MODS.size() + ")";
         String title = modsLabel + " " + countLabel;
         int titleWidth = this.fontRenderer.getStringWidth(title);
