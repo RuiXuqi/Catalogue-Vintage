@@ -32,7 +32,7 @@ public class CatalogueConfig {
             "Whether limit the size of mods' banners."
     })
     @Config.LangKey("catalogue.config.enable_banner_limit")
-    public static boolean enableBannerLimit = true;
+    public static boolean enableBannerLimit = false;
 
     @Config.RequiresMcRestart
     @Config.Comment({
