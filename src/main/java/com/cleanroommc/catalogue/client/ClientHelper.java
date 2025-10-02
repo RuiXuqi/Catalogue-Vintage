@@ -12,6 +12,7 @@ import static net.minecraft.client.gui.Gui.drawModalRectWithCustomSizedTexture;
 public class ClientHelper {
     /**
      * Creates a scissor test using minecraft screen coordinates instead of pixel coordinates.
+     *
      * @param screenX
      * @param screenY
      * @param boxWidth
@@ -41,10 +42,11 @@ public class ClientHelper {
 
     /**
      * Method for linear interpolation of floats
+     *
      * @param pDelta A value usually between 0 and 1 that indicates the percentage of the lerp. (0 will give the start
-     * value and 1 will give the end value)
+     *               value and 1 will give the end value)
      * @param pStart Start value for the lerp
-     * @param pEnd End value for the lerp
+     * @param pEnd   End value for the lerp
      */
     public static float lerp(float pDelta, float pStart, float pEnd) {
         return pStart + pDelta * (pEnd - pStart);

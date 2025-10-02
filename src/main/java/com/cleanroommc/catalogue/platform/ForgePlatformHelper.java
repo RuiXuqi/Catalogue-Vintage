@@ -3,9 +3,13 @@ package com.cleanroommc.catalogue.platform;
 import com.cleanroommc.catalogue.client.ForgeModData;
 import com.cleanroommc.catalogue.client.IModData;
 import com.cleanroommc.catalogue.platform.services.IPlatformHelper;
+import net.minecraft.client.renderer.texture.TextureUtil;
 import net.minecraftforge.fml.common.Loader;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -14,10 +18,6 @@ import java.util.stream.Collectors;
  * Author: MrCrayfish
  */
 public class ForgePlatformHelper implements IPlatformHelper {
-    @Override
-    public boolean isForge() {
-        return true;
-    }
 
     @Override
     public List<IModData> getAllModData() {
@@ -32,6 +32,12 @@ public class ForgePlatformHelper implements IPlatformHelper {
     @Override
     public Path getConfigDirectory() {
         return Loader.instance().getConfigDir().toPath();
+    }
+
+    @Override
+    public BufferedImage loadImageFromModResource(String modid, String resource) throws IOException {
+        InputStream is = getClass().getResourceAsStream(resource);
+        return is != null ? TextureUtil.readBufferedImage(is) : null;
     }
 
     @Override

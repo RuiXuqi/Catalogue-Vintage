@@ -1,8 +1,11 @@
 package com.cleanroommc.catalogue.client.screen;
 
 import com.cleanroommc.catalogue.CatalogueConstants;
+import com.cleanroommc.catalogue.Utils;
+import com.cleanroommc.catalogue.client.Branding;
 import com.cleanroommc.catalogue.client.ClientHelper;
 import com.cleanroommc.catalogue.client.IModData;
+import com.cleanroommc.catalogue.client.ImageInfo;
 import com.cleanroommc.catalogue.client.screen.widget.CatalogueIconButton;
 import com.cleanroommc.catalogue.client.screen.widget.CatalogueListExtended;
 import com.cleanroommc.catalogue.client.screen.widget.CatalogueTextField;
@@ -18,12 +21,8 @@ import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.texture.DynamicTexture;
-import net.minecraft.client.renderer.texture.TextureManager;
-import net.minecraft.client.renderer.texture.TextureUtil;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.client.resources.IResourcePack;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -42,9 +41,7 @@ import org.lwjglx.input.Keyboard;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -68,10 +65,11 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
     private static final MutableBoolean OPTION_UPDATES_ONLY = new MutableBoolean(false);
     private static final MutableBoolean OPTION_FAVOURITES_ONLY = new MutableBoolean(false);
     private static final MutableObject<Comparator<ModListEntry>> OPTION_SORT = new MutableObject<>(SORT_ALPHABETICALLY);
-    private static final ResourceLocation MISSING_BANNER = new ResourceLocation(CatalogueConstants.MOD_ID, "textures/gui/missing_banner.png");
-    private static final ResourceLocation MISSING_BACKGROUND = new ResourceLocation(CatalogueConstants.MOD_ID, "textures/gui/missing_background.png");
-    private static final ResourceLocation MINECRAFT_LOGO = new ResourceLocation(CatalogueConstants.MOD_ID, "textures/gui/minecraft.png");
-    private static final ImageInfo MISSING_BANNER_INFO = new ImageInfo(MISSING_BANNER, new Dimension(120, 120));
+    private static final ResourceLocation MISSING_BANNER = Utils.resource("textures/gui/missing_banner.png");
+    private static final ResourceLocation MISSING_BACKGROUND = Utils.resource("textures/gui/missing_background.png");
+    private static final ResourceLocation MINECRAFT_LOGO = Utils.resource("textures/gui/minecraft.png");
+    private static final ImageInfo MISSING_BANNER_INFO = new ImageInfo(MISSING_BANNER, 120, 120, () -> {
+    });
     private static final Map<String, ImageInfo> BANNER_CACHE = new HashMap<>();
     private static final Map<String, ImageInfo> IMAGE_ICON_CACHE = new HashMap<>();
     private static final Map<String, ItemStack> ITEM_ICON_CACHE = new HashMap<>();
@@ -92,7 +90,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             })).build();
     private static final TextFormatting SEARCH_FILTER_KEY = TextFormatting.GOLD;
     private static final TextFormatting SEARCH_FILTER_VALUE = TextFormatting.WHITE;
-    private static ResourceLocation cachedBackground;
+    private static ImageInfo cachedBackground;
     private static boolean loaded = false;
 
     private GuiButton optionsButton;
@@ -116,7 +114,8 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         if (!loaded) {
             ClientServices.PLATFORM.getAllModData().forEach(data -> CACHED_MODS.put(data.getModId(), data));
             CACHED_MODS.put("minecraft", new MinecraftModData()); // Override minecraft
-            BANNER_CACHE.put("minecraft", new ImageInfo(MINECRAFT_LOGO, new Dimension(1024, 256)));
+            BANNER_CACHE.put("minecraft", new ImageInfo(MINECRAFT_LOGO, 1024, 256, () -> {
+            }));
             FAVOURITES.load();
             loaded = true;
         }
@@ -282,11 +281,10 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
 
         Optional<IModData> optional = Optional.ofNullable(CACHED_MODS.get(CatalogueConstants.MOD_ID));
         optional.ifPresent(this::loadAndCacheLogo);
-        ImageInfo imageInfo = BANNER_CACHE.get(CatalogueConstants.MOD_ID);
-        if (imageInfo != null) {
-            Dimension size = imageInfo.size();
-            this.mc.getTextureManager().bindTexture(imageInfo.resource());
-            drawScaledCustomSizeModalRect(10, 9, 0.0F, 0.0F, size.width, size.height, 10, 10, size.width, size.height);
+        ImageInfo bannerInfo = BANNER_CACHE.get(CatalogueConstants.MOD_ID);
+        if (bannerInfo != null) {
+            this.mc.getTextureManager().bindTexture(bannerInfo.resource());
+            drawScaledCustomSizeModalRect(10, 9, 0.0F, 0.0F, bannerInfo.width(), bannerInfo.height(), 10, 10, bannerInfo.width(), bannerInfo.height());
         }
 
         if (this.menu != null) {
@@ -676,9 +674,8 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             if (iconInfo != null) {
                 GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
                 GlStateManager.enableBlend();
-                Dimension size = iconInfo.size();
                 mc.getTextureManager().bindTexture(iconInfo.resource());
-                drawScaledCustomSizeModalRect(left + 4, top + 3, 0.0F, 0.0F, size.width, size.height, 16, 16, size.width, size.height);
+                drawScaledCustomSizeModalRect(left + 4, top + 3, 0.0F, 0.0F, iconInfo.width(), iconInfo.height(), 16, 16, iconInfo.width(), iconInfo.height());
                 GlStateManager.disableBlend();
                 return;
             }
@@ -1074,35 +1071,34 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         }
     }
 
+    private ImageInfo getBanner(String modId) {
+        // Try getting the banner for the mod
+        ImageInfo bannerInfo = BANNER_CACHE.get(modId);
+        if (bannerInfo != null) return bannerInfo;
+
+        // Try using the icon image for the banner
+        ImageInfo iconInfo = IMAGE_ICON_CACHE.get(modId);
+        if (iconInfo != null) {
+            // Hack to make icon fill max banner height
+            int expandedWidth = iconInfo.width() * 10;
+            int expandedHeight = iconInfo.height() * 10;
+            return new ImageInfo(iconInfo.resource(), expandedWidth, expandedHeight, iconInfo.unregister());
+        }
+
+        // Fallback and just use missing banner
+        return MISSING_BANNER_INFO;
+    }
+
     private void loadAndCacheLogo(IModData data) {
         if (BANNER_CACHE.containsKey(data.getModId())) return;
 
         // Fills an empty logo as logo may not be present
         BANNER_CACHE.put(data.getModId(), null);
 
-        // Attempts to load the real logo
-        String banner = data.getBanner();
-        if (banner.isBlank()) return;
-
-        IResourcePack resourcePack = data.getResourcePack();
-        BufferedImage image = null;
-        try {
-            if (resourcePack != null && !banner.startsWith("/")) {
-                image = resourcePack.getPackImage();
-            } else {
-                if (!banner.startsWith("/")) {
-                    banner = "/" + banner;
-                }
-                InputStream is = getClass().getResourceAsStream(banner);
-                if (is != null) image = TextureUtil.readBufferedImage(is);
-            }
-            if (image == null) return;
-            TextureManager manager = this.mc.getTextureManager();
-            ResourceLocation resource = manager.getDynamicTextureLocation("modlogo", this.createLogoTexture(image, data.isLogoSmooth()));
-            Dimension size = new Dimension(image.getWidth(), image.getHeight());
-            BANNER_CACHE.put(data.getModId(), new ImageInfo(resource, size));
-        } catch (IOException ignored) {
-        }
+        // Load the banner resource if present
+        Branding.BANNER.loadResource(data).ifPresent(info -> {
+            BANNER_CACHE.put(data.getModId(), info);
+        });
     }
 
     private void loadAndCacheIcon(IModData data) {
@@ -1111,101 +1107,54 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         // Fills an empty icon as icon may not be present
         IMAGE_ICON_CACHE.put(data.getModId(), null);
 
-        // Attempts to load the real icon
-        String imageIcon = data.getImageIcon();
-        if (!imageIcon.isBlank()) {
-            if (!imageIcon.startsWith("/")) {
-                imageIcon = "/" + imageIcon;
-            }
-            BufferedImage image = null;
-            try (InputStream is = getClass().getResourceAsStream(imageIcon)) {
-                if (is != null) image = TextureUtil.readBufferedImage(is);
-                if (image != null) {
-                    TextureManager manager = this.mc.getTextureManager();
-                    ResourceLocation resource = manager.getDynamicTextureLocation("catalogueicon", this.createLogoTexture(image, data.isIconSmooth()));
-                    Dimension size = new Dimension(image.getWidth(), image.getHeight());
-                    IMAGE_ICON_CACHE.put(data.getModId(), new ImageInfo(resource, size));
-                    return;
+        // Load the icon branding
+        Branding.ICON.loadResource(data).ifPresentOrElse(info -> {
+            IMAGE_ICON_CACHE.put(data.getModId(), info);
+        }, () -> {
+            // If no icon, try and use the loaded banner if a square
+            ImageInfo bannerInfo = BANNER_CACHE.get(data.getModId());
+            if (bannerInfo != null) {
+                if (bannerInfo.width() == bannerInfo.height()) {
+                    IMAGE_ICON_CACHE.put(data.getModId(), bannerInfo);
                 }
-            } catch (IOException ignored) {
-            }
-        }
-
-        // Attempts to use the logo file if it's a square
-        String logoFile = data.getBanner();
-        if (!logoFile.isBlank()) {
-            IResourcePack resourcePack = data.getResourcePack();
-            BufferedImage image = null;
-            try {
-                if (resourcePack != null && !logoFile.startsWith("/")) {
-                    image = resourcePack.getPackImage();
-                } else {
-                    if (!logoFile.startsWith("/")) {
-                        logoFile = "/" + logoFile;
+            } else {
+                // Otherwise temporarily load the banner, use if square, otherwise free the resource
+                Branding.BANNER.loadResource(data).ifPresent(info -> {
+                    if (info.width() == info.height()) {
+                        IMAGE_ICON_CACHE.put(data.getModId(), info);
+                        BANNER_CACHE.put(data.getModId(), info); // Saves loading later
+                    } else {
+                        info.unregister().run();
                     }
-                    InputStream is = getClass().getResourceAsStream(logoFile);
-                    if (is != null) image = TextureUtil.readBufferedImage(is);
-                }
-                if (image == null || image.getWidth() != image.getHeight()) return;
-
-                /* The first selected mod will have its logo cached before the icon, so we
-                 * can just use the logo instead of loading the image again. */
-                String modId = data.getModId();
-                if (BANNER_CACHE.containsKey(modId)) {
-                    IMAGE_ICON_CACHE.put(modId, BANNER_CACHE.get(modId));
-                    return;
-                }
-
-                /* Since the icon will be same as the logo, we can cache into both icon and logo cache */
-                TextureManager manager = this.mc.getTextureManager();
-                DynamicTexture texture = this.createLogoTexture(image, data.isLogoSmooth());
-                Dimension size = new Dimension(image.getWidth(), image.getHeight());
-                ResourceLocation resource = manager.getDynamicTextureLocation("catalogueicon", texture);
-                IMAGE_ICON_CACHE.put(modId, new ImageInfo(resource, size));
-                BANNER_CACHE.put(modId, new ImageInfo(resource, size));
-            } catch (IOException ignored) {
+                });
             }
-        }
+        });
     }
 
-    private void loadAndCacheBackground(IModData data) {
-        // Deletes the last cached background since they are large images
-        if (cachedBackground != null) {
-            this.mc.getTextureManager().deleteTexture(cachedBackground);
-        }
-        cachedBackground = null;
-
-        String background = data.getBackground();
-        if (background.isBlank()) return;
-
-        if (!background.startsWith("/")) {
-            background = "/" + background;
-        }
-
-        BufferedImage image = null;
-        try (InputStream is = getClass().getResourceAsStream(background)) {
-            if (is != null) image = TextureUtil.readBufferedImage(is);
-            if (image == null || image.getWidth() != 512 || image.getHeight() != 256) return;
-            TextureManager textureManager = this.mc.getTextureManager();
-            cachedBackground = textureManager.getDynamicTextureLocation("cataloguebackground", this.createLogoTexture(image, false));
-        } catch (IOException ignored) {
-        }
-    }
-
-    private DynamicTexture createLogoTexture(BufferedImage image, boolean smooth) {
-        return new DynamicTexture(image) {
-            @Override
-            public void updateDynamicTexture() {
-                TextureUtil.uploadTextureImageAllocate(this.getGlTextureId(), image, smooth, false);
+    private void reloadBackground(IModData data) {
+        Branding.BACKGROUND.loadResource(data).ifPresentOrElse(info -> {
+            cachedBackground = info;
+        }, () -> {
+            if (cachedBackground != null) {
+                cachedBackground.unregister().run();
+                cachedBackground = null;
             }
-        };
+        });
     }
 
+    /**
+     * Draws the background that is visible when a mod is selected. Backgrounds are programmatically
+     * faded out to the bottom of the image.
+     *
+     * @param contentWidth the widget of the content area
+     * @param contentLeft  the x position of the content area
+     * @param contentTop   the y position of the content area
+     */
     @SuppressWarnings("SameParameterValue")
-    private void drawBackground(int contentWidth, int x, int y) {
+    private void drawBackground(int contentWidth, int contentLeft, int contentTop) {
         if (this.selectedModData == null) return;
 
-        ResourceLocation texture = cachedBackground != null ? cachedBackground : MISSING_BACKGROUND;
+        ResourceLocation texture = cachedBackground != null ? cachedBackground.resource() : MISSING_BACKGROUND;
         this.mc.getTextureManager().bindTexture(texture);
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         GlStateManager.enableBlend();
@@ -1216,10 +1165,10 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder builder = tessellator.getBuffer();
         builder.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR);
-        builder.pos(x, y, this.zLevel).tex(0, 0).color(1.0F, 1.0F, 1.0F, 1.0F).endVertex();
-        builder.pos(x, y + 128, this.zLevel).tex(0, 1).color(0.0F, 0.0F, 0.0F, 0.0F).endVertex();
-        builder.pos(x + contentWidth, y + 128, this.zLevel).tex(1, 1).color(0.0F, 0.0F, 0.0F, 0.0F).endVertex();
-        builder.pos(x + contentWidth, y, this.zLevel).tex(1, 0).color(1.0F, 1.0F, 1.0F, 1.0F).endVertex();
+        builder.pos(contentLeft, contentTop, this.zLevel).tex(0, 0).color(1.0F, 1.0F, 1.0F, 1.0F).endVertex();
+        builder.pos(contentLeft, contentTop + 128, this.zLevel).tex(0, 1).color(0.0F, 0.0F, 0.0F, 0.0F).endVertex();
+        builder.pos(contentLeft + contentWidth, contentTop + 128, this.zLevel).tex(1, 1).color(0.0F, 0.0F, 0.0F, 0.0F).endVertex();
+        builder.pos(contentLeft + contentWidth, contentTop, this.zLevel).tex(1, 0).color(1.0F, 1.0F, 1.0F, 1.0F).endVertex();
         tessellator.draw();
 
         GlStateManager.disableBlend();
@@ -1230,52 +1179,33 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
     @SuppressWarnings("SameParameterValue")
     private void drawBanner(int contentWidth, int x, int y, int maxWidth, int maxHeight) {
         if (this.selectedModData != null) {
-            ImageInfo bannerInfo = this.getBanner(this.selectedModData.getModId());
-            Dimension size = bannerInfo.size();
-            int width = size.width;
-            int height = size.height;
-            if (size.width > maxWidth) {
-                width = maxWidth;
-                height = (width * size.height) / size.width;
+            ImageInfo info = this.getBanner(this.selectedModData.getModId());
+            int displayWidth = info.width();
+            int displayHeight = info.height();
+            if (info.width() > maxWidth) {
+                displayWidth = maxWidth;
+                displayHeight = (displayWidth * info.height()) / info.width();
             }
-            if (height > maxHeight) {
-                height = maxHeight;
-                width = (height * size.width) / size.height;
+            if (displayHeight > maxHeight) {
+                displayHeight = maxHeight;
+                displayWidth = (displayHeight * info.width()) / info.height();
             }
 
-            x += (contentWidth - width) / 2;
-            y += (maxHeight - height) / 2;
+            x += (contentWidth - displayWidth) / 2;
+            y += (maxHeight - displayHeight) / 2;
 
             // Fix for minecraft logo
-            if (bannerInfo.resource() == MINECRAFT_LOGO) {
+            if (info.resource() == MINECRAFT_LOGO) {
                 y += 8;
             }
 
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
             GlStateManager.enableBlend();
-            this.mc.getTextureManager().bindTexture(bannerInfo.resource());
-            drawScaledCustomSizeModalRect(x, y, 0.0F, 0.0F, size.width, size.height, width, height, size.width, size.height);
+            this.mc.getTextureManager().bindTexture(info.resource());
+            drawScaledCustomSizeModalRect(x, y, 0.0F, 0.0F, info.width(), info.height(), displayWidth, displayHeight, info.width(), info.height());
 
             GlStateManager.disableBlend();
         }
-    }
-
-    private ImageInfo getBanner(String modId) {
-        // Try getting the banner for the mod
-        ImageInfo bannerInfo = BANNER_CACHE.get(modId);
-        if (bannerInfo != null) return bannerInfo;
-
-        // Try using the icon image for the banner
-        ImageInfo iconInfo = IMAGE_ICON_CACHE.get(modId);
-        if (iconInfo != null) {
-            // Hack to make icon fill max banner height
-            Dimension size = iconInfo.size();
-            Dimension newSize = new Dimension(size.width * 10, size.height * 10);
-            return new ImageInfo(iconInfo.resource(), newSize);
-        }
-
-        // Fallback and just use missing banner
-        return MISSING_BANNER_INFO;
     }
 
     private void setActiveTooltip(String content) {
@@ -1288,10 +1218,17 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         this.tooltipYOffset = 0;
     }
 
+    /**
+     * Sets the selected mod data. This handles loading the logo and background, updates the states
+     * of widgets, like the config button enable state (if the mod has a config), and the description
+     * test.
+     *
+     * @param data the mod data to set as selected
+     */
     private void setSelectedModData(IModData data) {
         this.selectedModData = data;
         this.loadAndCacheLogo(data);
-        this.loadAndCacheBackground(data);
+        this.reloadBackground(data);
         this.configButton.visible = true;
         this.websiteButton.visible = true;
         this.issueButton.visible = true;
@@ -1302,7 +1239,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
 
         int contentLeft = this.modList.right + 12 + 10;
         int contentWidth = this.width - contentLeft - 10;
-        int labelCount = this.getLabelCount(data);
+        int labelCount = this.getFooterTextElementCount(data);
         this.descriptionList.setWidth(contentWidth);
         this.descriptionList.setHeight(this.height - 135 - labelCount * 15 - 9);
         this.descriptionList.setSlotXBoundsFromLeft(contentLeft);
@@ -1310,11 +1247,18 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         this.descriptionList.setAmountScrolled(0);
     }
 
-    private int getLabelCount(IModData selectedModData) {
+    /**
+     * Gets the count of the footer text elements. This is used to corrrectly set the height of
+     * the description widget.
+     *
+     * @param data the mod data
+     * @return the count of footer text elements
+     */
+    private int getFooterTextElementCount(IModData data) {
         int count = 0;
-        if (!selectedModData.getLicense().isBlank()) count++;
-        if (!selectedModData.getCredits().isBlank()) count++;
-        if (!selectedModData.getAuthors().isBlank()) count++;
+        if (!data.getLicense().isBlank()) count++;
+        if (!data.getCredits().isBlank()) count++;
+        if (!data.getAuthors().isBlank()) count++;
         return count;
     }
 
@@ -1364,19 +1308,19 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         }
     }
 
-    private void openLink(String url) {
+    /**
+     * Creates a confirmation screen to open a link
+     *
+     * @param url the url to open
+     */
+    private void openLink(@Nullable String url) {
+        if (url == null) return;
         Style style = new Style().setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, url));
         this.handleComponentClick(new TextComponentString("").setStyle(style));
     }
 
     private static boolean isKeyComboCtrlF(int keyID) {
         return keyID == Keyboard.KEY_F && isCtrlKeyDown() && !isShiftKeyDown() && !isAltKeyDown();
-    }
-
-    private record Dimension(int width, int height) {
-    }
-
-    private record ImageInfo(ResourceLocation resource, Dimension size) {
     }
 
     private record SearchFilter(BiPredicate<String, IModData> predicate) {

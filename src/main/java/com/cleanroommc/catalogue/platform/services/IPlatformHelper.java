@@ -2,7 +2,9 @@ package com.cleanroommc.catalogue.platform.services;
 
 import com.cleanroommc.catalogue.client.IModData;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -13,9 +15,7 @@ public interface IPlatformHelper {
 
     Path getConfigDirectory();
 
-    boolean isModLoaded(String modId);
+    BufferedImage loadImageFromModResource(String modid, String resource) throws IOException;
 
-    default boolean isForge() {
-        return false;
-    }
+    boolean isModLoaded(String modId);
 }
