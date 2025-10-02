@@ -183,7 +183,7 @@ public class DropdownMenu extends Gui implements LayoutElement {
             GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
             GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
             minecraft.getTextureManager().bindTexture(this.hovered ? SPRITES.hovered() : SPRITES.normal());
-            ClientHelper.drawNineSlice(this.getX(), this.getY(), this.getWidth(), this.getHeight(), 2, 12);
+            ClientHelper.blitNineSlicedSprite(new ClientHelper.NineSlice(12, 12, 2), this.getX(), this.getY(), this.getWidth(), this.getHeight());
 
             FontRenderer font = minecraft.fontRenderer;
             int offset = (this.getHeight() - font.FONT_HEIGHT) / 2 + 1;

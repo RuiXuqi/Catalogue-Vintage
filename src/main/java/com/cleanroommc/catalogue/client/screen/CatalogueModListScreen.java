@@ -579,6 +579,10 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             return super.mouseReleased(mouseX, mouseY, button);
         }
 
+        public boolean isMouseOver() {
+            return ClientHelper.isMouseWithin(this.getListLeft(), this.top, this.width, this.bottom - this.top, this.mouseX, this.mouseY);
+        }
+
         public boolean shouldHideFavourites() {
             return this.hideFavourites;
         }
@@ -663,7 +667,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                 this.button.x = left + rowWidth - this.button.width - 8;
                 this.button.y = top + (rowHeight - this.button.height) / 2;
                 this.button.drawButton(CatalogueModListScreen.this.mc, mouseX, mouseY, partialTicks);
-                if (!inOptionsMenu && this.button.isMouseOver()) {
+                if (!inOptionsMenu && this.list.isMouseOver() && this.button.isMouseOver()) {
                     String label = !FAVOURITES.has(this.data.getModId()) ?
                             I18n.format("catalogue.gui.favourite") :
                             I18n.format("catalogue.gui.remove_favourite");

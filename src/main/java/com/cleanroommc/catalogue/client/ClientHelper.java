@@ -2,9 +2,10 @@ package com.cleanroommc.catalogue.client;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.renderer.BufferBuilder;
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import org.lwjgl.opengl.GL11;
-
-import static net.minecraft.client.gui.Gui.drawModalRectWithCustomSizedTexture;
 
 /**
  * Author: MrCrayfish
@@ -40,107 +41,88 @@ public class ClientHelper {
         return Minecraft.getMinecraft().player != null;
     }
 
-    /**
-     * Draw nine slice with independent horizontal and vertical border sizes.
-     *
-     * @param x           X pos
-     * @param y           Y pos
-     * @param width       The width to draw
-     * @param height      The height to draw
-     * @param borderSize  Borders size
-     * @param textureSize Texture size
-     */
-    public static void drawNineSlice(int x, int y, int width, int height, int borderSize, int textureSize) {
-        drawNineSlice(x, y, width, height, borderSize, borderSize, borderSize, borderSize, textureSize, textureSize);
+    public static void blitNineSlicedSprite(NineSlice nineSlice, int x, int y, int width, int height) {
+        blitNineSlicedSprite(nineSlice, x, y, 0, width, height);
     }
 
-    /**
-     * Draw nine slice with independent horizontal and vertical border sizes.
-     *
-     * @param x             X pos
-     * @param y             Y pos
-     * @param width         The width to draw
-     * @param height        The height to draw
-     * @param borderLeft    Left border size
-     * @param borderRight   Right border size
-     * @param borderTop     Top border size
-     * @param borderBottom  Bottom border size
-     * @param textureWidth  The width of the texture
-     * @param textureHeight The height of the texture
-     */
-    public static void drawNineSlice(int x, int y, int width, int height,
-                                     int borderLeft, int borderRight, int borderTop, int borderBottom,
-                                     int textureWidth, int textureHeight) {
-
-        int minWidth = borderLeft + borderRight;
-        int minHeight = borderTop + borderBottom;
-        if (width < minWidth) width = minWidth;
-        if (height < minHeight) height = minHeight;
-
-        int right = x + width;
-        int bottom = y + height;
-        int innerWidth = width - borderLeft - borderRight;
-        int innerHeight = height - borderTop - borderBottom;
-
-        int texRight = textureWidth - borderRight;
-        int texBottom = textureHeight - borderBottom;
-
-        // Four corners
-        // Up-left
-        drawModalRectWithCustomSizedTexture(x, y, 0, 0, borderLeft, borderTop, textureWidth, textureHeight);
-        // Up-right
-        drawModalRectWithCustomSizedTexture(right - borderRight, y, texRight, 0, borderRight, borderTop, textureWidth, textureHeight);
-        // Bottom-left
-        drawModalRectWithCustomSizedTexture(x, bottom - borderBottom, 0, texBottom, borderLeft, borderBottom, textureWidth, textureHeight);
-        // Bottom-right
-        drawModalRectWithCustomSizedTexture(right - borderRight, bottom - borderBottom, texRight, texBottom, borderRight, borderBottom, textureWidth, textureHeight);
-
-        // Top border
-        if (innerWidth > 0 && borderTop > 0) {
-            for (int i = 0; i < innerWidth; i += borderLeft) {
-                int segmentWidth = Math.min(borderLeft, innerWidth - i);
-                drawModalRectWithCustomSizedTexture(x + borderLeft + i, y,
-                        borderLeft, 0, segmentWidth, borderTop, textureWidth, textureHeight);
-            }
+    public static void blitNineSlicedSprite(NineSlice nineSlice, int x, int y, int blitOffset, int width, int height) {
+        NineSlice.Border border = nineSlice.border();
+        int i = Math.min(border.left(), width / 2);
+        int j = Math.min(border.right(), width / 2);
+        int k = Math.min(border.top(), height / 2);
+        int l = Math.min(border.bottom(), height / 2);
+        if (width == nineSlice.width() && height == nineSlice.height()) {
+            blitSprite(nineSlice.width(), nineSlice.height(), 0, 0, x, y, blitOffset, width, height);
+        } else if (height == nineSlice.height()) {
+            blitSprite(nineSlice.width(), nineSlice.height(), 0, 0, x, y, blitOffset, i, height);
+            blitTiledSprite(x + i, y, blitOffset, width - j - i, height, i, 0, nineSlice.width() - j - i, nineSlice.height(), nineSlice.width(), nineSlice.height());
+            blitSprite(nineSlice.width(), nineSlice.height(), nineSlice.width() - j, 0, x + width - j, y, blitOffset, j, height);
+        } else if (width == nineSlice.width()) {
+            blitSprite(nineSlice.width(), nineSlice.height(), 0, 0, x, y, blitOffset, width, k);
+            blitTiledSprite(x, y + k, blitOffset, width, height - l - k, 0, k, nineSlice.width(), nineSlice.height() - l - k, nineSlice.width(), nineSlice.height());
+            blitSprite(nineSlice.width(), nineSlice.height(), 0, nineSlice.height() - l, x, y + height - l, blitOffset, width, l);
+        } else {
+            blitSprite(nineSlice.width(), nineSlice.height(), 0, 0, x, y, blitOffset, i, k);
+            blitTiledSprite(x + i, y, blitOffset, width - j - i, k, i, 0, nineSlice.width() - j - i, k, nineSlice.width(), nineSlice.height());
+            blitSprite(nineSlice.width(), nineSlice.height(), nineSlice.width() - j, 0, x + width - j, y, blitOffset, j, k);
+            blitSprite(nineSlice.width(), nineSlice.height(), 0, nineSlice.height() - l, x, y + height - l, blitOffset, i, l);
+            blitTiledSprite(x + i, y + height - l, blitOffset, width - j - i, l, i, nineSlice.height() - l, nineSlice.width() - j - i, l, nineSlice.width(), nineSlice.height());
+            blitSprite(nineSlice.width(), nineSlice.height(), nineSlice.width() - j, nineSlice.height() - l, x + width - j, y + height - l, blitOffset, j, l);
+            blitTiledSprite(x, y + k, blitOffset, i, height - l - k, 0, k, i, nineSlice.height() - l - k, nineSlice.width(), nineSlice.height());
+            blitTiledSprite(x + i, y + k, blitOffset, width - j - i, height - l - k, i, k, nineSlice.width() - j - i, nineSlice.height() - l - k, nineSlice.width(), nineSlice.height());
+            blitTiledSprite(x + width - j, y + k, blitOffset, i, height - l - k, nineSlice.width() - j, k, j, nineSlice.height() - l - k, nineSlice.width(), nineSlice.height());
         }
+    }
 
-        // Bottom border
-        if (innerWidth > 0 && borderBottom > 0) {
-            for (int i = 0; i < innerWidth; i += borderLeft) {
-                int segmentWidth = Math.min(borderLeft, innerWidth - i);
-                drawModalRectWithCustomSizedTexture(x + borderLeft + i, bottom - borderBottom,
-                        borderLeft, texBottom, segmentWidth, borderBottom, textureWidth, textureHeight);
+    private static void blitTiledSprite(int x, int y, int blitOffset, int width, int height, int uPosition, int vPosition, int spriteWidth, int spriteHeight, int nineSliceWidth, int nineSliceHeight) {
+        if (width > 0 && height > 0) {
+            if (spriteWidth <= 0 || spriteHeight <= 0) {
+                throw new IllegalArgumentException("Tiled sprite texture size must be positive, got " + spriteWidth + "x" + spriteHeight);
             }
-        }
 
-        // Left border
-        if (innerHeight > 0 && borderLeft > 0) {
-            for (int i = 0; i < innerHeight; i += borderTop) { // 使用borderTop作为步进
-                int segmentHeight = Math.min(borderTop, innerHeight - i);
-                drawModalRectWithCustomSizedTexture(x, y + borderTop + i,
-                        0, borderTop, borderLeft, segmentHeight, textureWidth, textureHeight);
-            }
-        }
+            for (int i = 0; i < width; i += spriteWidth) {
+                int j = Math.min(spriteWidth, width - i);
 
-        // Right border
-        if (innerHeight > 0 && borderRight > 0) {
-            for (int i = 0; i < innerHeight; i += borderTop) {
-                int segmentHeight = Math.min(borderTop, innerHeight - i);
-                drawModalRectWithCustomSizedTexture(right - borderRight, y + borderTop + i,
-                        texRight, borderTop, borderRight, segmentHeight, textureWidth, textureHeight);
-            }
-        }
-
-        // Center area
-        if (innerWidth > 0 && innerHeight > 0) {
-            for (int i = 0; i < innerWidth; i += borderLeft) {
-                for (int j = 0; j < innerHeight; j += borderTop) {
-                    int segWidth = Math.min(borderLeft, innerWidth - i);
-                    int segHeight = Math.min(borderTop, innerHeight - j);
-                    drawModalRectWithCustomSizedTexture(x + borderLeft + i, y + borderTop + j,
-                            borderLeft, borderTop, segWidth, segHeight, textureWidth, textureHeight);
+                for (int k = 0; k < height; k += spriteHeight) {
+                    int l = Math.min(spriteHeight, height - k);
+                    blitSprite(nineSliceWidth, nineSliceHeight, uPosition, vPosition, x + i, y + k, blitOffset, j, l);
                 }
             }
+        }
+    }
+
+    private static void blitSprite(int textureWidth, int textureHeight, int uPosition, int vPosition, int x, int y, int blitOffset, int uWidth, int vHeight) {
+        if (uWidth != 0 && vHeight != 0) {
+            float minU = (float) uPosition / (float) textureWidth;
+            float maxU = (float) (uPosition + uWidth) / (float) textureWidth;
+            float minV = (float) vPosition / (float) textureHeight;
+            float maxV = (float) (vPosition + vHeight) / (float) textureHeight;
+
+            innerBlit(x, x + uWidth, y, y + vHeight, blitOffset, minU, maxU, minV, maxV);
+        }
+    }
+
+    static void innerBlit(int x1, int x2, int y1, int y2, int blitOffset, float minU, float maxU, float minV, float maxV) {
+        Tessellator tessellator = Tessellator.getInstance();
+        BufferBuilder bufferbuilder = tessellator.getBuffer();
+        bufferbuilder.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
+        bufferbuilder.pos(x1, y1, blitOffset).tex(minU, minV).endVertex();
+        bufferbuilder.pos(x1, y2, blitOffset).tex(minU, maxV).endVertex();
+        bufferbuilder.pos(x2, y2, blitOffset).tex(maxU, maxV).endVertex();
+        bufferbuilder.pos(x2, y1, blitOffset).tex(maxU, minV).endVertex();
+        tessellator.draw();
+    }
+
+    // Info of the texture
+    public record NineSlice(int width, int height, Border border) {
+        public record Border(int left, int top, int right, int bottom) {
+            public Border(int border) {
+                this(border, border, border, border);
+            }
+        }
+
+        public NineSlice(int width, int height, int border) {
+            this(width, height, new Border(border));
         }
     }
 }
