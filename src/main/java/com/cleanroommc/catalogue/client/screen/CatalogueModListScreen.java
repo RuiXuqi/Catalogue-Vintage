@@ -989,8 +989,8 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         }
 
         @Override
-        protected int getRowTop(int $$0) {
-            return super.getRowTop($$0) + 4;
+        protected int getRowTop(int pIndex) {
+            return super.getRowTop(pIndex) + 4;
         }
 
         @Override
