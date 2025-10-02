@@ -1,6 +1,7 @@
 package com.cleanroommc.catalogue.client.screen.widget;
 
 import com.cleanroommc.catalogue.CatalogueConstants;
+import com.cleanroommc.catalogue.Utils;
 import com.cleanroommc.catalogue.client.ClientHelper;
 import com.cleanroommc.catalogue.client.screen.DropdownMenuHandler;
 import com.cleanroommc.catalogue.client.screen.layout.BorderedLinearLayout;
@@ -144,8 +145,8 @@ public class DropdownMenu extends Gui implements LayoutElement {
 
     public static class MenuItem extends Gui implements LayoutElement {
         static final WidgetSprites SPRITES = new WidgetSprites(
-                new ResourceLocation(CatalogueConstants.MOD_ID, "textures/gui/sprites/dropdown/item.png"),
-                new ResourceLocation(CatalogueConstants.MOD_ID, "textures/gui/sprites/dropdown/item_highlighted.png")
+                Utils.withDefaultNamespace("dropdown/item"),
+                Utils.withDefaultNamespace("dropdown/item_highlighted")
         );
         protected final DropdownMenu parent;
         private final Runnable onClick;
@@ -184,7 +185,7 @@ public class DropdownMenu extends Gui implements LayoutElement {
             GlStateManager.enableBlend();
             GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
             GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
-            minecraft.getTextureManager().bindTexture(this.hovered ? SPRITES.hovered() : SPRITES.normal());
+            minecraft.getTextureManager().bindTexture(SPRITES.get(this.enabled, this.hovered || this.selected()));
             ClientHelper.blitNineSlicedSprite(new ClientHelper.NineSlice(12, 12, 2), this.getX(), this.getY(), this.getWidth(), this.getHeight());
 
             FontRenderer font = minecraft.fontRenderer;
@@ -455,9 +456,6 @@ public class DropdownMenu extends Gui implements LayoutElement {
             });
             return this.base;
         }
-    }
-
-    private record WidgetSprites(ResourceLocation normal, ResourceLocation hovered) {
     }
 
     @Override

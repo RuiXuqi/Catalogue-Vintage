@@ -102,6 +102,21 @@ public class ClientHelper {
         }
     }
 
+    /**
+     * Performs the inner blit operation for rendering a texture with the specified coordinates and texture coordinates without color tinting.
+     *
+     * @param x1         the x-coordinate of the first corner of the blit position.
+     * @param x2         the x-coordinate of the second corner of the blit position
+     *                   .
+     * @param y1         the y-coordinate of the first corner of the blit position.
+     * @param y2         the y-coordinate of the second corner of the blit position
+     *                   .
+     * @param blitOffset the z-level offset for rendering order.
+     * @param minU       the minimum horizontal texture coordinate.
+     * @param maxU       the maximum horizontal texture coordinate.
+     * @param minV       the minimum vertical texture coordinate.
+     * @param maxV       the maximum vertical texture coordinate.
+     */
     static void innerBlit(int x1, int x2, int y1, int y2, int blitOffset, float minU, float maxU, float minV, float maxV) {
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder bufferbuilder = tessellator.getBuffer();

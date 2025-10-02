@@ -6,10 +6,7 @@ import com.cleanroommc.catalogue.client.Branding;
 import com.cleanroommc.catalogue.client.ClientHelper;
 import com.cleanroommc.catalogue.client.IModData;
 import com.cleanroommc.catalogue.client.ImageInfo;
-import com.cleanroommc.catalogue.client.screen.widget.CatalogueIconButton;
-import com.cleanroommc.catalogue.client.screen.widget.CatalogueListExtended;
-import com.cleanroommc.catalogue.client.screen.widget.CatalogueTextField;
-import com.cleanroommc.catalogue.client.screen.widget.DropdownMenu;
+import com.cleanroommc.catalogue.client.screen.widget.*;
 import com.cleanroommc.catalogue.platform.ClientServices;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
@@ -93,7 +90,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
     private static ImageInfo cachedBackground;
     private static boolean loaded = false;
 
-    private GuiButton optionsButton;
+    private CatalogueTextButton optionsButton;
     private CatalogueTextField searchTextField;
     private ModList modList;
     private IModData selectedModData;
@@ -156,7 +153,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         this.modList = new ModList();
         this.modList.setSlotXBoundsFromLeft(10);
 
-        this.buttonList.add(new GuiButton(1, 10, modList.bottom + 8, 127, 20, I18n.format("gui.back")));
+        this.addButton(new CatalogueTextButton(1, 10, modList.bottom + 8, 127, 20, I18n.format("gui.back")));
         this.modFolderButton = this.addButton(new CatalogueIconButton(2, 140, modList.bottom + 8, 0, 0));
 
         int padding = 10;
@@ -285,8 +282,11 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         optional.ifPresent(this::loadAndCacheLogo);
         ImageInfo bannerInfo = BANNER_CACHE.get(CatalogueConstants.MOD_ID);
         if (bannerInfo != null) {
+            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+            GlStateManager.enableBlend();
             this.mc.getTextureManager().bindTexture(bannerInfo.resource());
             drawScaledCustomSizeModalRect(10, 9, 0.0F, 0.0F, bannerInfo.width(), bannerInfo.height(), 10, 10, bannerInfo.width(), bannerInfo.height());
+            GlStateManager.disableBlend();
         }
 
         if (this.menu != null) {
@@ -669,7 +669,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                 this.button.x = left + rowWidth - this.button.width - 8;
                 this.button.y = top + (rowHeight - this.button.height) / 2;
                 this.button.drawButton(CatalogueModListScreen.this.mc, mouseX, mouseY, partialTicks);
-                if (!inOptionsMenu && this.list.isMouseOver() && this.button.isMouseOver()) {
+                if (!inOptionsMenu && this.button.isMouseOver()) {
                     String label = !FAVOURITES.has(this.data.getModId()) ?
                             I18n.format("catalogue.gui.favourite") :
                             I18n.format("catalogue.gui.remove_favourite");
@@ -850,6 +850,11 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                     return true;
                 }
                 return false;
+            }
+
+            @Override
+            public boolean isMouseOver() {
+                return super.isMouseOver() && CatalogueModListScreen.this.modList.isMouseOver();
             }
         }
     }
