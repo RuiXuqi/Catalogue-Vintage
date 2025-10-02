@@ -41,18 +41,6 @@ public class ClientHelper {
     }
 
     /**
-     * Method for linear interpolation of floats
-     *
-     * @param pDelta A value usually between 0 and 1 that indicates the percentage of the lerp. (0 will give the start
-     *               value and 1 will give the end value)
-     * @param pStart Start value for the lerp
-     * @param pEnd   End value for the lerp
-     */
-    public static float lerp(float pDelta, float pStart, float pEnd) {
-        return pStart + pDelta * (pEnd - pStart);
-    }
-
-    /**
      * Draw nine slice with independent horizontal and vertical border sizes.
      *
      * @param x           X pos
@@ -64,22 +52,6 @@ public class ClientHelper {
      */
     public static void drawNineSlice(int x, int y, int width, int height, int borderSize, int textureSize) {
         drawNineSlice(x, y, width, height, borderSize, borderSize, borderSize, borderSize, textureSize, textureSize);
-    }
-
-    /**
-     * Draw nine slice with independent horizontal and vertical border sizes.
-     *
-     * @param x             X pos
-     * @param y             Y pos
-     * @param width         The width to draw
-     * @param height        The height to draw
-     * @param borderWidth   Left & right border size
-     * @param borderHeight  Top & bottom border size
-     * @param textureWidth  The width of the texture
-     * @param textureHeight The height of the texture
-     */
-    public static void drawNineSlice(int x, int y, int width, int height, int borderWidth, int borderHeight, int textureWidth, int textureHeight) {
-        drawNineSlice(x, y, width, height, borderWidth, borderWidth, borderHeight, borderHeight, textureWidth, textureHeight);
     }
 
     /**

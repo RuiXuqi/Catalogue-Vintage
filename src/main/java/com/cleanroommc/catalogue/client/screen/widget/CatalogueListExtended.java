@@ -165,10 +165,16 @@ public abstract class CatalogueListExtended extends GuiListExtended {
     protected void drawSelectionBox(int contentLeft, int contentTop, int mouseXIn, int mouseYIn, float partialTicks) {
     }
 
-    public void setAmountScrolled(float amountScrolled) {
-        this.amountScrolled = amountScrolled;
-        this.bindAmountScrolled();
-        this.initialClickY = -2;
+    public void setClampedAmountScrolled(float scroll) {
+        this.amountScrolled = MathHelper.clamp(scroll, 0.0F, this.getMaxScroll());
+    }
+
+    public void setAmountScrolled(float scroll) {
+        this.setClampedAmountScrolled(scroll);
+    }
+
+    public void clampAmountScrolled() {
+        this.setClampedAmountScrolled(this.getAmountScrolled());
     }
 
     public void setWidth(int width) {

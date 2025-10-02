@@ -452,8 +452,8 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             return true;
         };
         private boolean hideFavourites;
-        private List<ModListEntry> entries = Lists.newArrayList();
-        private int selectedIndex = -1;
+        private List<ModListEntry> children = Lists.newArrayList();
+        private ModListEntry selected;
 
         public ModList() {
             super(CatalogueModListScreen.this.mc, 150, CatalogueModListScreen.this.height, 46, CatalogueModListScreen.this.height - 35, 26);
@@ -465,7 +465,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             super.drawScreen(mouseX, mouseY, partialTicks);
             GL11.glDisable(GL11.GL_SCISSOR_TEST);
 
-            if (this.entries.isEmpty()) {
+            if (this.children.isEmpty()) {
                 String text = I18n.format("catalogue.gui.no_mods");
                 int left = this.left + this.width / 2;
                 int top = this.top + (this.bottom - this.top - CatalogueModListScreen.this.fontRenderer.FONT_HEIGHT) / 2;
@@ -480,34 +480,31 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                     .map(data -> new ModListEntry(data, this))
                     .sorted(OPTION_SORT.getValue())
                     .collect(Collectors.toList());
-            this.entries = entries;
-            this.selectMod(this.getEntryFromInfo(selectedModData));
-            this.setAmountScrolled(0);
+            this.replaceEntries(entries);
+            this.clampAmountScrolled();
         }
 
         public ModListEntry getEntryFromInfo(IModData data) {
-            return this.entries.stream().filter(entry -> entry.data == data).findFirst().orElse(null);
+            return this.children.stream().filter(entry -> entry.data == data).findFirst().orElse(null);
         }
 
-        public void selectMod(int selectedIndex) {
-            this.selectedIndex = selectedIndex;
+        protected void centerScrollOn(ModListEntry pEntry) {
+            this.setAmountScrolled((float) (this.children.indexOf(pEntry) * this.slotHeight + this.slotHeight / 2 - (this.bottom - this.top) / 2));
         }
 
-        public void selectMod(IGuiListEntry entry) {
-            this.selectMod(this.getEntryIndex(entry));
+        protected void clearEntries() {
+            this.children.clear();
+            this.selected = null;
         }
 
-        protected void centerScrollOn(IGuiListEntry pEntry) {
-            this.setAmountScrolled((float) (this.getEntryIndex(pEntry) * this.slotHeight + this.slotHeight / 2 - (this.bottom - this.top) / 2));
+        protected void replaceEntries(Collection<ModListEntry> entries) {
+            this.clearEntries();
+            this.children.addAll(entries);
         }
 
         @Override
         public IGuiListEntry getListEntry(int index) {
-            return this.entries.get(index);
-        }
-
-        public int getEntryIndex(IGuiListEntry entry) {
-            return this.entries.indexOf(entry);
+            return this.children.get(index);
         }
 
         @Override
@@ -532,12 +529,20 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
 
         @Override
         protected int getSize() {
-            return this.entries.size();
+            return this.children.size();
+        }
+
+        public ModListEntry getSelected() {
+            return this.selected;
+        }
+
+        public void setSelected(@Nullable ModListEntry selected) {
+            this.selected = selected;
         }
 
         @Override
         protected boolean isSelected(int slotIndex) {
-            return this.selectedIndex == slotIndex;
+            return Objects.equals(this.getSelected(), this.children.get(slotIndex));
         }
 
         @Override
@@ -796,7 +801,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                 return false;
             } else if (mouseEvent == 0) {
                 CatalogueModListScreen.this.setSelectedModData(this.data);
-                this.list.selectMod(slotIndex);
+                this.list.setSelected(this);
                 return true;
             }
             return false;
@@ -1270,7 +1275,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
     private void updateSelectedModList() {
         ModListEntry selectedEntry = this.modList.getEntryFromInfo(this.selectedModData);
         if (selectedEntry != null) {
-            this.modList.selectMod(selectedEntry);
+            this.modList.setSelected(selectedEntry);
         }
     }
 
