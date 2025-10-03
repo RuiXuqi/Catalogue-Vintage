@@ -193,7 +193,7 @@ public class CatalogueModListScreen extends Screen implements DropdownMenuHandle
             this.openLink(this.selectedModData.getHomepage());
         }));
         this.websiteButton.visible = false;
-        this.issueButton = this.addRenderableWidget(new CatalogueIconButton(contentLeft + buttonWidth + buttonWidth + 10, 105, 30, 0, buttonWidth, Component.translatable("catalogue.gui.bug"), onPress -> {
+        this.issueButton = this.addRenderableWidget(new CatalogueIconButton(contentLeft + buttonWidth + buttonWidth + 10, 105, 30, 0, buttonWidth, Component.translatable("catalogue.gui.submit_bug"), onPress -> {
             this.openLink(this.selectedModData.getIssueTracker());
         }));
         this.issueButton.visible = false;

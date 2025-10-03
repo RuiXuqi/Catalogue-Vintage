@@ -4,7 +4,7 @@
   "catalogue.gui.search": "Поиск",
   "catalogue.gui.config": "Настройки",
   "catalogue.gui.website": "Веб-сайт",
-  "catalogue.gui.bug": "Сообщить баг",
+  "catalogue.gui.submit_bug": "Сообщить баг",
   "catalogue.gui.open_mods_folder": "Открыть папку модов",
   "catalogue.gui.licenses": "Лицензия(и): %s",
   "catalogue.gui.authors": "Автор(ы): %s",
