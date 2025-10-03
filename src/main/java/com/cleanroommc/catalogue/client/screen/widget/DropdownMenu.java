@@ -113,7 +113,6 @@ public class DropdownMenu extends Gui implements LayoutElement {
 
     public void drawScreen(Minecraft minecraft, int mouseX, int mouseY, float deltaTick) {
         GlStateManager.pushMatrix();
-        GlStateManager.translate(0, 0, 50);
         drawRect(0, 0, minecraft.displayWidth, minecraft.displayHeight, 0x50000000);
         drawRect(this.x, this.y, this.x + this.width, this.y + this.height, 0xAA000000);
         this.items.forEach(widget -> widget.drawWidget(minecraft, mouseX, mouseY, deltaTick));
@@ -124,8 +123,7 @@ public class DropdownMenu extends Gui implements LayoutElement {
     }
 
     public boolean mousePressed(Minecraft minecraft, int mouseX, int mouseY) {
-        if (!this.active || !this.visible)
-            return false;
+        if (!this.active || !this.visible) return false;
 
         AtomicBoolean clicked = new AtomicBoolean();
         this.layout.visitWidgets(widget -> {
