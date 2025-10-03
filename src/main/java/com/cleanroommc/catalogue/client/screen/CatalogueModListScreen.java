@@ -32,11 +32,11 @@ import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.apache.commons.lang3.tuple.Pair;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.lwjgl.opengl.GL11;
 import org.lwjglx.input.Keyboard;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.awt.*;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -548,7 +548,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         }
 
         @Override
-        protected void drawContainerBackground(@Nonnull Tessellator tessellator) {
+        protected void drawContainerBackground(@NotNull Tessellator tessellator) {
             if (ClientHelper.isPlayingGame()) {
                 drawRect(this.left, this.top, this.right, this.bottom, 0x66000000);
                 return;

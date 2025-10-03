@@ -5,9 +5,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiOptions;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.resources.IResourcePack;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Set;
 
@@ -31,63 +31,63 @@ public class MinecraftModData implements IModData {
     }
 
     @Override
-    public @Nonnull String getVersion() {
+    public @NotNull String getVersion() {
         return "1.12.2";
     }
 
     @Override
-    public @Nonnull String getInnerVersion() {
+    public @NotNull String getInnerVersion() {
         return this.getVersion();
     }
 
     @Override
-    public @Nonnull String getDescription() {
+    public @NotNull String getDescription() {
         // Description provided by minecraft.wiki (CC BY-NC-SA 3.0)
         return "Minecraft is a 3D sandbox adventure game developed by Mojang Studios where players can interact with a fully customizable three-dimensional world made of blocks and entities. Its diverse gameplay options allow players to choose the way they play, creating countless possibilities.";
     }
 
     @Override
-    public @Nonnull String getItemIcon() {
+    public @NotNull String getItemIcon() {
         return "";
     }
 
     @Override
-    public @Nonnull String getImageIcon() {
+    public @NotNull String getImageIcon() {
         return "";
     }
 
     @Override
-    public @Nonnull String getLicense() {
+    public @NotNull String getLicense() {
         return "All Rights Reserved";
     }
 
     @Override
-    public @Nonnull String getCredits() {
+    public @NotNull String getCredits() {
         return "";
     }
 
     @Override
-    public @Nonnull String getAuthors() {
+    public @NotNull String getAuthors() {
         return "Mojang AB";
     }
 
     @Override
-    public @Nonnull String getHomepage() {
+    public @NotNull String getHomepage() {
         return "https://www.minecraft.net";
     }
 
     @Override
-    public @Nonnull String getIssueTracker() {
+    public @NotNull String getIssueTracker() {
         return "https://bugs.mojang.com/projects/MC/issues";
     }
 
     @Override
-    public @Nonnull String getBanner() {
+    public @NotNull String getBanner() {
         return "";
     }
 
     @Override
-    public @Nonnull String getBackground() {
+    public @NotNull String getBackground() {
         return "";
     }
 
@@ -127,7 +127,7 @@ public class MinecraftModData implements IModData {
     }
 
     @Override
-    public @Nonnull String getUpdateText(Update update) {
+    public @NotNull String getUpdateText(Update update) {
         return "";
     }
 }

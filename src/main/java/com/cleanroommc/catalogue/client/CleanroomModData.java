@@ -16,9 +16,9 @@ import net.minecraftforge.fml.client.IModGuiFactory;
 import net.minecraftforge.fml.common.ModContainer;
 import net.minecraftforge.fml.common.ModMetadata;
 import net.minecraftforge.fml.common.versioning.ArtifactVersion;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -58,75 +58,75 @@ public class CleanroomModData implements IModData {
     }
 
     @Override
-    public @Nonnull String getVersion() {
+    public @NotNull String getVersion() {
         return this.info.getDisplayVersion();
     }
 
     @Override
-    public @Nonnull String getInnerVersion() {
+    public @NotNull String getInnerVersion() {
         return this.info.getVersion();
     }
 
     @Override
-    public @Nonnull String getDescription() {
+    public @NotNull String getDescription() {
         ModMetadata metadata = this.getMetadata();
         return metadata != null ? metadata.description : "";
     }
 
     @Override
-    public @Nonnull String getItemIcon() {
+    public @NotNull String getItemIcon() {
         ModMetadata metadata = this.getMetadata();
         //return metadata != null ? metadata.iconItem : "";
         return "";
     }
 
     @Override
-    public @Nonnull String getImageIcon() {
+    public @NotNull String getImageIcon() {
         ModMetadata metadata = this.getMetadata();
         //return metadata != null ? metadata.iconFile : "";
         return "";
     }
 
     @Override
-    public @Nonnull String getLicense() {
+    public @NotNull String getLicense() {
         ModMetadata metadata = this.getMetadata();
         //return metadata != null ? metadata.license : "";
         return "";
     }
 
     @Override
-    public @Nonnull String getCredits() {
+    public @NotNull String getCredits() {
         ModMetadata metadata = this.getMetadata();
         return metadata != null ? metadata.credits : "";
     }
 
     @Override
-    public @Nonnull String getAuthors() {
+    public @NotNull String getAuthors() {
         ModMetadata metadata = this.getMetadata();
         return metadata != null ? metadata.getAuthorList() : "";
     }
 
     @Override
-    public @Nonnull String getHomepage() {
+    public @NotNull String getHomepage() {
         ModMetadata metadata = this.getMetadata();
         return metadata != null ? metadata.url : "";
     }
 
     @Override
-    public @Nonnull String getIssueTracker() {
+    public @NotNull String getIssueTracker() {
         ModMetadata metadata = this.getMetadata();
         //return metadata != null ? metadata.issueTrackerUrl : "";
         return "";
     }
 
     @Override
-    public @Nonnull String getBanner() {
+    public @NotNull String getBanner() {
         ModMetadata metadata = this.getMetadata();
         return metadata != null ? metadata.logoFile : "";
     }
 
     @Override
-    public @Nonnull String getBackground() {
+    public @NotNull String getBackground() {
         ModMetadata metadata = this.getMetadata();
         //return metadata != null ? metadata.backgroundFile : "";
         return "";
@@ -179,7 +179,7 @@ public class CleanroomModData implements IModData {
     }
 
     @Override
-    public @Nonnull String getUpdateText(Update update) {
+    public @NotNull String getUpdateText(Update update) {
         ForgeVersion.CheckResult result = ForgeVersion.getCleanResult(this.info);
         if (result == null) return "";
         switch (result.status) {

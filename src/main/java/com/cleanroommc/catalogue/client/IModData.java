@@ -5,9 +5,9 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.resources.IResourcePack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TextFormatting;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Set;
 
 /**
@@ -20,40 +20,40 @@ public interface IModData {
 
     String getDisplayName();
 
-    @Nonnull
+    @NotNull
     String getVersion();
 
-    @Nonnull
+    @NotNull
     String getInnerVersion();
 
-    @Nonnull
+    @NotNull
     String getDescription();
 
-    @Nonnull
+    @NotNull
     String getItemIcon();
 
-    @Nonnull
+    @NotNull
     String getImageIcon();
 
-    @Nonnull
+    @NotNull
     String getLicense();
 
-    @Nonnull
+    @NotNull
     String getCredits();
 
-    @Nonnull
+    @NotNull
     String getAuthors();
 
-    @Nonnull
+    @NotNull
     String getHomepage();
 
-    @Nonnull
+    @NotNull
     String getIssueTracker();
 
-    @Nonnull
+    @NotNull
     String getBanner();
 
-    @Nonnull
+    @NotNull
     String getBackground();
 
     @Nullable
@@ -72,7 +72,7 @@ public interface IModData {
 
     void drawUpdateIcon(Minecraft minecraft, Update update, int x, int y);
 
-    @Nonnull
+    @NotNull
     String getUpdateText(Update update);
 
     record Update(boolean animated, String url, int texOffset, ResourceLocation textures, boolean updatable,

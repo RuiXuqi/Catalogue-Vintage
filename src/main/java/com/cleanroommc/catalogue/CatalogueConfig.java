@@ -15,7 +15,7 @@ public class CatalogueConfig {
             "They will have grey names in the mod list."
     })
     @Config.LangKey("catalogue.config.library_list")
-    public static String[] libraryList = new String[] {
+    public static String[] libraryList = new String[]{
             "minecraft",
             "forge",
             "FML",
@@ -33,7 +33,7 @@ public class CatalogueConfig {
             "They will not be displayed when searching for dependencies/dependants."
     })
     @Config.LangKey("catalogue.config.ignored_dependencies_list")
-    public static String[] ignoredDependenciesList = new String[] {
+    public static String[] ignoredDependenciesList = new String[]{
             "minecraft",
             "forge",
             "FML",

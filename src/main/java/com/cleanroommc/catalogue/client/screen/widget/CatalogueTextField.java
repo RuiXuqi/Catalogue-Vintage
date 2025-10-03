@@ -3,8 +3,8 @@ package com.cleanroommc.catalogue.client.screen.widget;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiTextField;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
