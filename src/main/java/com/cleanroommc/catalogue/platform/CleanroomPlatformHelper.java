@@ -2,7 +2,7 @@ package com.cleanroommc.catalogue.platform;
 
 import com.cleanroommc.catalogue.CatalogueConfig;
 import com.cleanroommc.catalogue.client.Branding;
-import com.cleanroommc.catalogue.client.ForgeModData;
+import com.cleanroommc.catalogue.client.CleanroomModData;
 import com.cleanroommc.catalogue.client.IModData;
 import com.cleanroommc.catalogue.platform.services.IPlatformHelper;
 import net.minecraft.client.renderer.texture.TextureUtil;
@@ -19,11 +19,11 @@ import java.util.stream.Collectors;
 /**
  * Author: MrCrayfish
  */
-public class ForgePlatformHelper implements IPlatformHelper {
+public class CleanroomPlatformHelper implements IPlatformHelper {
 
     @Override
     public List<IModData> getAllModData() {
-        return Loader.instance().getActiveModList().stream().map(ForgeModData::new).collect(Collectors.toList());
+        return Loader.instance().getActiveModList().stream().map(CleanroomModData::new).collect(Collectors.toList());
     }
 
     @Override

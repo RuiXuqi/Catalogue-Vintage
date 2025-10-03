@@ -66,10 +66,6 @@ public interface IModData {
 
     boolean hasConfig();
 
-    boolean isLogoSmooth();
-
-    boolean isIconSmooth();
-
     boolean isLibrary();
 
     void openConfigScreen(Minecraft minecraft, GuiScreen parent);

@@ -27,15 +27,16 @@ import java.util.stream.Collectors;
 /**
  * Author: MrCrayfish
  */
-public class ForgeModData implements IModData {
+public class CleanroomModData implements IModData {
     public static final ResourceLocation VERSION_CHECK_ICONS = new ResourceLocation("forge", "textures/gui/version_check_icons.png");
     public static final List<String> LIB_MODS = Arrays.asList(CatalogueConfig.libraryList);
+    public static final List<String> IGNORED_DEPENDENCIES = Arrays.asList(CatalogueConfig.ignoredDependenciesList);
 
     private final ModContainer info;
     private final Type type;
     private final Set<String> dependencies;
 
-    public ForgeModData(ModContainer info) {
+    public CleanroomModData(ModContainer info) {
         this.info = info;
         this.type = analyzeType(info);
         this.dependencies = this.analyzeDependencies(info);
@@ -154,20 +155,6 @@ public class ForgeModData implements IModData {
     }
 
     @Override
-    public boolean isLogoSmooth() {
-        ModMetadata metadata = this.getMetadata();
-        //return metadata != null ? metadata.logoBlur : true;
-        return true;
-    }
-
-    @Override
-    public boolean isIconSmooth() {
-        ModMetadata metadata = this.getMetadata();
-        //return metadata != null ? metadata.iconBlur : true;
-        return true;
-    }
-
-    @Override
     public boolean isLibrary() {
         return this.info.getModId().equals("forge") || this.type != Type.DEFAULT;
     }
@@ -238,7 +225,7 @@ public class ForgeModData implements IModData {
         List<? extends ArtifactVersion> versions = source.getDependencies();
         return versions.stream()
                 .map(ArtifactVersion::getLabel)
-                .filter(modid -> !modid.equals("minecraft") && !modid.equals("forge"))
+                .filter(modid -> !IGNORED_DEPENDENCIES.contains(modid))
                 .collect(Collectors.toUnmodifiableSet());
     }
 }

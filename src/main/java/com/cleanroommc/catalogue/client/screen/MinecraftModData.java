@@ -112,16 +112,6 @@ public class MinecraftModData implements IModData {
     }
 
     @Override
-    public boolean isLogoSmooth() {
-        return true;
-    }
-
-    @Override
-    public boolean isIconSmooth() {
-        return true;
-    }
-
-    @Override
     public boolean isLibrary() {
         return true;
     }
