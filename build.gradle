@@ -23,7 +23,6 @@ assertSubProperties 'use_lombok_ap', 'lombok_version'
 assertSubProperties 'use_access_transformer', 'access_transformer_locations'
 assertSubProperties 'is_coremod', 'coremod_includes_mod', 'coremod_plugin_class_name'
 assertSubProperties 'use_asset_mover', 'asset_mover_version'
-assertSubProperties 'use_config_any_time', 'config_any_time_version'
 
 setDefaultProperty 'generate_sources_jar', true, false
 setDefaultProperty 'generate_javadocs_jar', true, false
@@ -71,7 +70,7 @@ unimined.minecraft {
         if (propertyBool('use_access_transformer')) {
             accessTransformer "${rootProject.projectDir}/src/main/resources/" +  propertyString('access_transformer_locations')
         }
-        loader "0.3.13-alpha"
+        loader "0.3.17-alpha"
         runs.auth.username = minecraft_username
         runs.all {
             def extraArgs = propertyString('extra_jvm_args')
@@ -79,9 +78,11 @@ unimined.minecraft {
                 jvmArgs += extraArgs.split("\\s+").toList()
             }
             if (propertyBool('enable_foundation_debug')) {
-                var map = getSystemProperties()
-                map.put("foundation.dump", "true")
-                map.put("foundation.verbose", "true")
+                systemProperty("foundation.dump", "true")
+                systemProperty("foundation.verbose", "true")
+            }
+            if (propertyBool('is_coremod')) {
+                systemProperty("fml.coreMods.load", propertyString('coremod_plugin_class_name'))
             }
             return
         }
@@ -122,9 +123,6 @@ dependencies {
     }
     if (propertyBool('use_asset_mover')) {
         implementation "com.cleanroommc:assetmover:${propertyString('asset_mover_version')}"
-    }
-    if (propertyBool('use_config_any_time')) {
-        implementation "com.cleanroommc:configanytime:${propertyString('config_any_time_version')}"
     }
     if (propertyBool('enable_junit_testing')) {
         testImplementation 'org.junit.jupiter:junit-jupiter:5.7.1'
@@ -233,14 +231,37 @@ remapJar {
 }
 
 idea {
+    module {
+        inheritOutputDirs = true
+    }
     project {
         settings {
             runConfigurations {
-                "Apply Spotless"(Gradle) {
+                "0. Apply Spotless"(Gradle) {
                     taskNames = ["spotlessApply"]
                 }
-                "Build Mod"(Gradle) {
+                "1. Run Client"(Gradle) {
+                    taskNames = ["runClient"]
+                }
+                "2. Run Server"(Gradle) {
+                    taskNames = ["runServer"]
+                }
+                "3. Run Obfuscated Client"(Gradle) {
+                    taskNames = ["runObfClient"]
+                }
+                "4. Run Obfuscated Server"(Gradle) {
+                    taskNames = ["runObfServer"]
+                }
+                "5. Build Mod"(Gradle) {
                     taskNames = ["build"]
+                }
+            }
+            compiler.javac {
+                afterEvaluate {
+                    javacAdditionalOptions = "-encoding utf8"
+                    moduleJavacAdditionalOptions = [
+                            (project.name + ".main"): tasks.compileJava.options.compilerArgs.collect { '"' + it + '"' }.join(' ')
+                    ]
                 }
             }
         }
