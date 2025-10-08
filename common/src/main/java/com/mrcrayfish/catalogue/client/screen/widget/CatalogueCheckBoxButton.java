@@ -1,14 +1,11 @@
 package com.mrcrayfish.catalogue.client.screen.widget;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mrcrayfish.catalogue.Constants;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.input.InputWithModifiers;
-import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.resources.ResourceLocation;
 

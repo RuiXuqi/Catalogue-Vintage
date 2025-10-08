@@ -1,8 +1,6 @@
 package com.mrcrayfish.catalogue.client.screen.widget;
 
 import com.mojang.blaze3d.platform.Window;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.mrcrayfish.catalogue.Constants;
 import com.mrcrayfish.catalogue.client.screen.DropdownMenuHandler;
 import com.mrcrayfish.catalogue.client.screen.layout.BorderedLinearLayout;
@@ -14,10 +12,8 @@ import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.gui.narration.NarratedElementType;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;

@@ -1,9 +1,9 @@
 package com.mrcrayfish.catalogue.platform;
 
 import com.mojang.blaze3d.platform.NativeImage;
-import com.mrcrayfish.catalogue.exception.ModResourceNotFoundException;
 import com.mrcrayfish.catalogue.client.ForgeModData;
 import com.mrcrayfish.catalogue.client.IModData;
+import com.mrcrayfish.catalogue.exception.ModResourceNotFoundException;
 import com.mrcrayfish.catalogue.platform.services.IPlatformHelper;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.render.state.GuiRenderState;

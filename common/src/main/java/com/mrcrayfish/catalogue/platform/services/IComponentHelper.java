@@ -1,6 +1,5 @@
 package com.mrcrayfish.catalogue.platform.services;
 
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 
 /**

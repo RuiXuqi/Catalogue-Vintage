@@ -13,7 +13,6 @@ import net.minecraft.client.gui.screens.Screen;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;

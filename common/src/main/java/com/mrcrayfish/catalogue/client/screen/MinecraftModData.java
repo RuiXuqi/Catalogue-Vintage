@@ -9,7 +9,6 @@ import net.minecraft.client.gui.screens.options.OptionsScreen;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 
 /**
