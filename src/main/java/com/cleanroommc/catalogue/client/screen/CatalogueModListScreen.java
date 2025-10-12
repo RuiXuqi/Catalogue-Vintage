@@ -34,8 +34,9 @@ import org.apache.commons.lang3.mutable.MutableObject;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
-import org.lwjglx.input.Keyboard;
 
 import java.awt.*;
 import java.io.IOException;
@@ -140,9 +141,9 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         };
         this.searchTextField.setFormatter(this::formatQuery);
         this.searchTextField.setMaxStringLength(128);
-        this.searchTextField.setText(OPTION_QUERY.getValue());
+        this.searchTextField.setText(OPTION_QUERY.get());
         this.searchTextField.setResponder(s -> {
-            if (!OPTION_QUERY.getValue().equals(s)) {
+            if (!OPTION_QUERY.get().equals(s)) {
                 OPTION_QUERY.setValue(s);
                 this.updateSearchFieldSuggestion(s);
                 this.modList.filterAndUpdateList();
@@ -167,7 +168,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         this.websiteButton = this.addButton(new CatalogueIconButton(4, contentLeft + buttonWidth + 5, 105, 20, 0, buttonWidth, I18n.format("catalogue.gui.website")));
         this.websiteButton.visible = false;
 
-        this.issueButton = this.addButton(new CatalogueIconButton(5, contentLeft + buttonWidth + buttonWidth + 10, 105, 30, 0, buttonWidth, I18n.format("catalogue.gui.issue")));
+        this.issueButton = this.addButton(new CatalogueIconButton(5, contentLeft + buttonWidth + buttonWidth + 10, 105, 30, 0, buttonWidth, I18n.format("catalogue.gui.submit_bug")));
         this.issueButton.visible = false;
 
         this.descriptionList = new StringList(contentWidth + padding * 2, 50, contentLeft - padding, 130);
@@ -267,7 +268,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         this.drawModInfo(disableableMouseX, disableableMouseY, partialTicks);
         super.drawScreen(disableableMouseX, disableableMouseY, partialTicks);
 
-        if (OPTION_QUERY.getValue().startsWith("@")) {
+        if (OPTION_QUERY.get().startsWith("@")) {
             int iconX = this.searchTextField.x + this.searchTextField.width - 15;
             int iconY = this.searchTextField.y + (this.searchTextField.height - 10) / 2;
             this.mc.getTextureManager().bindTexture(CatalogueIconButton.TEXTURE);
@@ -378,6 +379,12 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
     }
 
     @Override
+    protected void mouseReleased(int mouseX, int mouseY, int button) {
+        if (this.modList.mouseReleased(mouseX, mouseY, button)) return;
+        super.mouseReleased(mouseX, mouseY, button);
+    }
+
+    @Override
     protected void keyTyped(char typedChar, int key) throws IOException {
         if (isKeyComboCtrlF(key) && !this.searchTextField.isFocused()) {
             this.searchTextField.setFocused(true);
@@ -425,7 +432,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
 
     private class ModList extends CatalogueListExtended {
         private static final Predicate<IModData> SEARCH_PREDICATE = data -> {
-            String query = OPTION_QUERY.getValue();
+            String query = OPTION_QUERY.get();
             if (query.startsWith("@")) {
                 return performSearchFilter(query, data);
             }
@@ -435,7 +442,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         };
         private static final Predicate<IModData> FILTER_PREDICATE = data -> {
             // We ignore filters when using special query
-            String query = OPTION_QUERY.getValue();
+            String query = OPTION_QUERY.get();
             if (query.startsWith("@")) {
                 return true;
             }
@@ -480,7 +487,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                     .filter(SEARCH_PREDICATE)
                     .filter(FILTER_PREDICATE)
                     .map(data -> new ModListEntry(data, this))
-                    .sorted(OPTION_SORT.getValue())
+                    .sorted(OPTION_SORT.get())
                     .collect(Collectors.toList());
             this.replaceEntries(entries);
             this.clampAmountScrolled();
@@ -557,25 +564,18 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         }
 
         @Override
-        protected void drawTopAndBottom(Tessellator tessellator) {
-        }
-
-        @Override
         protected void overlayBackground(int startY, int endY, int startAlpha, int endAlpha) {
         }
 
         @Override
-        public boolean mouseClicked(int mouseX, int mouseY, int button) {
-            if (super.mouseClicked(mouseX, mouseY, button)) {
-                this.hideFavourites = button == 0 && mouseX >= this.getScrollBarX() && mouseY < this.getScrollBarX() + 6;
-                return true;
-            }
-            return false;
+        public void handleMouseInput() {
+            this.hideFavourites = Mouse.getEventDWheel() != 0;
+            super.handleMouseInput();
         }
 
         @Override
         public boolean mouseReleased(int mouseX, int mouseY, int button) {
-            if (this.hideFavourites && button == 0) {
+            if (this.hideFavourites) {
                 this.hideFavourites = false;
             }
             return super.mouseReleased(mouseX, mouseY, button);
@@ -607,7 +607,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
     }
 
     private String formatQuery(String partial, int displayPos) {
-        String query = OPTION_QUERY.getValue();
+        String query = OPTION_QUERY.get();
         if (!query.startsWith("@")) {
             return partial;
         }
@@ -790,7 +790,6 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
 
         @Override
         public boolean mousePressed(int slotIndex, int mouseX, int mouseY, int mouseEvent, int relativeX, int relativeY) {
-            if (this.button.mousePressed(CatalogueModListScreen.this.mc, mouseX, mouseY)) return false;
             if (mouseEvent == 1) {
                 DropdownMenu menu = DropdownMenu.builder(CatalogueModListScreen.this)
                         .setMinItemSize(0, 16)
@@ -804,8 +803,8 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                             CatalogueModListScreen.this.searchTextField.setText(filter);
                         }).build();
                 menu.toggle(mouseX, mouseY);
-                return false;
-            } else if (mouseEvent == 0) {
+                return true;
+            } else if (mouseEvent == 0 && !this.button.mousePressed(CatalogueModListScreen.this.mc, mouseX, mouseY)) {
                 CatalogueModListScreen.this.setSelectedModData(this.data);
                 this.list.setSelected(this);
                 return true;
@@ -843,7 +842,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
 
             @Override
             public boolean mousePressed(Minecraft mc, int mouseX, int mouseY) {
-                if (super.mousePressed(mc, mouseX, mouseY)) {
+                if (super.mousePressed(mc, mouseX, mouseY) && !CatalogueModListScreen.this.modList.hideFavourites) {
                     FAVOURITES.toggle(this.modId);
                     ModListEntry.this.list.filterAndUpdateList();
                     this.playPressSound(mc.getSoundHandler());
@@ -1017,10 +1016,6 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         @Override
         public IGuiListEntry getListEntry(int index) {
             return this.entries.get(index);
-        }
-
-        @Override
-        protected void drawTopAndBottom(Tessellator tessellator) {
         }
 
         @Override
