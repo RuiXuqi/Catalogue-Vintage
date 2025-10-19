@@ -1,6 +1,7 @@
 package com.cleanroommc.catalogue.client;
 
 import com.cleanroommc.catalogue.client.screen.CatalogueModListScreen;
+import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.fml.client.GuiModList;
 import net.minecraftforge.fml.common.Mod;
@@ -15,8 +16,7 @@ public class ClientHandler {
     @SubscribeEvent
     public static void onOpenScreen(GuiOpenEvent event) {
         if (event.getGui() instanceof GuiModList) {
-            event.setGui(new CatalogueModListScreen());
+            event.setGui(new CatalogueModListScreen(Minecraft.getMinecraft().currentScreen));
         }
     }
-
 }
