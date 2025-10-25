@@ -105,7 +105,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
 
     private List<String> activeTooltip;
     private int tooltipYOffset;
-
+    /** Time record of text box clicking. */
     private long lastClickTime;
 
     public CatalogueModListScreen(GuiScreen parent) {
@@ -131,7 +131,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
 
     @Override
     public void initGui() {
-        super.initGui();
+        Keyboard.enableRepeatEvents(true);
         this.searchTextField = new CatalogueTextField(0, this.fontRenderer, 11, 25, 148, 20) {
             @Override
             public int getWidth() {
@@ -152,6 +152,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                 this.updateSelectedModList();
             }
         });
+        this.searchTextField.setFocused(true);
 
         this.modList = new ModList();
         this.modList.setSlotXBoundsFromLeft(10);
@@ -365,11 +366,11 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             }
             // Left click to apply suggestions
             if (button == 0) {
-                String text = this.searchTextField.getText();
                 long currentTine = Minecraft.getSystemTime();
-                if (!text.isEmpty() && currentTine - this.lastClickTime < 250L && !this.searchTextField.getIsTextTruncated()) {
-                    text += this.searchTextField.getSuggestion();
-                    this.searchTextField.setText(text);
+                String text = this.searchTextField.getText();
+                String suggestion = this.searchTextField.getSuggestion();
+                if (!text.isEmpty() && !this.searchTextField.isTextTruncated() && !suggestion.isEmpty() && currentTine - this.lastClickTime < 250L) {
+                    this.searchTextField.setText(text + suggestion);
                     this.lastClickTime = currentTine;
                     return;
                 }
@@ -391,6 +392,14 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         if (isKeyComboCtrlF(key) && !this.searchTextField.isFocused()) {
             this.searchTextField.setFocused(true);
             return;
+        }
+        if (key == Keyboard.KEY_TAB && this.searchTextField.isFocused()) {
+            String text = this.searchTextField.getText();
+            String suggestion = this.searchTextField.getSuggestion();
+            if (!text.isEmpty() && !this.searchTextField.isTextTruncated() && !suggestion.isEmpty()) {
+                this.searchTextField.setText(text + suggestion);
+                return;
+            }
         }
         if (this.searchTextField.textboxKeyTyped(typedChar, key)) return;
         super.keyTyped(typedChar, key);
@@ -1275,6 +1284,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
 
     @Override
     public void onGuiClosed() {
+        Keyboard.enableRepeatEvents(false);
         FAVOURITES.save();
     }
 
@@ -1307,7 +1317,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             }
         } else {
             Optional<IModData> optional = CACHED_MODS.values().stream().filter(data -> {
-                return data.getDisplayName().toLowerCase(Locale.ENGLISH).startsWith(value.toLowerCase(Locale.ENGLISH));
+                return ModList.FILTER_PREDICATE.test(data) && data.getDisplayName().toLowerCase(Locale.ENGLISH).startsWith(value.toLowerCase(Locale.ENGLISH));
             }).min(Comparator.comparing(IModData::getDisplayName));
             if (optional.isPresent()) {
                 int length = value.length();
