@@ -572,7 +572,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
 
         @Override
         protected void drawContainerBackground(@NotNull Tessellator tessellator) {
-            if (ClientHelper.isPlayingGame()) {
+            if (this.mc.world != null) {
                 drawRect(this.left, this.top, this.right, this.bottom, 0x66000000);
                 return;
             }
