@@ -105,7 +105,9 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
 
     private @Nullable List<String> activeTooltip;
     private int tooltipYOffset;
-    /** Time record of text box clicking. */
+    /**
+     * Time record of text box clicking.
+     */
     private long lastClickTime;
     private boolean didRepeatEvents;
 
@@ -666,7 +668,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             boolean inOptionsMenu = CatalogueModListScreen.this.menu != null;
             boolean drawFavouriteIcon = !inOptionsMenu && !this.list.shouldHideFavourites() && ClientHelper.isMouseWithin(left + rowWidth - rowHeight - 4, top, rowHeight + 4, rowHeight, mouseX, mouseY) || FAVOURITES.has(this.data.getModId());
             drawString(CatalogueModListScreen.this.fontRenderer, this.getFormattedModName(drawFavouriteIcon), left + 24, top + 2, 0xFFFFFF);
-            drawString(CatalogueModListScreen.this.fontRenderer, TextFormatting.GRAY + this.data.getVersion(), left + 24, top + 12, 0xFFFFFF);
+            drawString(CatalogueModListScreen.this.fontRenderer, this.getFormattedModVersion(drawFavouriteIcon), left + 24, top + 12, 0xFFFFFF);
 
             // Draw image icon or fallback to item icon
             this.drawIcon(top, left);
@@ -779,6 +781,19 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
 
         private String getFormattedModName(boolean favouriteIconVisible) {
             String name = this.data.getDisplayName();
+            name = this.getFormattedText(name, favouriteIconVisible);
+            if (this.data.isLibrary()) {
+                return TextFormatting.DARK_GRAY + name;
+            }
+            return name;
+        }
+
+        private String getFormattedModVersion(boolean favouriteIconVisible) {
+            String version = this.data.getVersion();
+            return TextFormatting.GRAY + this.getFormattedText(version, favouriteIconVisible);
+        }
+
+        private String getFormattedText(String text, boolean favouriteIconVisible) {
             int paddingEnd = 4;
             int trimWidth = this.list.getListWidth() - 24 - paddingEnd;
             IModData.Update update = this.data.getUpdate();
@@ -788,13 +803,10 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             if (favouriteIconVisible) {
                 trimWidth -= 18;
             }
-            if (CatalogueModListScreen.this.fontRenderer.getStringWidth(name) > trimWidth) {
-                name = CatalogueModListScreen.this.fontRenderer.trimStringToWidth(name, trimWidth - 8).trim() + "...";
+            if (CatalogueModListScreen.this.fontRenderer.getStringWidth(text) > trimWidth) {
+                text = CatalogueModListScreen.this.fontRenderer.trimStringToWidth(text, trimWidth - 8).trim() + "...";
             }
-            if (this.data.isLibrary()) {
-                return TextFormatting.DARK_GRAY + name;
-            }
-            return name;
+            return text;
         }
 
         public IModData getData() {
