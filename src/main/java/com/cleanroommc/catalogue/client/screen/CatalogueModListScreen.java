@@ -88,25 +88,26 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             })).build();
     private static final TextFormatting SEARCH_FILTER_KEY = TextFormatting.GOLD;
     private static final TextFormatting SEARCH_FILTER_VALUE = TextFormatting.WHITE;
-    private static ImageInfo cachedBackground;
+    private static @Nullable ImageInfo cachedBackground;
     private static boolean loaded = false;
 
     private final GuiScreen parentScreen;
-    private CatalogueTextButton optionsButton;
     private CatalogueTextField searchTextField;
     private ModList modList;
+    private StringList descriptionList;
     private IModData selectedModData;
+    private CatalogueTextButton optionsButton;
     private CatalogueIconButton modFolderButton;
     private CatalogueIconButton configButton;
     private CatalogueIconButton websiteButton;
     private CatalogueIconButton issueButton;
-    private StringList descriptionList;
     private @Nullable DropdownMenu menu;
 
-    private List<String> activeTooltip;
+    private @Nullable List<String> activeTooltip;
     private int tooltipYOffset;
     /** Time record of text box clicking. */
     private long lastClickTime;
+    private boolean didRepeatEvents;
 
     public CatalogueModListScreen(GuiScreen parent) {
         super();
@@ -131,6 +132,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
 
     @Override
     public void initGui() {
+        this.didRepeatEvents = Keyboard.areRepeatEventsEnabled();
         Keyboard.enableRepeatEvents(true);
         this.searchTextField = new CatalogueTextField(0, this.fontRenderer, 11, 25, 148, 20) {
             @Override
@@ -152,7 +154,6 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                 this.updateSelectedModList();
             }
         });
-        this.searchTextField.setFocused(true);
 
         this.modList = new ModList();
         this.modList.setSlotXBoundsFromLeft(10);
@@ -193,7 +194,13 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
     }
 
     @Override
-    public void actionPerformed(GuiButton button) {
+    public void onGuiClosed() {
+        Keyboard.enableRepeatEvents(this.didRepeatEvents);
+        FAVOURITES.save();
+    }
+
+    @Override
+    public void actionPerformed(@NotNull GuiButton button) {
         switch (button.id) {
             case 1:
                 this.mc.displayGuiScreen(this.parentScreen);
@@ -255,6 +262,8 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                             return false;
                         }).build();
                 menu.toggle(button);
+                break;
+            default:
                 break;
         }
     }
@@ -466,14 +475,15 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             if (OPTION_HIDE_LIBRARIES.booleanValue() && data.isLibrary()) {
                 return false;
             }
+            //noinspection RedundantIfStatement
             if (OPTION_FAVOURITES_ONLY.booleanValue() && !FAVOURITES.has(data.getModId())) {
                 return false;
             }
             return true;
         };
+        private final List<ModListEntry> children = new ArrayList<>();
+        private @Nullable ModListEntry selected;
         private boolean hideFavourites;
-        private List<ModListEntry> children = Lists.newArrayList();
-        private ModListEntry selected;
 
         public ModList() {
             super(CatalogueModListScreen.this.mc, 150, CatalogueModListScreen.this.height, 46, CatalogueModListScreen.this.height - 35, 26);
@@ -504,7 +514,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             this.clampAmountScrolled();
         }
 
-        public ModListEntry getEntryFromInfo(IModData data) {
+        public @Nullable ModListEntry getEntryFromInfo(IModData data) {
             return this.children.stream().filter(entry -> entry.data == data).findFirst().orElse(null);
         }
 
@@ -538,11 +548,6 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         }
 
         @Override
-        public int getListRight() {
-            return this.getListLeft() + this.getListWidth();
-        }
-
-        @Override
         public int getListWidth() {
             return this.width - (this.isScrollBarVisible() ? 6 : 0);
         }
@@ -552,7 +557,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             return this.children.size();
         }
 
-        public ModListEntry getSelected() {
+        public @Nullable ModListEntry getSelected() {
             return this.selected;
         }
 
@@ -601,7 +606,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         }
     }
 
-    private static boolean performSearchFilter(String query, IModData data) {
+    private static boolean performSearchFilter(@NotNull String query, IModData data) {
         if (!query.startsWith("@")) return false;
 
         int end = query.indexOf(":");
@@ -648,7 +653,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         private final PinnedButton button;
         private ItemStack icon;
 
-        public ModListEntry(IModData data, ModList list) {
+        public ModListEntry(@NotNull IModData data, @NotNull ModList list) {
             this.data = data;
             this.list = list;
             this.button = new PinnedButton(data.getModId());
@@ -962,7 +967,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             this.visible = false;
         }
 
-        public void setTextFromInfo(IModData data) {
+        public void setTextFromInfo(@NotNull IModData data) {
             this.entries.clear();
             this.visible = true;
             if (data.getDescription().trim().isBlank()) {
@@ -1268,24 +1273,18 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
     }
 
     /**
-     * Gets the count of the footer text elements. This is used to corrrectly set the height of
+     * Gets the count of the footer text elements. This is used to correctly set the height of
      * the description widget.
      *
      * @param data the mod data
      * @return the count of footer text elements
      */
-    private int getFooterTextElementCount(IModData data) {
+    private int getFooterTextElementCount(@NotNull IModData data) {
         int count = 0;
         if (!data.getLicense().isBlank()) count++;
         if (!data.getCredits().isBlank()) count++;
         if (!data.getAuthors().isBlank()) count++;
         return count;
-    }
-
-    @Override
-    public void onGuiClosed() {
-        Keyboard.enableRepeatEvents(false);
-        FAVOURITES.save();
     }
 
     private void updateSelectedModList() {
@@ -1295,7 +1294,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         }
     }
 
-    private void updateSearchFieldSuggestion(String value) {
+    private void updateSearchFieldSuggestion(@NotNull String value) {
         if (value.isEmpty()) {
             this.searchTextField.setSuggestion(I18n.format("catalogue.gui.search") + "...");
         } else if (value.startsWith("@")) {

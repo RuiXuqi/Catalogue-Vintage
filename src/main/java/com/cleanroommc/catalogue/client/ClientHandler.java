@@ -7,6 +7,7 @@ import net.minecraftforge.fml.client.GuiModList;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Author: MrCrayfish
@@ -14,7 +15,7 @@ import net.minecraftforge.fml.relauncher.Side;
 @Mod.EventBusSubscriber(modid = "catalogue", value = Side.CLIENT)
 public class ClientHandler {
     @SubscribeEvent
-    public static void onOpenScreen(GuiOpenEvent event) {
+    public static void onOpenScreen(@NotNull GuiOpenEvent event) {
         if (event.getGui() instanceof GuiModList) {
             event.setGui(new CatalogueModListScreen(Minecraft.getMinecraft().currentScreen));
         }
