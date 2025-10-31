@@ -13,6 +13,7 @@ import net.minecraftforge.fml.client.FMLClientHandler;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.ModContainer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -93,13 +94,14 @@ public class CleanroomPlatformHelper implements IPlatformHelper {
         }
 
         @Override
-        public @NotNull String getVersion() {
+        public String getVersion() {
             String version = this.getInnerVersion();
             return version.substring(version.indexOf("OptiFine_1.12.2_") + 16);
         }
 
+        @Nullable
         @Override
-        public @NotNull String getDescription() {
+        public String getDescription() {
             // Copied from https://www.optifine.net/home
             return """
                     OptiFine is a Minecraft optimization mod.
@@ -107,23 +109,27 @@ public class CleanroomPlatformHelper implements IPlatformHelper {
                     """;
         }
 
+        @Nullable
         @Override
-        public @NotNull String getLicense() {
+        public String getLicense() {
             return "All Rights Reserved";
         }
 
+        @Nullable
         @Override
-        public @NotNull String getAuthors() {
+        public String getAuthors() {
             return "sp614x";
         }
 
+        @Nullable
         @Override
-        public @NotNull String getHomepage() {
+        public String getHomepage() {
             return "https://www.optifine.net/home";
         }
 
+        @Nullable
         @Override
-        public @NotNull String getIssueTracker() {
+        public String getIssueTracker() {
             return "https://github.com/sp614x/optifine/issues";
         }
 

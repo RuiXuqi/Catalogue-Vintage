@@ -739,7 +739,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
 
             // Gets the raw item icon resource string
             String itemIcon = data.getItemIcon();
-            if (!itemIcon.isBlank()) {
+            if (itemIcon != null && !itemIcon.isBlank()) {
                 try {
                     // 0:mod id 1:item name (2:metadata)
                     String[] parts = itemIcon.split(":");
@@ -947,21 +947,21 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
 
             // Draw license
             String license = this.selectedModData.getLicense();
-            if (!license.isBlank()) {
+            if (license != null && !license.isBlank()) {
                 this.drawStringWithLabel("catalogue.gui.licenses", license, contentLeft, labelOffset, contentWidth, mouseX, mouseY, TextFormatting.GRAY, TextFormatting.WHITE);
                 labelOffset -= 15;
             }
 
             // Draw credits
             String credits = this.selectedModData.getCredits();
-            if (!credits.isBlank()) {
+            if (credits != null && !credits.isBlank()) {
                 this.drawStringWithLabel("catalogue.gui.credits", credits, contentLeft, labelOffset, contentWidth, mouseX, mouseY, TextFormatting.GRAY, TextFormatting.WHITE);
                 labelOffset -= 15;
             }
 
             // Draw authors
             String authors = this.selectedModData.getAuthors();
-            if (!authors.isBlank()) {
+            if (authors != null && !authors.isBlank()) {
                 this.drawStringWithLabel("catalogue.gui.authors", authors, contentLeft, labelOffset, contentWidth, mouseX, mouseY, TextFormatting.GRAY, TextFormatting.WHITE);
             }
         } else {
@@ -982,6 +982,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         public void setTextFromInfo(@NotNull IModData data) {
             this.entries.clear();
             this.visible = true;
+            if (data.getDescription() == null) return;
             if (data.getDescription().trim().isBlank()) {
                 this.visible = false;
                 return;
@@ -1271,8 +1272,8 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         this.issueButton.visible = true;
 
         this.configButton.enabled = data.hasConfig();
-        this.websiteButton.enabled = !data.getHomepage().isBlank();
-        this.issueButton.enabled = !data.getIssueTracker().isBlank();
+        this.websiteButton.enabled = data.getHomepage() != null && !data.getHomepage().isBlank();
+        this.issueButton.enabled = data.getIssueTracker() != null && !data.getIssueTracker().isBlank();
 
         int contentLeft = this.modList.right + 12 + 10;
         int contentWidth = this.width - contentLeft - 10;
@@ -1293,9 +1294,9 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
      */
     private int getFooterTextElementCount(@NotNull IModData data) {
         int count = 0;
-        if (!data.getLicense().isBlank()) count++;
-        if (!data.getCredits().isBlank()) count++;
-        if (!data.getAuthors().isBlank()) count++;
+        if (data.getLicense() != null && !data.getLicense().isBlank()) count++;
+        if (data.getCredits() != null && !data.getCredits().isBlank()) count++;
+        if (data.getAuthors() != null && !data.getAuthors().isBlank()) count++;
         return count;
     }
 

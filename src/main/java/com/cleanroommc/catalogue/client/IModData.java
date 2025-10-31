@@ -20,40 +20,38 @@ public interface IModData {
 
     String getDisplayName();
 
-    @NotNull
     String getVersion();
 
-    @NotNull
     String getInnerVersion();
 
-    @NotNull
+    @Nullable
     String getDescription();
 
-    @NotNull
+    @Nullable
     String getItemIcon();
 
-    @NotNull
+    @Nullable
     String getImageIcon();
 
-    @NotNull
+    @Nullable
     String getLicense();
 
-    @NotNull
+    @Nullable
     String getCredits();
 
-    @NotNull
+    @Nullable
     String getAuthors();
 
-    @NotNull
+    @Nullable
     String getHomepage();
 
-    @NotNull
+    @Nullable
     String getIssueTracker();
 
-    @NotNull
+    @Nullable
     String getBanner();
 
-    @NotNull
+    @Nullable
     String getBackground();
 
     @Nullable
@@ -72,7 +70,7 @@ public interface IModData {
 
     void drawUpdateIcon(Minecraft minecraft, Update update, int x, int y);
 
-    @NotNull
+    @Nullable
     String getUpdateText(Update update);
 
     record Update(boolean animated, String url, int texOffset, ResourceLocation textures, boolean updatable,
