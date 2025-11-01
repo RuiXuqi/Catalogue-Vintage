@@ -18,10 +18,6 @@ jobs:
       with:
         java-version: '21'
         distribution: 'temurin'
-    - uses: gradle/actions/setup-gradle@v4.3.1
-      with:
-        gradle-version: 9.0.0
-      name: Set up Gradle
     - name: Add permission
       run: chmod +x ./gradlew
     - name: Execute Gradle spotlessApply

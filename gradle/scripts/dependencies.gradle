@@ -1,6 +1,9 @@
 apply from: 'gradle/scripts/helpers.gradle'
 
 repositories {
+    flatDir {
+        dirs('libs') // /libs
+    }
     // Other repositories described by default:
     // CleanroomMC: https://maven.cleanroommc.com
     maven {
@@ -31,6 +34,9 @@ dependencies {
     // Example - Modrinth dependencies:
     // 'maven.modrinth:jei:4.16.1.1000' << jei = project name, 4.16.1.1000 = file version
     // Full documentation: https://docs.modrinth.com/docs/tutorials/maven/
+
+    // Example - Local dependencies:
+    // 'libs:ctm-1.2.1; << libs = folder name (/libs) in flatDir, ctm-1.2.1 = file name (ctm-1.2.1.jar)
 
     // Common dependency types (configuration):
     // implementation = dependency available at both compile time and runtime
