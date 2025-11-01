@@ -5,7 +5,6 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.resources.IResourcePack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TextFormatting;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
