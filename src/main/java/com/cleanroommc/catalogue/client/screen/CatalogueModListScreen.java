@@ -153,7 +153,6 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                 OPTION_QUERY.setValue(s);
                 this.updateSearchFieldSuggestion(s);
                 this.modList.filterAndUpdateList();
-                this.updateSelectedModList();
             }
         });
 
@@ -186,8 +185,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         // Resizing window causes all widgets to be recreated, therefore need to update selected info
         if (this.selectedModData != null) {
             this.setSelectedModData(this.selectedModData);
-            this.updateSelectedModList();
-            ModListEntry entry = this.modList.getEntryFromInfo(this.selectedModData);
+            ModListEntry entry = this.modList.getSelected();
             if (entry != null) {
                 this.modList.centerScrollOn(entry);
             }
@@ -511,11 +509,11 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                     .sorted(OPTION_SORT.get())
                     .collect(Collectors.toList());
             this.replaceEntries(entries);
+            if (CatalogueModListScreen.this.selectedModData != null) {
+                Optional<ModListEntry> selectedEntry = this.children.stream().filter(entry -> entry.data == CatalogueModListScreen.this.selectedModData).findFirst();
+                selectedEntry.ifPresent(this::setSelected);
+            }
             this.clampAmountScrolled();
-        }
-
-        public @Nullable ModListEntry getEntryFromInfo(IModData data) {
-            return this.children.stream().filter(entry -> entry.data == data).findFirst().orElse(null);
         }
 
         public void centerScrollOn(ModListEntry pEntry) {
@@ -524,7 +522,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
 
         protected void clearEntries() {
             this.children.clear();
-            this.selected = null;
+            this.setSelected(null);
         }
 
         protected void replaceEntries(Collection<ModListEntry> entries) {
@@ -869,11 +867,10 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
 
             @Override
             public boolean mousePressed(Minecraft mc, int mouseX, int mouseY) {
-                if (super.mousePressed(mc, mouseX, mouseY) && !CatalogueModListScreen.this.modList.shouldHideFavourites()) {
+                if (super.mousePressed(mc, mouseX, mouseY) && !ModListEntry.this.list.shouldHideFavourites()) {
                     FAVOURITES.toggle(this.modId);
                     ModListEntry.this.list.filterAndUpdateList();
                     this.playPressSound(mc.getSoundHandler());
-                    CatalogueModListScreen.this.updateSelectedModList();
                     return true;
                 }
                 return false;
@@ -1287,13 +1284,6 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         if (data.getCredits() != null && !data.getCredits().isBlank()) count++;
         if (data.getAuthors() != null && !data.getAuthors().isBlank()) count++;
         return count;
-    }
-
-    private void updateSelectedModList() {
-        ModListEntry selectedEntry = this.modList.getEntryFromInfo(this.selectedModData);
-        if (selectedEntry != null) {
-            this.modList.setSelected(selectedEntry);
-        }
     }
 
     private void updateSearchFieldSuggestion(@NotNull String value) {
