@@ -5,6 +5,7 @@ import net.minecraftforge.common.config.ConfigManager;
 import net.minecraftforge.fml.client.event.ConfigChangedEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import org.jetbrains.annotations.NotNull;
 
 @Config(modid = CatalogueConstants.MOD_ID)
 @Mod.EventBusSubscriber(modid = CatalogueConstants.MOD_ID)
@@ -80,7 +81,7 @@ public class CatalogueConfig {
     public static int iconMaxWidthHeight = 256;
 
     @SubscribeEvent
-    public static void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent event) {
+    public static void onConfigChanged(@NotNull ConfigChangedEvent.OnConfigChangedEvent event) {
         if (event.getModID().equals(CatalogueConstants.MOD_ID)) {
             ConfigManager.sync(CatalogueConstants.MOD_ID, Config.Type.INSTANCE);
         }
