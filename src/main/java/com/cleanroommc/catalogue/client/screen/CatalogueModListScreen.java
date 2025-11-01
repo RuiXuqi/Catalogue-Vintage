@@ -518,7 +518,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             return this.children.stream().filter(entry -> entry.data == data).findFirst().orElse(null);
         }
 
-        protected void centerScrollOn(ModListEntry pEntry) {
+        public void centerScrollOn(ModListEntry pEntry) {
             this.setAmountScrolled((float) (this.children.indexOf(pEntry) * this.slotHeight + this.slotHeight / 2 - (this.bottom - this.top) / 2));
         }
 
