@@ -1,5 +1,7 @@
 package com.cleanroommc.catalogue.client;
 
+import com.cleanroommc.catalogue.CatalogueConfig;
+import com.cleanroommc.catalogue.CatalogueConstants;
 import com.cleanroommc.catalogue.client.screen.CatalogueModListScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.GuiOpenEvent;
@@ -12,11 +14,11 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Author: MrCrayfish
  */
-@Mod.EventBusSubscriber(modid = "catalogue", value = Side.CLIENT)
+@Mod.EventBusSubscriber(modid = CatalogueConstants.MOD_ID, value = Side.CLIENT)
 public class ClientHandler {
     @SubscribeEvent
     public static void onOpenScreen(@NotNull GuiOpenEvent event) {
-        if (event.getGui() instanceof GuiModList) {
+        if (CatalogueConfig.enableMod && event.getGui() instanceof GuiModList) {
             event.setGui(new CatalogueModListScreen(Minecraft.getMinecraft().currentScreen));
         }
     }
