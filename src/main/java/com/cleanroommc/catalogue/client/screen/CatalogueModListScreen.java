@@ -359,6 +359,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                 IModData.Update update = this.selectedModData.getUpdate();
                 if (update != null && update.homepage() != null && !update.homepage().isBlank() && update.updatable()) {
                     this.openLink(update.homepage());
+                    return;
                 }
             }
         }
