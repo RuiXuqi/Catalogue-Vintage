@@ -1,5 +1,6 @@
 package com.cleanroommc.catalogue.client;
 
+import com.github.bsideup.jabel.Desugar;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.BufferBuilder;
@@ -125,7 +126,9 @@ public class ClientHelper {
     }
 
     // Info of the texture
+    @Desugar
     public record NineSlice(int width, int height, Border border) {
+        @Desugar
         public record Border(int left, int top, int right, int bottom) {
             public Border(int border) {
                 this(border, border, border, border);

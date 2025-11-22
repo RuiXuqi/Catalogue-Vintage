@@ -17,8 +17,8 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.util.ResourceLocation;
 import org.apache.commons.lang3.mutable.MutableBoolean;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -298,12 +298,12 @@ public class DropdownMenu extends Gui implements LayoutElement {
             GlStateManager.enableBlend();
             GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
             GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
-            drawModalRectWithCustomSizedTexture(this.getX() + this.getWidth() - 14 - offset, this.getY() + offset, this.hovered ? 14 : 0, this.holder.get() ? 14 : 0, 14, 14, 64, 64);
+            drawModalRectWithCustomSizedTexture(this.getX() + this.getWidth() - 14 - offset, this.getY() + offset, this.hovered ? 14 : 0, this.holder.getValue() ? 14 : 0, 14, 14, 64, 64);
         }
 
         @Override
         public void onClick(int mouseX, int mouseY) {
-            boolean newValue = !this.holder.get();
+            boolean newValue = !this.holder.getValue();
             this.holder.setValue(newValue);
             if (this.callback.apply(newValue)) {
                 this.parent.deepClose();

@@ -5,6 +5,7 @@ import com.cleanroommc.catalogue.Utils;
 import com.cleanroommc.catalogue.exception.InvalidBrandingImageException;
 import com.cleanroommc.catalogue.exception.ModResourceNotFoundException;
 import com.cleanroommc.catalogue.platform.ClientServices;
+import com.github.bsideup.jabel.Desugar;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.resources.IResourcePack;
@@ -19,6 +20,7 @@ import java.util.function.Function;
 /**
  * Author: MrCrayfish
  */
+@Desugar
 public record Branding(String prefix, int imageWidth, int imageHeight,
                        BiPredicate<BufferedImage, Branding> predicate,
                        Function<IModData, String> locator, boolean override) {
@@ -28,7 +30,7 @@ public record Branding(String prefix, int imageWidth, int imageHeight,
 
     public Optional<ImageInfo> loadResource(IModData data) {
         String resource = this.locator.apply(data);
-        if (resource == null || resource.isBlank()) return Optional.empty();
+        if (resource == null || resource.trim().isEmpty()) return Optional.empty();
 
         String modId = data.getModId();
         BufferedImage image = null;
@@ -43,7 +45,7 @@ public record Branding(String prefix, int imageWidth, int imageHeight,
             this.predicate.test(image, this); // An InvalidBrandingImageException will be thrown if anything is wrong
             DynamicTexture texture = new DynamicTexture(image);
             ResourceLocation id = this.override ? Utils.resource(this.prefix) :
-                    Utils.resource("%s/%s".formatted(this.prefix, data.getModId()));
+                    Utils.resource(String.format("%s/%s", this.prefix, data.getModId()));
             Minecraft.getMinecraft().getTextureManager().loadTexture(id, texture);
             return Optional.of(new ImageInfo(id, image.getWidth(), image.getHeight(), () -> {
                 Minecraft.getMinecraft().getTextureManager().deleteTexture(id);
@@ -59,6 +61,7 @@ public record Branding(String prefix, int imageWidth, int imageHeight,
         return Optional.empty();
     }
 
+    @Desugar
     public record BannerLimit(int maxWidth, int maxHeight) {
     }
 }

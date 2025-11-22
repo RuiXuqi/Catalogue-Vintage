@@ -3,16 +3,16 @@ package com.cleanroommc.catalogue.client.screen.widget;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiTextField;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 public class CatalogueTextField extends GuiTextField {
     private final FontRenderer fontRenderer;
     private boolean isTextTruncated;
-    @NotNull
+    @Nonnull
     private String suggestion = "";
     @Nullable
     private Consumer<String> responder;
@@ -111,7 +111,7 @@ public class CatalogueTextField extends GuiTextField {
 
     // Patch vanilla missing methods
     @Override
-    public void setText(@NotNull String textIn) {
+    public void setText(@Nonnull String textIn) {
         super.setText(textIn);
         if (this.validator.apply(textIn)) {
             this.setResponderEntryValue(this.getId(), textIn);
@@ -128,7 +128,7 @@ public class CatalogueTextField extends GuiTextField {
 
     // Call consumer responder
     @Override
-    public void setResponderEntryValue(int idIn, String textIn) {
+    public void setResponderEntryValue(int idIn, @Nonnull String textIn) {
         if (this.responder != null) {
             this.responder.accept(textIn);
         }
@@ -136,7 +136,7 @@ public class CatalogueTextField extends GuiTextField {
     }
 
     // Suggestion
-    public void setSuggestion(@NotNull String suggestion) {
+    public void setSuggestion(@Nonnull String suggestion) {
         this.suggestion = suggestion;
     }
 

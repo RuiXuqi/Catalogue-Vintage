@@ -5,6 +5,6 @@ import net.minecraftforge.fml.common.Mod;
 /**
  * Author: MrCrayfish
  */
-@Mod(modid = Reference.MOD_ID, name = Reference.MOD_NAME, version = Reference.VERSION, dependencies = "required-after:cleanroom", clientSideOnly = true, acceptableRemoteVersions = "*")
+@Mod(modid = Reference.MOD_ID, name = Reference.MOD_NAME, version = Reference.VERSION, clientSideOnly = true, acceptableRemoteVersions = "*")
 public class Catalogue {
 }

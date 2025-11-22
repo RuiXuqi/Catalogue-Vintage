@@ -21,13 +21,14 @@ public class Divisor implements IntIterator {
             this.quotient = 0;
             this.mod = 0;
         }
-
     }
 
+    @Override
     public boolean hasNext() {
         return this.returnedParts < this.denominator;
     }
 
+    @Override
     public int nextInt() {
         if (!this.hasNext()) {
             throw new NoSuchElementException();
@@ -42,6 +43,22 @@ public class Divisor implements IntIterator {
             ++this.returnedParts;
             return i;
         }
+    }
+
+    @Override
+    public Integer next() {
+        return nextInt();
+    }
+
+    @Override
+    public int skip(int n) {
+        if (n < 0) throw new IllegalArgumentException("Argument must be nonnegative: " + n);
+        int i = 0;
+        while (i < n && hasNext()) {
+            nextInt();
+            i++;
+        }
+        return i;
     }
 
     @VisibleForTesting

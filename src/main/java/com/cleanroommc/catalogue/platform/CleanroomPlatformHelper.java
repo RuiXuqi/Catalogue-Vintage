@@ -12,8 +12,8 @@ import net.minecraft.client.renderer.texture.TextureUtil;
 import net.minecraftforge.fml.client.FMLClientHandler;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.ModContainer;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Author: MrCrayfish
@@ -42,7 +43,7 @@ public class CleanroomPlatformHelper implements IPlatformHelper {
         });
         List<ModContainer> containerList = Loader.instance().getActiveModList();
         containerList.addAll(specialContainerList);
-        dataList.addAll(containerList.stream().map(CleanroomModData::new).toList());
+        dataList.addAll(containerList.stream().map(CleanroomModData::new).collect(Collectors.toList()));
         return dataList;
     }
 

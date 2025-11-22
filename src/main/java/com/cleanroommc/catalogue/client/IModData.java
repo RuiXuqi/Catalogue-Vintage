@@ -1,12 +1,13 @@
 package com.cleanroommc.catalogue.client;
 
+import com.github.bsideup.jabel.Desugar;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.resources.IResourcePack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TextFormatting;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.Set;
 
 /**
@@ -72,6 +73,7 @@ public interface IModData {
     @Nullable
     String getUpdateText(Update update);
 
+    @Desugar
     record Update(boolean animated, String url, int texOffset, ResourceLocation textures, boolean updatable,
                   String latestFound, String homepage) {
     }

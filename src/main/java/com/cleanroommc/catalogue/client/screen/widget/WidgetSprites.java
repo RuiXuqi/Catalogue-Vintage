@@ -1,10 +1,12 @@
 package com.cleanroommc.catalogue.client.screen.widget;
 
+import com.github.bsideup.jabel.Desugar;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
+@Desugar
 public record WidgetSprites(ResourceLocation enabled, ResourceLocation disabled, ResourceLocation enabledFocused,
                             ResourceLocation disabledFocused) {
     public WidgetSprites(ResourceLocation normal, ResourceLocation focused) {
