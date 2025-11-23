@@ -3,9 +3,7 @@ package com.cleanroommc.catalogue.client;
 import com.github.bsideup.jabel.Desugar;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
-import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import org.lwjgl.opengl.GL11;
 
 /**
@@ -22,7 +20,7 @@ public class ClientHelper {
      */
     public static void scissor(int screenX, int screenY, int boxWidth, int boxHeight) {
         Minecraft mc = Minecraft.getMinecraft();
-        ScaledResolution scaledRes = new ScaledResolution(mc);
+        ScaledResolution scaledRes = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
         int scale = scaledRes.getScaleFactor();
 
         int x = screenX * scale;
@@ -115,13 +113,12 @@ public class ClientHelper {
      * @param maxV       the maximum vertical texture coordinate.
      */
     static void innerBlit(int x1, int x2, int y1, int y2, int blitOffset, float minU, float maxU, float minV, float maxV) {
-        Tessellator tessellator = Tessellator.getInstance();
-        BufferBuilder bufferbuilder = tessellator.getBuffer();
-        bufferbuilder.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
-        bufferbuilder.pos(x1, y1, blitOffset).tex(minU, minV).endVertex();
-        bufferbuilder.pos(x1, y2, blitOffset).tex(minU, maxV).endVertex();
-        bufferbuilder.pos(x2, y2, blitOffset).tex(maxU, maxV).endVertex();
-        bufferbuilder.pos(x2, y1, blitOffset).tex(maxU, minV).endVertex();
+        Tessellator tessellator = Tessellator.instance;
+        tessellator.startDrawingQuads();
+        tessellator.addVertexWithUV(x1, y1, blitOffset, minU, minV);
+        tessellator.addVertexWithUV(x1, y2, blitOffset, minU, maxV);
+        tessellator.addVertexWithUV(x2, y2, blitOffset, maxU, maxV);
+        tessellator.addVertexWithUV(x2, y1, blitOffset, maxU, minV);
         tessellator.draw();
     }
 

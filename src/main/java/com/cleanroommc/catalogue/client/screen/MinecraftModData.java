@@ -31,7 +31,7 @@ public class MinecraftModData implements IModData {
 
     @Override
     public String getVersion() {
-        return "1.12.2";
+        return "1.7.10";
     }
 
     @Override

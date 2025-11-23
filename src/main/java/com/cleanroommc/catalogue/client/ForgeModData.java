@@ -2,19 +2,17 @@ package com.cleanroommc.catalogue.client;
 
 import com.cleanroommc.catalogue.CatalogueConfig;
 import com.cleanroommc.catalogue.CatalogueConstants;
+import cpw.mods.fml.client.FMLClientHandler;
+import cpw.mods.fml.client.IModGuiFactory;
+import cpw.mods.fml.common.ModContainer;
+import cpw.mods.fml.common.ModMetadata;
+import cpw.mods.fml.common.versioning.ArtifactVersion;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.resources.IResourcePack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.common.ForgeVersion;
-import net.minecraftforge.fml.client.FMLClientHandler;
-import net.minecraftforge.fml.client.IModGuiFactory;
-import net.minecraftforge.fml.common.ModContainer;
-import net.minecraftforge.fml.common.ModMetadata;
-import net.minecraftforge.fml.common.versioning.ArtifactVersion;
+import org.lwjgl.opengl.GL11;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -28,7 +26,6 @@ import java.util.stream.Collectors;
  * Author: MrCrayfish
  */
 public class ForgeModData implements IModData {
-    public static final ResourceLocation VERSION_CHECK_ICONS = new ResourceLocation("forge", "textures/gui/version_check_icons.png");
     public static final List<String> LIB_MODS = Arrays.asList(CatalogueConfig.libraryList);
     public static final List<String> IGNORED_DEPENDENCIES = Arrays.asList(CatalogueConfig.ignoredDependenciesList);
 
@@ -145,10 +142,6 @@ public class ForgeModData implements IModData {
     @Nullable
     @Override
     public Update getUpdate() {
-        ForgeVersion.CheckResult result = ForgeVersion.getResult(this.info);
-        if (result.status.shouldDraw()) {
-            return new Update(result.status.isAnimated(), result.url, result.status.getSheetOffset(), VERSION_CHECK_ICONS, true, null, result.url);
-        }
         return null;
     }
 
@@ -159,10 +152,8 @@ public class ForgeModData implements IModData {
 
     @Override
     public boolean hasConfig() {
-        if (this.info == null) return false;
         IModGuiFactory guiFactory = FMLClientHandler.instance().getGuiFactoryFor(this.info);
-        if (guiFactory == null) return false;
-        return guiFactory.hasConfigGui();
+        return guiFactory != null && guiFactory.mainConfigGuiClass() != null;
     }
 
     @Override
@@ -174,19 +165,19 @@ public class ForgeModData implements IModData {
     public void openConfigScreen(Minecraft minecraft, GuiScreen parent) {
         try {
             IModGuiFactory guiFactory = FMLClientHandler.instance().getGuiFactoryFor(this.info);
-            GuiScreen newScreen = guiFactory.createConfigGui(parent);
+            GuiScreen newScreen = guiFactory.mainConfigGuiClass().getConstructor(GuiScreen.class).newInstance(parent);
             minecraft.displayGuiScreen(newScreen);
         } catch (Exception e) {
-            CatalogueConstants.LOG.error("There was a critical issue trying to build the config GUI for {}", this.getModId(), e);
+            CatalogueConstants.LOG.error("There was a critical issue trying to build the config GUI for {}", this.getModId());
         }
     }
 
     @Override
     public void drawUpdateIcon(Minecraft minecraft, Update update, int x, int y) {
-        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         int vOffset = update.animated() && (System.currentTimeMillis() / 800 & 1) == 1 ? 8 : 0;
         minecraft.getTextureManager().bindTexture(update.textures());
-        Gui.drawModalRectWithCustomSizedTexture(x, y, update.texOffset() * 8, vOffset, 8, 8, 64, 16);
+        Gui.func_146110_a(x, y, update.texOffset() * 8, vOffset, 8, 8, 64, 16);
     }
 
     @Nullable
@@ -221,8 +212,8 @@ public class ForgeModData implements IModData {
     private Set<String> analyzeDependencies(@Nonnull ModContainer source) {
         List<? extends ArtifactVersion> versions = source.getDependencies();
         return versions.stream()
-                .map(ArtifactVersion::getLabel)
-                .filter(modid -> !IGNORED_DEPENDENCIES.contains(modid))
-                .collect(Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
+            .map(ArtifactVersion::getLabel)
+            .filter(modid -> !IGNORED_DEPENDENCIES.contains(modid))
+            .collect(Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
     }
 }

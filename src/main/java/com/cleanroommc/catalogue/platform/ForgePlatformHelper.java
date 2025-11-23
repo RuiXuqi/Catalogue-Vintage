@@ -5,15 +5,15 @@ import com.cleanroommc.catalogue.client.Branding;
 import com.cleanroommc.catalogue.client.ForgeModData;
 import com.cleanroommc.catalogue.client.IModData;
 import com.cleanroommc.catalogue.platform.services.IPlatformHelper;
+import cpw.mods.fml.client.FMLClientHandler;
+import cpw.mods.fml.common.Loader;
+import cpw.mods.fml.common.ModContainer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiVideoSettings;
-import net.minecraft.client.renderer.texture.TextureUtil;
-import net.minecraftforge.fml.client.FMLClientHandler;
-import net.minecraftforge.fml.common.Loader;
-import net.minecraftforge.fml.common.ModContainer;
 
 import javax.annotation.Nullable;
+import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -60,7 +60,7 @@ public class ForgePlatformHelper implements IPlatformHelper {
     @Override
     public BufferedImage loadImageFromModResource(String modid, String resource) throws IOException {
         InputStream is = getClass().getResourceAsStream(resource);
-        return is != null ? TextureUtil.readBufferedImage(is) : null;
+        return is != null ? ImageIO.read(is) : null;
     }
 
     @Override
@@ -104,9 +104,9 @@ public class ForgePlatformHelper implements IPlatformHelper {
         public String getDescription() {
             // Copied from https://www.optifine.net/home
             return """
-                    OptiFine is a Minecraft optimization mod.
-                    It allows Minecraft to run faster and look better with full support for HD textures and many configuration options.
-                    """;
+                OptiFine is a Minecraft optimization mod.
+                It allows Minecraft to run faster and look better with full support for HD textures and many configuration options.
+                """;
         }
 
         @Nullable

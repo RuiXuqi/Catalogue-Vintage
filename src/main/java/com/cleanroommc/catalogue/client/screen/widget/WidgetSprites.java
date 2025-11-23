@@ -1,9 +1,9 @@
 package com.cleanroommc.catalogue.client.screen.widget;
 
 import com.github.bsideup.jabel.Desugar;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
 @Desugar

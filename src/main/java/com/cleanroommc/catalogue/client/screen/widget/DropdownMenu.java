@@ -13,10 +13,10 @@ import net.minecraft.client.audio.SoundHandler;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiButton;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.init.SoundEvents;
+import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.util.ResourceLocation;
 import org.apache.commons.lang3.mutable.MutableBoolean;
+import org.lwjgl.opengl.GL11;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -31,7 +31,7 @@ import java.util.function.Function;
 public class DropdownMenu extends Gui implements LayoutElement {
     private final DropdownMenuHandler handler;
     private final BorderedLinearLayout layout = (BorderedLinearLayout)
-            BorderedLinearLayout.vertical().border(1).spacing(1);
+        BorderedLinearLayout.vertical().border(1).spacing(1);
     private final List<MenuItem> items = new ArrayList<>();
     private Alignment alignment = Alignment.BELOW_LEFT;
     private @Nullable DropdownMenu parent;
@@ -61,7 +61,7 @@ public class DropdownMenu extends Gui implements LayoutElement {
     }
 
     public void toggle(GuiButton widget) {
-        this.toggle(new ScreenRectangle(widget.x, widget.y, widget.width, widget.height));
+        this.toggle(new ScreenRectangle(widget.xPosition, widget.yPosition, widget.width, widget.height));
     }
 
     public void toggle(ScreenRectangle rect) {
@@ -112,14 +112,14 @@ public class DropdownMenu extends Gui implements LayoutElement {
     }
 
     public void drawScreen(Minecraft minecraft, int mouseX, int mouseY, float deltaTick) {
-        GlStateManager.pushMatrix();
+        GL11.glPushMatrix();
         drawRect(0, 0, minecraft.displayWidth, minecraft.displayHeight, 0x50000000);
         drawRect(this.getX(), this.getY(), this.getX() + this.getWidth(), this.getY() + this.getHeight(), 0xAA000000);
         this.items.forEach(widget -> widget.drawWidget(minecraft, mouseX, mouseY, deltaTick));
         if (this.subMenu != null) {
             this.subMenu.drawScreen(minecraft, mouseX, mouseY, deltaTick);
         }
-        GlStateManager.popMatrix();
+        GL11.glPopMatrix();
     }
 
     public boolean mousePressed(Minecraft minecraft, int mouseX, int mouseY) {
@@ -144,8 +144,8 @@ public class DropdownMenu extends Gui implements LayoutElement {
 
     public static class MenuItem extends Gui implements LayoutElement {
         static final WidgetSprites SPRITES = new WidgetSprites(
-                Utils.withDefaultNamespace("dropdown/item"),
-                Utils.withDefaultNamespace("dropdown/item_highlighted")
+            Utils.withDefaultNamespace("dropdown/item"),
+            Utils.withDefaultNamespace("dropdown/item_highlighted")
         );
         protected final DropdownMenu parent;
         private final Runnable onClick;
@@ -180,10 +180,10 @@ public class DropdownMenu extends Gui implements LayoutElement {
             if (!this.visible) return;
             this.hovered = mouseX >= this.getX() && mouseY >= this.getY() && mouseX < this.getX() + this.getWidth() && mouseY < this.getY() + this.height;
 
-            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-            GlStateManager.enableBlend();
-            GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
-            GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+            GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+            GL11.glEnable(GL11.GL_BLEND);
+            OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_ONE, GL11.GL_ZERO);
+            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
             minecraft.getTextureManager().bindTexture(SPRITES.get(this.enabled, this.hovered || this.selected()));
             ClientHelper.blitNineSlicedSprite(new ClientHelper.NineSlice(12, 12, 2), this.getX(), this.getY(), this.getWidth(), this.getHeight());
 
@@ -218,7 +218,7 @@ public class DropdownMenu extends Gui implements LayoutElement {
         }
 
         public void playPressSound(SoundHandler soundHandlerIn) {
-            soundHandlerIn.playSound(PositionedSoundRecord.getMasterRecord(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+            soundHandlerIn.playSound(PositionedSoundRecord.func_147674_a(new ResourceLocation("gui.button.press"), 1.0F));
         }
 
         @Override
@@ -294,11 +294,11 @@ public class DropdownMenu extends Gui implements LayoutElement {
             int offset = (this.getHeight() - 14) / 2;
             minecraft.getTextureManager().bindTexture(TEXTURE);
 
-            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-            GlStateManager.enableBlend();
-            GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
-            GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
-            drawModalRectWithCustomSizedTexture(this.getX() + this.getWidth() - 14 - offset, this.getY() + offset, this.hovered ? 14 : 0, this.holder.getValue() ? 14 : 0, 14, 14, 64, 64);
+            GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+            GL11.glEnable(GL11.GL_BLEND);
+            OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_ONE, GL11.GL_ZERO);
+            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+            func_146110_a(this.getX() + this.getWidth() - 14 - offset, this.getY() + offset, this.hovered ? 14 : 0, this.holder.getValue() ? 14 : 0, 14, 14, 64, 64);
         }
 
         @Override

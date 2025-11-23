@@ -1,11 +1,11 @@
 package com.cleanroommc.catalogue.client.screen.layout;
 
 import com.google.common.annotations.VisibleForTesting;
-import it.unimi.dsi.fastutil.ints.IntIterator;
 
 import java.util.NoSuchElementException;
+import java.util.PrimitiveIterator;
 
-public class Divisor implements IntIterator {
+public class Divisor implements PrimitiveIterator.OfInt {
     private final int denominator;
     private final int quotient;
     private final int mod;
@@ -45,12 +45,6 @@ public class Divisor implements IntIterator {
         }
     }
 
-    @Override
-    public Integer next() {
-        return nextInt();
-    }
-
-    @Override
     public int skip(int n) {
         if (n < 0) throw new IllegalArgumentException("Argument must be nonnegative: " + n);
         int i = 0;

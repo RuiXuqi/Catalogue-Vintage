@@ -6,6 +6,7 @@ import net.minecraft.client.gui.GuiTextField;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
@@ -19,8 +20,8 @@ public class CatalogueTextField extends GuiTextField {
     @Nullable
     private BiFunction<String, Integer, String> formatter;
 
-    public CatalogueTextField(int id, FontRenderer fontRenderer, int x, int y, int width, int height) {
-        super(id, fontRenderer, x, y, width, height);
+    public CatalogueTextField(FontRenderer fontRenderer, int x, int y, int width, int height) {
+        super(fontRenderer, x, y, width, height);
         this.fontRenderer = fontRenderer;
     }
 
@@ -31,8 +32,8 @@ public class CatalogueTextField extends GuiTextField {
 
         if (this.getEnableBackgroundDrawing()) {
             int borderColor = this.isFocused() ? 0xFFFFFFFF : 0xFFA0A0A0;
-            drawRect(this.x - 1, this.y - 1, this.x + this.width + 1, this.y + this.height + 1, borderColor);
-            drawRect(this.x, this.y, this.x + this.width, this.y + this.height, 0xFF000000);
+            drawRect(this.xPosition - 1, this.yPosition - 1, this.xPosition + this.width + 1, this.yPosition + this.height + 1, borderColor);
+            drawRect(this.xPosition, this.yPosition, this.xPosition + this.width, this.yPosition + this.height, 0xFF000000);
         }
 
         int textColor = this.isEnabled ? this.enabledColor : this.disabledColor;
@@ -45,8 +46,8 @@ public class CatalogueTextField extends GuiTextField {
         boolean isCursorVisible = cursorPosRelative >= 0 && cursorPosRelative <= visibleText.length();
         boolean shouldDrawCursor = this.isFocused() && this.cursorCounter / 6 % 2 == 0 && isCursorVisible;
 
-        int textStartX = this.getEnableBackgroundDrawing() ? this.x + 4 : this.x;
-        int textStartY = this.getEnableBackgroundDrawing() ? this.y + (this.height - 8) / 2 : this.y;
+        int textStartX = this.getEnableBackgroundDrawing() ? this.xPosition + 4 : this.xPosition;
+        int textStartY = this.getEnableBackgroundDrawing() ? this.yPosition + (this.height - 8) / 2 : this.yPosition;
         int currentDrawX = textStartX;
 
         if (selectionEndRelative > visibleText.length()) {
@@ -56,7 +57,7 @@ public class CatalogueTextField extends GuiTextField {
         // Draw text before cursor
         if (!visibleText.isEmpty()) {
             String rawTextBeforeCursor = isCursorVisible ? visibleText.substring(0, cursorPosRelative) : visibleText;
-            currentDrawX = this.fontRenderer.drawStringWithShadow(formatText(rawTextBeforeCursor, this.lineScrollOffset), (float) textStartX, (float) textStartY, textColor);
+            currentDrawX = this.fontRenderer.drawStringWithShadow(formatText(rawTextBeforeCursor, this.lineScrollOffset), textStartX, textStartY, textColor);
         }
 
         this.isTextTruncated = this.cursorPosition < this.getText().length() || this.getText().length() >= this.getMaxStringLength();
@@ -72,26 +73,26 @@ public class CatalogueTextField extends GuiTextField {
         // Draw text after cursor
         if (!visibleText.isEmpty() && isCursorVisible && cursorPosRelative < visibleText.length()) {
             String rawTextAfterCursor = visibleText.substring(cursorPosRelative);
-            currentDrawX = this.fontRenderer.drawStringWithShadow(formatText(rawTextAfterCursor, this.cursorPosition), (float) currentDrawX, (float) textStartY, textColor);
+            currentDrawX = this.fontRenderer.drawStringWithShadow(formatText(rawTextAfterCursor, this.cursorPosition), currentDrawX, textStartY, textColor);
         }
 
         if (!this.isTextTruncated && !this.suggestion.isEmpty()) {
             int suggestionDrawX = this.getText().isEmpty() ? currentDrawX : currentDrawX - 1;
             String suggestion = this.fontRenderer.trimStringToWidth(this.suggestion, textStartX + this.getWidth() - suggestionDrawX);
-            this.fontRenderer.drawStringWithShadow(suggestion, (float) suggestionDrawX, (float) textStartY, 0x808080);
+            this.fontRenderer.drawStringWithShadow(suggestion, suggestionDrawX, textStartY, 0x808080);
         }
 
         if (shouldDrawCursor) {
             if (this.isTextTruncated) {
                 Gui.drawRect(cursorDrawX, textStartY - 1, cursorDrawX + 1, textStartY + 1 + this.fontRenderer.FONT_HEIGHT, 0xFFCFCFD0);
             } else {
-                this.fontRenderer.drawStringWithShadow("_", (float) cursorDrawX, (float) textStartY, textColor);
+                this.fontRenderer.drawStringWithShadow("_", cursorDrawX, textStartY, textColor);
             }
         }
 
         if (selectionEndRelative != cursorPosRelative) {
             int selectionEndX = textStartX + this.fontRenderer.getStringWidth(visibleText.substring(0, selectionEndRelative));
-            this.drawSelectionBox(cursorDrawX, textStartY - 1, selectionEndX - 1, textStartY + 1 + this.fontRenderer.FONT_HEIGHT);
+            this.drawCursorVertical(cursorDrawX, textStartY - 1, selectionEndX - 1, textStartY + 1 + this.fontRenderer.FONT_HEIGHT);
         }
     }
 
@@ -109,30 +110,47 @@ public class CatalogueTextField extends GuiTextField {
         this.responder = pResponder;
     }
 
-    // Patch vanilla missing methods
+    @Override
+    public void writeText(String textToWrite) {
+        String previousText = this.getText();
+        super.writeText(textToWrite);
+        if (!Objects.equals(this.getText(), previousText)) {
+            this.setResponderEntryValue(this.getText());
+        }
+    }
+
+    @Override
+    public void deleteFromCursor(int num) {
+        String previousText = this.getText();
+        super.deleteFromCursor(num);
+        if (!Objects.equals(this.getText(), previousText)) {
+            this.setResponderEntryValue(this.getText());
+        }
+    }
+
     @Override
     public void setText(@Nonnull String textIn) {
+        String previousText = this.getText();
         super.setText(textIn);
-        if (this.validator.apply(textIn)) {
-            this.setResponderEntryValue(this.getId(), textIn);
+        if (!Objects.equals(this.getText(), previousText)) {
+            this.setResponderEntryValue(this.getText());
         }
     }
 
     @Override
     public void setMaxStringLength(int length) {
+        String previousText = this.getText();
         super.setMaxStringLength(length);
-        if (this.getText().length() > length) {
-            this.setResponderEntryValue(this.getId(), this.getText());
+        if (!Objects.equals(this.getText(), previousText)) {
+            this.setResponderEntryValue(this.getText());
         }
     }
 
     // Call consumer responder
-    @Override
-    public void setResponderEntryValue(int idIn, @Nonnull String textIn) {
+    public void setResponderEntryValue(@Nonnull String textIn) {
         if (this.responder != null) {
             this.responder.accept(textIn);
         }
-        super.setResponderEntryValue(idIn, textIn);
     }
 
     // Suggestion

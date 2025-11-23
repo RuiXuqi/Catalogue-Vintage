@@ -3,8 +3,8 @@ package com.cleanroommc.catalogue.client.screen.widget;
 import com.cleanroommc.catalogue.CatalogueConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.ResourceLocation;
+import org.lwjgl.opengl.GL11;
 
 /**
  * Author: MrCrayfish
@@ -35,21 +35,21 @@ public class CatalogueIconButton extends CatalogueTextButton {
     }
 
     @Override
-    public void drawButton(Minecraft minecraft, int mouseX, int mouseY, float partialTicks) {
+    public void drawButton(Minecraft minecraft, int mouseX, int mouseY) {
         // Draw bg
-        super.drawButton(minecraft, mouseX, mouseY, partialTicks);
+        super.drawButton(minecraft, mouseX, mouseY);
         // Draw icon and text
         if (this.visible) {
             FontRenderer fontrenderer = minecraft.fontRenderer;
             minecraft.getTextureManager().bindTexture(TEXTURE);
-            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+            GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
             int contentWidth = 10 + fontrenderer.getStringWidth(this.label) + (!this.label.isEmpty() ? 4 : 0);
-            int iconX = this.x + (this.width - contentWidth) / 2;
-            int iconY = this.y + (this.height - 10) / 2;
+            int iconX = this.xPosition + (this.width - contentWidth) / 2;
+            int iconY = this.yPosition + (this.height - 10) / 2;
             float brightness = this.enabled ? 1.0F : 0.5F;
-            GlStateManager.color(brightness, brightness, brightness, 1.0F);
-            drawModalRectWithCustomSizedTexture(iconX, iconY, this.u, this.v, 10, 10, 64, 64);
-            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+            GL11.glColor4f(brightness, brightness, brightness, 1.0F);
+            func_146110_a(iconX, iconY, this.u, this.v, 10, 10, 64, 64);
+            GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
             drawString(fontrenderer, this.label, iconX + 14, iconY + 1, this.getFGColor());
         }
     }

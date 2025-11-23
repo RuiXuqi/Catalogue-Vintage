@@ -45,7 +45,7 @@ public record Branding(String prefix, int imageWidth, int imageHeight,
             this.predicate.test(image, this); // An InvalidBrandingImageException will be thrown if anything is wrong
             DynamicTexture texture = new DynamicTexture(image);
             ResourceLocation id = this.override ? Utils.resource(this.prefix) :
-                    Utils.resource(String.format("%s/%s", this.prefix, data.getModId()));
+                Utils.resource(String.format("%s/%s", this.prefix, data.getModId()));
             Minecraft.getMinecraft().getTextureManager().loadTexture(id, texture);
             return Optional.of(new ImageInfo(id, image.getWidth(), image.getHeight(), () -> {
                 Minecraft.getMinecraft().getTextureManager().deleteTexture(id);

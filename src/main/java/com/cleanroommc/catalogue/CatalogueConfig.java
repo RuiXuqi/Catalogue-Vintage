@@ -1,98 +1,118 @@
 package com.cleanroommc.catalogue;
 
-import net.minecraftforge.common.config.Config;
-import net.minecraftforge.common.config.ConfigManager;
-import net.minecraftforge.fml.client.event.ConfigChangedEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.common.config.Configuration;
 
-import javax.annotation.Nonnull;
+import java.io.File;
 
-@Config(modid = CatalogueConstants.MOD_ID)
-@Mod.EventBusSubscriber(modid = CatalogueConstants.MOD_ID)
+// TODO: Config GUI
 public class CatalogueConfig {
+    private static Configuration config;
 
-    @Config.Comment({
-            "Whether enable Catalogue mod.",
-            "Setting it false will stop Catalogue redirecting Forge's mod list calls."
-    })
-    @Config.LangKey("catalogue.config.enable_mod")
     public static boolean enableMod = true;
-
-    @Config.RequiresMcRestart
-    @Config.Comment({
-            "The list of library mods' mod ids.",
-            "They will have grey names in the mod list."
-    })
-    @Config.LangKey("catalogue.config.library_list")
     public static String[] libraryList = new String[]{
-            "minecraft",
-            "forge",
-            "FML",
-            "mcp",
-            "cleanroom",
-            "configanytime",
-            "mixinbooter",
-            "fugue",
-            "scalar"
+        "minecraft",
+        "Forge",
+        "FML",
+        "mcp"
     };
-
-    @Config.RequiresMcRestart
-    @Config.Comment({
-            "The list of ignored dependencies' mod ids.",
-            "They will not be displayed when searching for dependencies/dependants."
-    })
-    @Config.LangKey("catalogue.config.ignored_dependencies_list")
     public static String[] ignoredDependenciesList = new String[]{
-            "minecraft",
-            "forge",
-            "FML",
-            "mcp",
-            "cleanroom"
+        "minecraft",
+        "Forge",
+        "FML",
+        "mcp"
     };
-
-    @Config.RequiresMcRestart
-    @Config.Comment({
-            "Whether limit the size of mods' banners."
-    })
-    @Config.LangKey("catalogue.config.enable_banner_limit")
     public static boolean enableBannerLimit = false;
-
-    @Config.RequiresMcRestart
-    @Config.Comment({
-            "The maximum of banner's width. Will not work if Enable Banner Limit is set false."
-    })
-    @Config.LangKey("catalogue.config.banner_max_width")
-    @Config.RangeInt(min = 0)
     public static int bannerMaxWidth = 1280;
-
-    @Config.RequiresMcRestart
-    @Config.Comment({
-            "The maximum of banner's height. Will not work if Enable Banner Limit is set false."
-    })
-    @Config.LangKey("catalogue.config.banner_max_height")
-    @Config.RangeInt(min = 0)
     public static int bannerMaxHeight = 256;
-
-    @Config.RequiresMcRestart
-    @Config.Comment({
-            "Whether limit the size of mods' icons."
-    })
-    @Config.LangKey("catalogue.config.enable_icon_limit")
     public static boolean enableIconLimit = false;
-
-    @Config.RequiresMcRestart
-    @Config.Comment({
-            "The maximum of icon's width and height. Will not work if Enable Icon Limit is set false."
-    })
-    @Config.LangKey("catalogue.config.icon_max_width_height")
-    @Config.RangeInt(min = 0)
     public static int iconMaxWidthHeight = 256;
 
-    @SubscribeEvent
-    public static void onConfigChanged(@Nonnull ConfigChangedEvent.OnConfigChangedEvent event) {
-        if (event.getModID().equals(CatalogueConstants.MOD_ID)) {
-            ConfigManager.sync(CatalogueConstants.MOD_ID, Config.Type.INSTANCE);
+    public static void init(File configFile) {
+        if (config == null) {
+            config = new Configuration(configFile);
+            config.load();
+        }
+        syncConfig();
+    }
+
+    public static void syncConfig() {
+        enableMod = config.get(
+                Configuration.CATEGORY_GENERAL,
+                "enableMod",
+                enableMod,
+                "Whether enable Catalogue mod. \nSetting it false will stop Catalogue redirecting Forge's mod list calls."
+            ).setLanguageKey("catalogue.config.enable_mod")
+            .getBoolean();
+
+        libraryList = config.get(
+                Configuration.CATEGORY_GENERAL,
+                "libraryList",
+                libraryList,
+                "The list of library mods' mod ids. \nThey will have grey names in the mod list."
+            ).setLanguageKey("catalogue.config.library_list")
+            .setRequiresMcRestart(true)
+            .getStringList();
+
+        ignoredDependenciesList = config.get(
+                Configuration.CATEGORY_GENERAL,
+                "ignoredDependenciesList",
+                ignoredDependenciesList,
+                "The list of ignored dependencies' mod ids. \nThey will not be displayed when searching for dependencies/dependants."
+            ).setLanguageKey("catalogue.config.ignored_dependencies_list")
+            .setRequiresMcRestart(true)
+            .getStringList();
+
+        enableBannerLimit = config.get(
+                Configuration.CATEGORY_GENERAL,
+                "enableBannerLimit",
+                enableBannerLimit,
+                "Whether limit the size of mods' banners."
+            ).setLanguageKey("catalogue.config.enable_banner_limit")
+            .setRequiresMcRestart(true)
+            .getBoolean();
+
+        bannerMaxWidth = config.get(
+                Configuration.CATEGORY_GENERAL,
+                "bannerMaxWidth",
+                bannerMaxWidth,
+                "The maximum of banner's width. Will not work if Enable Banner Limit is set false."
+            ).setLanguageKey("catalogue.config.banner_max_width")
+            .setMinValue(0)
+            .setRequiresMcRestart(true)
+            .getInt();
+
+        bannerMaxHeight = config.get(
+                Configuration.CATEGORY_GENERAL,
+                "bannerMaxHeight",
+                bannerMaxHeight,
+                "The maximum of banner's height. Will not work if Enable Banner Limit is set false."
+            ).setLanguageKey("catalogue.config.banner_max_height")
+            .setMinValue(0)
+            .setRequiresMcRestart(true)
+            .getInt();
+
+        enableIconLimit = config.get(
+                Configuration.CATEGORY_GENERAL,
+                "enableIconLimit",
+                enableIconLimit,
+                "Whether limit the size of mods' icons."
+            ).setLanguageKey("catalogue.config.enable_icon_limit")
+            .setRequiresMcRestart(true)
+            .getBoolean();
+
+        iconMaxWidthHeight = config.get(
+                Configuration.CATEGORY_GENERAL,
+                "iconMaxWidthHeight",
+                iconMaxWidthHeight,
+                "The maximum of icon's width and height. Will not work if Enable Icon Limit is set false."
+            )
+            .setLanguageKey("catalogue.config.icon_max_width_height")
+            .setMinValue(0)
+            .setRequiresMcRestart(true)
+            .getInt();
+
+        if (config.hasChanged()) {
+            config.save();
         }
     }
 }

@@ -4,8 +4,8 @@ import com.github.bsideup.jabel.Desugar;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.resources.IResourcePack;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.TextFormatting;
 
 import javax.annotation.Nullable;
 import java.util.Set;
@@ -79,17 +79,17 @@ public interface IModData {
     }
 
     enum Type {
-        DEFAULT(TextFormatting.RESET),
-        LIBRARY(TextFormatting.DARK_GRAY),
-        GENERATED(TextFormatting.AQUA);
+        DEFAULT(EnumChatFormatting.RESET),
+        LIBRARY(EnumChatFormatting.DARK_GRAY),
+        GENERATED(EnumChatFormatting.AQUA);
 
-        private final TextFormatting style;
+        private final EnumChatFormatting style;
 
-        Type(TextFormatting style) {
+        Type(EnumChatFormatting style) {
             this.style = style;
         }
 
-        public TextFormatting getStyle() {
+        public EnumChatFormatting getStyle() {
             return this.style;
         }
     }

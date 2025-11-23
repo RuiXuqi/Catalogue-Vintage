@@ -1,8 +1,8 @@
 package com.cleanroommc.catalogue.client.screen.layout;
 
 import com.cleanroommc.catalogue.Utils;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
 public abstract class AbstractLayout implements Layout {

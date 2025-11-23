@@ -5,8 +5,8 @@ import com.cleanroommc.catalogue.client.ClientHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiButton;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.renderer.OpenGlHelper;
+import net.minecraft.util.MathHelper;
 import org.lwjgl.opengl.GL11;
 
 public class CatalogueTextButton extends GuiButton {
@@ -16,16 +16,17 @@ public class CatalogueTextButton extends GuiButton {
         super(buttonId, x, y, widthIn, heightIn, buttonText);
     }
 
-    public void drawButton(Minecraft mc, int mouseX, int mouseY, float partialTicks) {
+    @Override
+    public void drawButton(Minecraft mc, int mouseX, int mouseY) {
         if (!this.visible) return;
-        this.hovered = mouseX >= this.x && mouseY >= this.y && mouseX < this.x + this.width && mouseY < this.y + this.height;
+        this.field_146123_n = mouseX >= this.xPosition && mouseY >= this.yPosition && mouseX < this.xPosition + this.width && mouseY < this.yPosition + this.height;
 
-        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-        GlStateManager.enableBlend();
-        GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
-        GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
-        mc.getTextureManager().bindTexture(SPRITES.get(this.enabled, this.hovered));
-        ClientHelper.blitNineSlicedSprite(new ClientHelper.NineSlice(200, 20, 3), this.x, this.y, this.width, this.height);
+        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+        GL11.glEnable(GL11.GL_BLEND);
+        OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_ONE, GL11.GL_ZERO);
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        mc.getTextureManager().bindTexture(SPRITES.get(this.enabled, this.field_146123_n));
+        ClientHelper.blitNineSlicedSprite(new ClientHelper.NineSlice(200, 20, 3), this.xPosition, this.yPosition, this.width, this.height);
 
         this.mouseDragged(mc, mouseX, mouseY);
         this.renderString(mc.fontRenderer, this.getFGColor());
@@ -36,9 +37,9 @@ public class CatalogueTextButton extends GuiButton {
     }
 
     protected void renderScrollingString(FontRenderer font, int width, int color) {
-        int i = this.x + width;
-        int j = this.x + this.width - width;
-        renderScrollingString(font, this.displayString, i, this.y, j, this.y + this.height, color);
+        int i = this.xPosition + width;
+        int j = this.xPosition + this.width - width;
+        renderScrollingString(font, this.displayString, i, this.yPosition, j, this.yPosition + this.height, color);
     }
 
     public void renderScrollingString(FontRenderer font, String text, int minX, int minY, int maxX, int maxY, int color) {
@@ -59,7 +60,7 @@ public class CatalogueTextButton extends GuiButton {
             drawString(font, text, minX - (int) d3, j, color);
             GL11.glDisable(GL11.GL_SCISSOR_TEST);
         } else {
-            int i1 = MathHelper.clamp(centerX, minX + i / 2, maxX - i / 2);
+            int i1 = MathHelper.clamp_int(centerX, minX + i / 2, maxX - i / 2);
             drawCenteredString(font, text, i1, j, color);
         }
     }
@@ -69,7 +70,7 @@ public class CatalogueTextButton extends GuiButton {
             return this.packedFGColour;
         } else if (!this.enabled) {
             return 10526880;
-        } else if (this.hovered) {
+        } else if (this.field_146123_n) {
             return 16777120;
         } else {
             return 14737632;
