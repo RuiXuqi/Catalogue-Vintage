@@ -114,7 +114,7 @@ public class CatalogueTextField extends GuiTextField {
     public void setText(@Nonnull String textIn) {
         super.setText(textIn);
         if (this.validator.apply(textIn)) {
-            this.setResponderEntryValue(this.getId(), textIn);
+            this.setResponderEntryValue(this.getId(), this.getText());
         }
     }
 
