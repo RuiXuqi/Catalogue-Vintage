@@ -50,7 +50,6 @@ public abstract class CatalogueListExtended extends GuiListExtended {
         this.drawSelectionBox(mouseX, mouseY, partialTicks);
 
         GlStateManager.disableDepth();
-
         GlStateManager.enableBlend();
         GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ZERO, GlStateManager.DestFactor.ONE);
         GlStateManager.disableAlpha();
