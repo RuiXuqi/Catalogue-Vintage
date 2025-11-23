@@ -491,10 +491,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
 
         @Override
         public void drawScreen(int mouseX, int mouseY, float partialTicks) {
-            ClientHelper.scissor(this.getListLeft(), this.top, this.width, this.bottom - this.top);
             super.drawScreen(mouseX, mouseY, partialTicks);
-            GL11.glDisable(GL11.GL_SCISSOR_TEST);
-
             if (this.children.isEmpty()) {
                 String text = I18n.format("catalogue.gui.no_mods");
                 int left = this.left + this.width / 2;
@@ -577,10 +574,6 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                 return;
             }
             super.drawContainerBackground(tessellator);
-        }
-
-        @Override
-        protected void overlayBackground(int startY, int endY, int startAlpha, int endAlpha) {
         }
 
         @Override
@@ -989,13 +982,6 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         }
 
         @Override
-        public void drawScreen(int mouseX, int mouseY, float partialTicks) {
-            ClientHelper.scissor(this.left, this.top, this.width, this.bottom - this.top);
-            super.drawScreen(mouseX, mouseY, partialTicks);
-            GL11.glDisable(GL11.GL_SCISSOR_TEST);
-        }
-
-        @Override
         protected void drawContainerBackground(@Nullable Tessellator tessellator) {
             int x = this.left;
             int y = this.top;
@@ -1039,10 +1025,6 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         @Override
         public IGuiListEntry getListEntry(int index) {
             return this.entries.get(index);
-        }
-
-        @Override
-        protected void overlayBackground(int startY, int endY, int startAlpha, int endAlpha) {
         }
     }
 
