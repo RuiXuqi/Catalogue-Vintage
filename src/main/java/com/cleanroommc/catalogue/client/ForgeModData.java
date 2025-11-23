@@ -9,7 +9,6 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.resources.IResourcePack;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.common.ForgeVersion;
 import net.minecraftforge.fml.client.FMLClientHandler;
 import net.minecraftforge.fml.client.IModGuiFactory;
@@ -28,7 +27,7 @@ import java.util.stream.Collectors;
 /**
  * Author: MrCrayfish
  */
-public class CleanroomModData implements IModData {
+public class ForgeModData implements IModData {
     public static final ResourceLocation VERSION_CHECK_ICONS = new ResourceLocation("forge", "textures/gui/version_check_icons.png");
     public static final List<String> LIB_MODS = Arrays.asList(CatalogueConfig.libraryList);
     public static final List<String> IGNORED_DEPENDENCIES = Arrays.asList(CatalogueConfig.ignoredDependenciesList);
@@ -37,7 +36,7 @@ public class CleanroomModData implements IModData {
     private final Type type;
     private final Set<String> dependencies;
 
-    public CleanroomModData(ModContainer info) {
+    public ForgeModData(ModContainer info) {
         this.info = info;
         this.type = analyzeType(info);
         this.dependencies = this.analyzeDependencies(info);

@@ -2,7 +2,7 @@ package com.cleanroommc.catalogue.platform;
 
 import com.cleanroommc.catalogue.CatalogueConfig;
 import com.cleanroommc.catalogue.client.Branding;
-import com.cleanroommc.catalogue.client.CleanroomModData;
+import com.cleanroommc.catalogue.client.ForgeModData;
 import com.cleanroommc.catalogue.client.IModData;
 import com.cleanroommc.catalogue.platform.services.IPlatformHelper;
 import net.minecraft.client.Minecraft;
@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 /**
  * Author: MrCrayfish
  */
-public class CleanroomPlatformHelper implements IPlatformHelper {
+public class ForgePlatformHelper implements IPlatformHelper {
 
     @Override
     public List<IModData> getAllModData() {
@@ -43,7 +43,7 @@ public class CleanroomPlatformHelper implements IPlatformHelper {
         });
         List<ModContainer> containerList = Loader.instance().getActiveModList();
         containerList.addAll(specialContainerList);
-        dataList.addAll(containerList.stream().map(CleanroomModData::new).collect(Collectors.toList()));
+        dataList.addAll(containerList.stream().map(ForgeModData::new).collect(Collectors.toList()));
         return dataList;
     }
 
@@ -88,7 +88,7 @@ public class CleanroomPlatformHelper implements IPlatformHelper {
         return CatalogueConfig.iconMaxWidthHeight;
     }
 
-    private static class OFData extends CleanroomModData {
+    private static class OFData extends ForgeModData {
         private OFData(ModContainer info) {
             super(info);
         }
