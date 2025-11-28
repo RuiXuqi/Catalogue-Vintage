@@ -102,6 +102,12 @@ public class MinecraftModData implements IModData {
 
     @Nullable
     @Override
+    public String getChildMods() {
+        return null;
+    }
+
+    @Nullable
+    @Override
     public Update getUpdate() {
         return null;
     }

@@ -962,6 +962,13 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
 
             int labelOffset = this.height - 18;
 
+            // Draw child mods
+            String childMods = this.selectedModData.getChildMods();
+            if (childMods != null && !childMods.trim().isEmpty()) {
+                this.drawStringWithLabel("catalogue.gui.child_mods", childMods, contentLeft, labelOffset, contentWidth, mouseX, mouseY, EnumChatFormatting.GRAY, EnumChatFormatting.WHITE);
+                labelOffset -= 15;
+            }
+
             // Draw license
             String license = this.selectedModData.getLicense();
             if (license != null && !license.trim().isEmpty()) {
@@ -1300,6 +1307,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
      */
     private int getFooterTextElementCount(@Nonnull IModData data) {
         int count = 0;
+        if (data.getChildMods() != null && !data.getChildMods().trim().isEmpty()) count++;
         if (data.getLicense() != null && !data.getLicense().trim().isEmpty()) count++;
         if (data.getCredits() != null && !data.getCredits().trim().isEmpty()) count++;
         if (data.getAuthors() != null && !data.getAuthors().trim().isEmpty()) count++;

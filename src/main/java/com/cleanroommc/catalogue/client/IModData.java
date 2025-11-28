@@ -55,6 +55,9 @@ public interface IModData {
     String getBackground();
 
     @Nullable
+    String getChildMods();
+
+    @Nullable
     Update getUpdate();
 
     @Nullable

@@ -3,6 +3,7 @@ catalogue.gui.mod_list=Mods
 catalogue.gui.search=Search
 catalogue.gui.config=Config
 catalogue.gui.open_mods_folder=Open Mods Folder
+catalogue.gui.child_mods=Child Mod(s): %s
 catalogue.gui.licenses=License(s): %s
 catalogue.gui.authors=Author(s): %s
 catalogue.gui.contributors=Contributor(s): %s

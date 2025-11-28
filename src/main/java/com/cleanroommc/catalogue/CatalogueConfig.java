@@ -12,7 +12,11 @@ public class CatalogueConfig {
         "minecraft",
         "Forge",
         "FML",
-        "mcp"
+        "mcp",
+        "gtnhlib",
+        "hodgepodge",
+        "unimixins",
+        "lwjgl3ify"
     };
     public static String[] ignoredDependenciesList = new String[]{
         "minecraft",

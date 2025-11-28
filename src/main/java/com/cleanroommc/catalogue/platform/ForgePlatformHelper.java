@@ -5,6 +5,7 @@ import com.cleanroommc.catalogue.client.Branding;
 import com.cleanroommc.catalogue.client.ForgeModData;
 import com.cleanroommc.catalogue.client.IModData;
 import com.cleanroommc.catalogue.platform.services.IPlatformHelper;
+import com.google.common.base.Strings;
 import cpw.mods.fml.client.FMLClientHandler;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.ModContainer;
@@ -41,7 +42,24 @@ public class ForgePlatformHelper implements IPlatformHelper {
             }
             return false;
         });
-        List<ModContainer> containerList = Loader.instance().getActiveModList();
+
+        // Handle normal containers
+        List<ModContainer> containerList = new ArrayList<>();
+        for (ModContainer mod : Loader.instance().getActiveModList()) {
+            if (mod.getMetadata() != null && mod.getMetadata().parentMod == null && !Strings.isNullOrEmpty(mod.getMetadata().parent)) {
+                String parentMod = mod.getMetadata().parent;
+                ModContainer parentContainer = Loader.instance().getIndexedModList().get(parentMod);
+                if (parentContainer != null) {
+                    mod.getMetadata().parentMod = parentContainer;
+                    parentContainer.getMetadata().childMods.add(mod);
+                    continue;
+                }
+            } else if (mod.getMetadata() != null && mod.getMetadata().parentMod != null) {
+                continue;
+            }
+            containerList.add(mod);
+        }
+
         containerList.addAll(specialContainerList);
         dataList.addAll(containerList.stream().map(ForgeModData::new).collect(Collectors.toList()));
         return dataList;

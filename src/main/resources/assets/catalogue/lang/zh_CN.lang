@@ -3,6 +3,7 @@ catalogue.gui.mod_list=模组
 catalogue.gui.search=搜索
 catalogue.gui.config=配置
 catalogue.gui.open_mods_folder=打开模组文件夹
+catalogue.gui.child_mods=子模组：%s
 catalogue.gui.licenses=许可协议：%s
 catalogue.gui.authors=作者：%s
 catalogue.gui.contributors=贡献者：%s

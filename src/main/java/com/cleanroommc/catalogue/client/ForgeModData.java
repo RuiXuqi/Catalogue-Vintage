@@ -140,6 +140,13 @@ public class ForgeModData implements IModData {
 
     @Nullable
     @Override
+    public String getChildMods() {
+        ModMetadata metadata = this.getMetadata();
+        return metadata != null ? metadata.getChildModList() : null;
+    }
+
+    @Nullable
+    @Override
     public Update getUpdate() {
         return null;
     }
