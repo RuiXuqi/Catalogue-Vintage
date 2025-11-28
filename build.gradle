@@ -182,8 +182,10 @@ processResources {
     inputs.property 'mod_url', propertyString('mod_url')
     inputs.property 'mod_issue_tracker_url', propertyString('mod_issue_tracker_url')
     inputs.property 'mod_update_json', propertyString('mod_update_json')
+    inputs.property 'mod_icon_item', propertyString('mod_icon_item')
     inputs.property 'mod_logo_path', propertyString('mod_logo_path')
     inputs.property 'mod_icon_path', propertyString('mod_icon_path')
+    inputs.property 'mod_background_path', propertyString('mod_background_path')
     inputs.property 'mixin_refmap', propertyString('mixin_refmap')
     inputs.property 'mixin_package', propertyString('mixin_package')
     inputs.property 'mixin_configs', propertyStringList('mixin_configs').join(' ')
@@ -203,8 +205,10 @@ processResources {
                 'mod_url': propertyString('mod_url'),
                 'mod_issue_tracker_url': propertyString('mod_issue_tracker_url'),
                 'mod_update_json': propertyString('mod_update_json'),
+                'mod_icon_item': propertyString('mod_icon_item'),
                 'mod_logo_path': propertyString('mod_logo_path'),
                 'mod_icon_path': propertyString('mod_icon_path'),
+                'mod_background_path': propertyString('mod_background_path'),
                 'mixin_refmap': propertyString('mixin_refmap'),
                 'mixin_package': propertyString('mixin_package')
         )
