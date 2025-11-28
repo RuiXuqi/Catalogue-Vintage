@@ -26,7 +26,7 @@ public abstract class CatalogueListExtended extends GuiListExtended {
         this.mouseY = mouseY;
 
         this.bindAmountScrolled();
-        int maxScroll = this.func_148135_f();
+        int maxScroll = this.getMaxScroll();
         this.scrollBarVisible = maxScroll > 0 && this.getContentHeight() != 0;
 
         ClientHelper.scissor(this.left, this.top, this.width, this.bottom - this.top);
@@ -148,7 +148,7 @@ public abstract class CatalogueListExtended extends GuiListExtended {
             int scrollBarRight = scrollBarLeft + 6;
 
             // Mouse left click
-            if (Mouse.isButtonDown(0) && this.func_148125_i()) {
+            if (Mouse.isButtonDown(0) && this.getEnabled()) {
                 if (this.initialClickY == -1.0F) {
                     boolean clickedOnList = true;
 
@@ -175,7 +175,7 @@ public abstract class CatalogueListExtended extends GuiListExtended {
                         if (this.mouseX >= scrollBarLeft && this.mouseX <= scrollBarRight) {
                             this.scrollMultiplier = -1.0F;
 
-                            int maxScroll = Math.max(1, this.func_148135_f());
+                            int maxScroll = Math.max(1, this.getMaxScroll());
 
                             int viewHeight = this.bottom - this.top;
                             int scrollBarHeight = (int) ((float) (viewHeight * viewHeight) / (float) this.getContentHeight());
@@ -217,17 +217,16 @@ public abstract class CatalogueListExtended extends GuiListExtended {
         this.bindAmountScrolled();
     }
 
-    @Override
-    public boolean func_148179_a(int mouseX, int mouseY, int mouseEvent) {
-        if (this.func_148141_e(mouseY)) {
-            int slotIndex = this.func_148124_c(mouseX, mouseY);
+    public boolean mouseClicked(int mouseX, int mouseY, int mouseEvent) {
+        if (this.isMouseYWithinSlotBounds(mouseY)) {
+            int slotIndex = this.getSlotIndexFromScreenCoords(mouseX, mouseY);
             if (slotIndex >= 0) {
                 int j = this.left + this.getListLeft();
                 int k = this.top + 4 - this.getAmountScrolled() + slotIndex * this.slotHeight + this.headerPadding;
                 int relativeX = mouseX - j;
                 int relativeY = mouseY - k;
                 if (this.getListEntry(slotIndex).mousePressed(slotIndex, mouseX, mouseY, mouseEvent, relativeX, relativeY)) {
-                    this.func_148143_b(false);
+                    this.setEnabled(false);
                     return true;
                 }
             }
@@ -235,8 +234,7 @@ public abstract class CatalogueListExtended extends GuiListExtended {
         return false;
     }
 
-    @Override
-    public boolean func_148181_b(int x, int y, int mouseEvent) {
+    public boolean mouseReleased(int x, int y, int mouseEvent) {
         for (int slotIndex = 0; slotIndex < this.getSize(); ++slotIndex) {
             int j = this.left + this.getListLeft();
             int k = this.top + 4 - this.getAmountScrolled() + slotIndex * this.slotHeight + this.headerPadding;
@@ -244,12 +242,11 @@ public abstract class CatalogueListExtended extends GuiListExtended {
             int relativeY = y - k;
             this.getListEntry(slotIndex).mouseReleased(slotIndex, x, y, mouseEvent, relativeX, relativeY);
         }
-        this.func_148143_b(true);
+        this.setEnabled(true);
         return false;
     }
 
-    @Override
-    public int func_148124_c(int mouseX, int mouseY) {
+    public int getSlotIndexFromScreenCoords(int mouseX, int mouseY) {
         int i = this.getListWidth() / 2;
         int j = this.left + this.width / 2;
         int k = j - i;
@@ -260,7 +257,7 @@ public abstract class CatalogueListExtended extends GuiListExtended {
     }
 
     public void setClampedAmountScrolled(float scroll) {
-        this.amountScrolled = MathHelper.clamp_float(scroll, 0.0F, this.func_148135_f());
+        this.amountScrolled = MathHelper.clamp_float(scroll, 0.0F, this.getMaxScroll());
     }
 
     public void setAmountScrolled(float scroll) {
@@ -303,5 +300,88 @@ public abstract class CatalogueListExtended extends GuiListExtended {
 
     protected int getRowBottom(int pIndex) {
         return this.getRowTop(pIndex) + this.slotHeight;
+    }
+
+    /*
+    Simply rename some srg-named methods.
+     */
+
+    /**
+     * @deprecated Use {@link #isMouseYWithinSlotBounds(int)}.
+     */
+    @Deprecated
+    @Override
+    public boolean func_148141_e(int mouseY) {
+        return this.isMouseYWithinSlotBounds(mouseY);
+    }
+
+    public boolean isMouseYWithinSlotBounds(int mouseY) {
+        return super.func_148141_e(mouseY);
+    }
+
+    /**
+     * @deprecated Use {@link #getSlotIndexFromScreenCoords(int, int)}.
+     */
+    @Deprecated
+    @Override
+    public int func_148124_c(int mouseX, int mouseY) {
+        return this.getSlotIndexFromScreenCoords(mouseX, mouseY);
+    }
+
+    /**
+     * @deprecated Use {@link #mouseReleased(int, int, int)}.
+     */
+    @Deprecated
+    @Override
+    public boolean func_148181_b(int x, int y, int mouseEvent) {
+        return this.mouseReleased(x, y, mouseEvent);
+    }
+
+    /**
+     * @deprecated Use {@link #mouseClicked(int, int, int)}.
+     */
+    @Deprecated
+    @Override
+    public boolean func_148179_a(int mouseX, int mouseY, int mouseEvent) {
+        return this.mouseClicked(mouseX, mouseY, mouseEvent);
+    }
+
+    /**
+     * @deprecated Use {@link #setEnabled(boolean)}.
+     */
+    @Deprecated
+    @Override
+    public void func_148143_b(boolean enabledIn) {
+        this.setEnabled(enabledIn);
+    }
+
+    public void setEnabled(boolean enabledIn) {
+        super.func_148143_b(enabledIn);
+    }
+
+    /**
+     * @deprecated Use {@link #getEnabled()}.
+     */
+    @Deprecated
+    @Override
+    public boolean func_148125_i() {
+        return this.getEnabled();
+    }
+
+    public boolean getEnabled() {
+        return super.func_148125_i();
+    }
+
+    /**
+     * @deprecated Use {@link #getMaxScroll()}.
+     */
+    @Deprecated
+    @Override
+    public int func_148135_f() {
+        return this.getMaxScroll();
+    }
+
+    public int getMaxScroll() {
+        return super.func_148135_f();
     }
 }

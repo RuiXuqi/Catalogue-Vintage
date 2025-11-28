@@ -2,6 +2,7 @@ package com.cleanroommc.catalogue.client;
 
 import com.github.bsideup.jabel.Desugar;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.Tessellator;
 import org.lwjgl.opengl.GL11;
@@ -135,5 +136,32 @@ public class ClientHelper {
         public NineSlice(int width, int height, int border) {
             this(width, height, new Border(border));
         }
+    }
+
+    /*
+    Simple renames
+     */
+
+    /**
+     * Draws a textured rectangle at z = 0. Args: x, y, u, v, width, height, textureWidth, textureHeight
+     */
+    public static void drawModalRectWithCustomSizedTexture(int x, int y, float u, float v, int width, int height, float textureWidth, float textureHeight) {
+        Gui.func_146110_a(x, y, u, v, width, height, textureWidth, textureHeight);
+    }
+
+    /**
+     * Draws a scaled, textured, tiled modal rect at z = 0. This method isn't used anywhere in vanilla code.
+     *
+     * @param u          Texture U (or x) coordinate, in pixels
+     * @param v          Texture V (or y) coordinate, in pixels
+     * @param uWidth     Width of the rendered part of the texture, in pixels. Parts of the texture outside of it will wrap
+     *                   around
+     * @param vHeight    Height of the rendered part of the texture, in pixels. Parts of the texture outside of it will
+     *                   wrap around
+     * @param tileWidth  total width of the texture
+     * @param tileHeight total height of the texture
+     */
+    public static void drawScaledCustomSizeModalRect(int x, int y, float u, float v, int uWidth, int vHeight, int width, int height, float tileWidth, float tileHeight) {
+        Gui.func_152125_a(x, y, u, v, uWidth, vHeight, width, height, tileWidth, tileHeight);
     }
 }

@@ -4,7 +4,6 @@ import net.minecraftforge.common.config.Configuration;
 
 import java.io.File;
 
-// TODO: Config GUI
 public class CatalogueConfig {
     private static Configuration config;
 
@@ -105,8 +104,7 @@ public class CatalogueConfig {
                 "iconMaxWidthHeight",
                 iconMaxWidthHeight,
                 "The maximum of icon's width and height. Will not work if Enable Icon Limit is set false."
-            )
-            .setLanguageKey("catalogue.config.icon_max_width_height")
+            ).setLanguageKey("catalogue.config.icon_max_width_height")
             .setMinValue(0)
             .setRequiresMcRestart(true)
             .getInt();
@@ -114,5 +112,9 @@ public class CatalogueConfig {
         if (config.hasChanged()) {
             config.save();
         }
+    }
+
+    public static Configuration getConfig() {
+        return config;
     }
 }

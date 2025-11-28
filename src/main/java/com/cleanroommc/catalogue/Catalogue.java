@@ -11,7 +11,7 @@ import javax.annotation.Nonnull;
  * Author: MrCrayfish
  */
 @SuppressWarnings("unused")
-@Mod(modid = CatalogueConstants.MOD_ID, name = CatalogueConstants.MOD_NAME, version = Reference.VERSION, acceptableRemoteVersions = "*")
+@Mod(modid = CatalogueConstants.MOD_ID, name = CatalogueConstants.MOD_NAME, version = Reference.VERSION, acceptableRemoteVersions = "*", guiFactory = "com.cleanroommc.catalogue.CatalogueConfigGuiFactory")
 public class Catalogue {
     @SidedProxy(clientSide = "com.cleanroommc.catalogue.ClientProxy", serverSide = "com.cleanroommc.catalogue.CommonProxy")
     public static CommonProxy proxy;

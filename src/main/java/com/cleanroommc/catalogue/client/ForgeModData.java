@@ -8,7 +8,6 @@ import cpw.mods.fml.common.ModContainer;
 import cpw.mods.fml.common.ModMetadata;
 import cpw.mods.fml.common.versioning.ArtifactVersion;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.resources.IResourcePack;
@@ -177,7 +176,7 @@ public class ForgeModData implements IModData {
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         int vOffset = update.animated() && (System.currentTimeMillis() / 800 & 1) == 1 ? 8 : 0;
         minecraft.getTextureManager().bindTexture(update.textures());
-        Gui.func_146110_a(x, y, update.texOffset() * 8, vOffset, 8, 8, 64, 16);
+        ClientHelper.drawModalRectWithCustomSizedTexture(x, y, update.texOffset() * 8, vOffset, 8, 8, 64, 16);
     }
 
     @Nullable

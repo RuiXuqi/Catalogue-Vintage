@@ -41,7 +41,7 @@ import org.lwjgl.opengl.GL12;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.awt.*;
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -50,7 +50,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
-import java.util.List;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -65,7 +64,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
     private static final MutableObject<String> OPTION_QUERY = new MutableObject<>("");
     private static final MutableBoolean OPTION_HIDE_LIBRARIES = new MutableBoolean(true);
     private static final MutableBoolean OPTION_CONFIGS_ONLY = new MutableBoolean(false);
-    private static final MutableBoolean OPTION_UPDATES_ONLY = new MutableBoolean(false);
+    //    private static final MutableBoolean OPTION_UPDATES_ONLY = new MutableBoolean(false);
     private static final MutableBoolean OPTION_FAVOURITES_ONLY = new MutableBoolean(false);
     private static final MutableObject<Comparator<ModListEntry>> OPTION_SORT = new MutableObject<>(SORT_ALPHABETICALLY);
     private static final ResourceLocation MISSING_BANNER = Utils.resource("textures/gui/missing_banner.png");
@@ -212,7 +211,9 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                 break;
             case 2:
                 try {
-                    Desktop.getDesktop().open(ClientServices.PLATFORM.getModDirectory());
+                    Class<?> oclass = Class.forName("java.awt.Desktop");
+                    Object object = oclass.getMethod("getDesktop", new Class[0]).invoke(null);
+                    oclass.getMethod("open", File.class).invoke(object, ClientServices.PLATFORM.getModDirectory());
                 } catch (Exception e) {
                     CatalogueConstants.LOG.error("Problem opening mods folder", e);
                 }
@@ -237,10 +238,10 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                             this.modList.filterAndUpdateList();
                             return false;
                         })
-                        .addCheckbox(I18n.format("catalogue.gui.filters.updates_only"), OPTION_UPDATES_ONLY, newValue -> {
-                            this.modList.filterAndUpdateList();
-                            return false;
-                        })
+//                        .addCheckbox(I18n.format("catalogue.gui.filters.updates_only"), OPTION_UPDATES_ONLY, newValue -> {
+//                            this.modList.filterAndUpdateList();
+//                            return false;
+//                        })
                         .addCheckbox(I18n.format("catalogue.gui.filters.favourites"), OPTION_FAVOURITES_ONLY, newValue -> {
                             this.modList.filterAndUpdateList();
                             return false;
@@ -287,7 +288,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             int iconX = this.searchTextField.xPosition + this.searchTextField.width - 15;
             int iconY = this.searchTextField.yPosition + (this.searchTextField.height - 10) / 2;
             this.mc.getTextureManager().bindTexture(CatalogueIconButton.TEXTURE);
-            func_146110_a(iconX, iconY, 20, 10, 10, 10, 64, 64);
+            ClientHelper.drawModalRectWithCustomSizedTexture(iconX, iconY, 20, 10, 10, 10, 64, 64);
 
             if (this.menu == null && ClientHelper.isMouseWithin(iconX, iconY, 10, 10, mouseX, mouseY)) {
                 this.setActiveTooltip(I18n.format("catalogue.gui.advanced_search.info"));
@@ -301,7 +302,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
             GL11.glEnable(GL11.GL_BLEND);
             this.mc.getTextureManager().bindTexture(bannerInfo.resource());
-            func_152125_a(10, 9, 0.0F, 0.0F, bannerInfo.width(), bannerInfo.height(), 10, 10, bannerInfo.width(), bannerInfo.height());
+            ClientHelper.drawScaledCustomSizeModalRect(10, 9, 0.0F, 0.0F, bannerInfo.width(), bannerInfo.height(), 10, 10, bannerInfo.width(), bannerInfo.height());
             GL11.glDisable(GL11.GL_BLEND);
         }
 
@@ -313,18 +314,18 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                 this.tooltipYOffset = 10;
             }
 
-            if (this.optionsButton.func_146115_a()) {
+            if (this.optionsButton.isMouseOver()) {
                 this.setActiveTooltip(I18n.format("catalogue.gui.options"));
                 this.tooltipYOffset = 10;
             }
 
-            if (this.modFolderButton.func_146115_a()) {
+            if (this.modFolderButton.isMouseOver()) {
                 this.setActiveTooltip(I18n.format("catalogue.gui.open_mods_folder"));
             }
         }
 
         if (this.activeTooltip != null) {
-            this.func_146283_a(this.activeTooltip, mouseX, mouseY + this.tooltipYOffset);
+            this.drawHoveringText(this.activeTooltip, mouseX, mouseY + this.tooltipYOffset);
             this.tooltipYOffset = 0;
         }
     }
@@ -347,7 +348,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         }
 
         // Mod List
-        if (this.modList.func_148179_a(mouseX, mouseY, button)) return;
+        if (this.modList.mouseClicked(mouseX, mouseY, button)) return;
 
         // Catalogue button
         if (ClientHelper.isMouseWithin(10, 9, 10, 10, mouseX, mouseY) && button == 0) {
@@ -396,7 +397,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
 
     @Override
     protected void mouseMovedOrUp(int mouseX, int mouseY, int button) {
-        if (this.modList.func_148181_b(mouseX, mouseY, button)) return;
+        if (this.modList.mouseReleased(mouseX, mouseY, button)) return;
         super.mouseMovedOrUp(mouseX, mouseY, button);
     }
 
@@ -473,9 +474,9 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             if (OPTION_CONFIGS_ONLY.booleanValue() && !data.hasConfig()) {
                 return false;
             }
-            if (OPTION_UPDATES_ONLY.booleanValue() && (data.getUpdate() == null || !data.getUpdate().updatable())) {
-                return false;
-            }
+//            if (OPTION_UPDATES_ONLY.booleanValue() && (data.getUpdate() == null || !data.getUpdate().updatable())) {
+//                return false;
+//            }
             if (OPTION_HIDE_LIBRARIES.booleanValue() && data.isLibrary()) {
                 return false;
             }
@@ -587,11 +588,11 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         }
 
         @Override
-        public boolean func_148181_b(int mouseX, int mouseY, int button) {
+        public boolean mouseReleased(int mouseX, int mouseY, int button) {
             if (this.hideFavourites) {
                 this.hideFavourites = false;
             }
-            return super.func_148181_b(mouseX, mouseY, button);
+            return super.mouseReleased(mouseX, mouseY, button);
         }
 
         public boolean shouldHideFavourites() {
@@ -677,7 +678,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                 this.button.xPosition = left + rowWidth - this.button.width - 8;
                 this.button.yPosition = top + (rowHeight - this.button.height) / 2;
                 this.button.drawButton(CatalogueModListScreen.this.mc, mouseX, mouseY);
-                if (!inOptionsMenu && this.button.func_146115_a()) {
+                if (!inOptionsMenu && this.button.isMouseOver()) {
                     String label = !FAVOURITES.has(this.data.getModId()) ?
                         I18n.format("catalogue.gui.favourite") :
                         I18n.format("catalogue.gui.remove_favourite");
@@ -694,7 +695,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                 GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
                 GL11.glEnable(GL11.GL_BLEND);
                 CatalogueModListScreen.this.mc.getTextureManager().bindTexture(iconInfo.resource());
-                func_152125_a(left + 4, top + 3, 0.0F, 0.0F, iconInfo.width(), iconInfo.height(), 16, 16, iconInfo.width(), iconInfo.height());
+                ClientHelper.drawScaledCustomSizeModalRect(left + 4, top + 3, 0.0F, 0.0F, iconInfo.width(), iconInfo.height(), 16, 16, iconInfo.width(), iconInfo.height());
                 GL11.glDisable(GL11.GL_BLEND);
                 return;
             }
@@ -868,7 +869,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             return this.hovered;
         }
 
-        private class PinnedButton extends GuiButton {
+        private class PinnedButton extends CatalogueTextButton {
             private static final ResourceLocation TEXTURE = new ResourceLocation(CatalogueConstants.MOD_ID, "textures/gui/icons.png");
 
             private final String modId;
@@ -885,7 +886,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                 this.mouseDragged(mc, mouseX, mouseY);
                 int textureU = FAVOURITES.has(this.modId) ? 10 : 0;
                 mc.getTextureManager().bindTexture(TEXTURE);
-                func_146110_a(this.xPosition, this.yPosition, textureU, 10, 10, 10, 64, 64);
+                ClientHelper.drawModalRectWithCustomSizedTexture(this.xPosition, this.yPosition, textureU, 10, 10, 10, 64, 64);
             }
 
             @Override
@@ -893,7 +894,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                 if (super.mousePressed(mc, mouseX, mouseY) && !ModListEntry.this.list.shouldHideFavourites()) {
                     FAVOURITES.toggle(this.modId);
                     ModListEntry.this.list.filterAndUpdateList();
-                    this.func_146113_a(mc.getSoundHandler());
+                    this.playPressSound(mc.getSoundHandler());
                     return true;
                 }
                 return false;
@@ -1041,7 +1042,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         }
 
         @Override
-        public int func_148135_f() {
+        public int getMaxScroll() {
             return Math.max(0, this.getContentHeight() - (this.height - 12));
         }
 
@@ -1245,7 +1246,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
             GL11.glEnable(GL11.GL_BLEND);
             this.mc.getTextureManager().bindTexture(info.resource());
-            func_152125_a(x, y, 0.0F, 0.0F, info.width(), info.height(), displayWidth, displayHeight, info.width(), info.height());
+            ClientHelper.drawScaledCustomSizeModalRect(x, y, 0.0F, 0.0F, info.width(), info.height(), displayWidth, displayHeight, info.width(), info.height());
 
             GL11.glDisable(GL11.GL_BLEND);
         }
@@ -1374,7 +1375,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
     private void openURI(URI uri) {
         try {
             Class<?> oclass = Class.forName("java.awt.Desktop");
-            Object object = oclass.getMethod("getDesktop", new Class[0]).invoke(null, new Object[0]);
+            Object object = oclass.getMethod("getDesktop", new Class[0]).invoke(null);
             oclass.getMethod("browse", new Class[]{URI.class}).invoke(object, uri);
         } catch (Throwable throwable) {
             CatalogueConstants.LOG.error("Failed to open url {}", uri.toString(), throwable);
@@ -1456,5 +1457,23 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                 throw new RuntimeException(e);
             }
         }
+    }
+
+    /**
+     * Draws a List of strings as a tooltip. Every entry is drawn on a separate line.
+     *
+     * @deprecated Use {@link #drawHoveringText(List, int, int)}.
+     */
+    @Deprecated
+    @Override
+    protected void func_146283_a(List<String> textLines, int x, int y) {
+        this.drawHoveringText(textLines, x, y);
+    }
+
+    /**
+     * Draws a List of strings as a tooltip. Every entry is drawn on a separate line.
+     */
+    protected void drawHoveringText(List<String> textLines, int x, int y) {
+        super.func_146283_a(textLines, x, y);
     }
 }

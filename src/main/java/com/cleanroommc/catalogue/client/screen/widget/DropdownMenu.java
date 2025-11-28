@@ -298,7 +298,7 @@ public class DropdownMenu extends Gui implements LayoutElement {
             GL11.glEnable(GL11.GL_BLEND);
             OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_ONE, GL11.GL_ZERO);
             GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-            func_146110_a(this.getX() + this.getWidth() - 14 - offset, this.getY() + offset, this.hovered ? 14 : 0, this.holder.getValue() ? 14 : 0, 14, 14, 64, 64);
+            ClientHelper.drawModalRectWithCustomSizedTexture(this.getX() + this.getWidth() - 14 - offset, this.getY() + offset, this.hovered ? 14 : 0, this.holder.getValue() ? 14 : 0, 14, 14, 64, 64);
         }
 
         @Override

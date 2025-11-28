@@ -3,6 +3,7 @@ package com.cleanroommc.catalogue.client.screen.widget;
 import com.cleanroommc.catalogue.Utils;
 import com.cleanroommc.catalogue.client.ClientHelper;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.audio.SoundHandler;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.renderer.OpenGlHelper;
@@ -75,5 +76,36 @@ public class CatalogueTextButton extends GuiButton {
         } else {
             return 14737632;
         }
+    }
+
+    /**
+     * Whether the mouse cursor is currently over the button.
+     *
+     * @deprecated Use {@link #isMouseOver()}.
+     */
+    @Deprecated
+    @Override
+    public boolean func_146115_a() {
+        return this.isMouseOver();
+    }
+
+    /**
+     * Whether the mouse cursor is currently over the button.
+     */
+    public boolean isMouseOver() {
+        return super.func_146115_a();
+    }
+
+    /**
+     * @deprecated Use {@link #playPressSound(SoundHandler)}.
+     */
+    @Deprecated
+    @Override
+    public void func_146113_a(SoundHandler soundHandlerIn) {
+        this.playPressSound(soundHandlerIn);
+    }
+
+    public void playPressSound(SoundHandler soundHandlerIn) {
+        super.func_146113_a(soundHandlerIn);
     }
 }

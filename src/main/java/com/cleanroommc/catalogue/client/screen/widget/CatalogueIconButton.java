@@ -1,6 +1,7 @@
 package com.cleanroommc.catalogue.client.screen.widget;
 
 import com.cleanroommc.catalogue.CatalogueConstants;
+import com.cleanroommc.catalogue.client.ClientHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.util.ResourceLocation;
@@ -48,7 +49,7 @@ public class CatalogueIconButton extends CatalogueTextButton {
             int iconY = this.yPosition + (this.height - 10) / 2;
             float brightness = this.enabled ? 1.0F : 0.5F;
             GL11.glColor4f(brightness, brightness, brightness, 1.0F);
-            func_146110_a(iconX, iconY, this.u, this.v, 10, 10, 64, 64);
+            ClientHelper.drawModalRectWithCustomSizedTexture(iconX, iconY, this.u, this.v, 10, 10, 64, 64);
             GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
             drawString(fontrenderer, this.label, iconX + 14, iconY + 1, this.getFGColor());
         }

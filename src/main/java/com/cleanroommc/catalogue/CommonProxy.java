@@ -7,7 +7,6 @@ import javax.annotation.Nonnull;
 
 public class CommonProxy {
     public void preInit(@Nonnull FMLPreInitializationEvent event) {
-        CatalogueConfig.init(event.getSuggestedConfigurationFile());
     }
 
     public void init(@Nonnull FMLInitializationEvent event) {
