@@ -141,37 +141,48 @@ public abstract class CatalogueListExtended extends GuiListExtended {
         this.drawSelectionBox(mouseXIn, mouseYIn);
     }
 
+    // Backport from 1.12.2. Providing a better scroll experience.
     public void handleMouseInput() {
-        if (this.mouseX > this.left && this.mouseX < this.right && this.mouseY > this.top && this.mouseY < this.bottom) {
+        if (this.isMouseYWithinSlotBounds(this.mouseY)) {
 
-            int scrollBarLeft = this.getScrollBarX();
-            int scrollBarRight = scrollBarLeft + 6;
+            if (Mouse.getEventButton() == 0 && Mouse.getEventButtonState() && this.mouseY >= this.top && this.mouseY <= this.bottom) {
+                int listLeft = this.getListLeft();
+                int listRight = this.getListRight();
 
-            // Mouse left click
+                int relativeY = this.mouseY - this.top - this.headerPadding + (int) this.amountScrolled - 4;
+                int slotIndex = relativeY / this.slotHeight;
+
+                if (slotIndex < this.getSize() && this.mouseX >= listLeft && this.mouseX <= listRight && slotIndex >= 0 && relativeY >= 0) {
+                    this.elementClicked(slotIndex, false, this.mouseX, this.mouseY);
+                    this.selectedElement = slotIndex;
+                } else if (this.mouseX >= listLeft && this.mouseX <= listRight && relativeY < 0) {
+                    this.clickedHeader(this.mouseX - listLeft, this.mouseY - this.top + (int) this.amountScrolled - 4);
+                }
+            }
+
             if (Mouse.isButtonDown(0) && this.getEnabled()) {
-                if (this.initialClickY == -1.0F) {
+                if (this.initialClickY == -1) {
                     boolean clickedOnList = true;
 
                     if (this.mouseY >= this.top && this.mouseY <= this.bottom) {
                         int listLeft = this.getListLeft();
                         int listRight = this.getListRight();
-
                         int relativeY = this.mouseY - this.top - this.headerPadding + (int) this.amountScrolled - 4;
                         int slotIndex = relativeY / this.slotHeight;
 
-                        if (this.mouseX >= listLeft && this.mouseX <= listRight && slotIndex >= 0 && relativeY >= 0 && slotIndex < this.getSize()) {
-                            // Entry click
+                        if (slotIndex < this.getSize() && this.mouseX >= listLeft && this.mouseX <= listRight && slotIndex >= 0 && relativeY >= 0) {
                             boolean isDoubleClick = slotIndex == this.selectedElement && Minecraft.getSystemTime() - this.lastClicked < 250L;
                             this.elementClicked(slotIndex, isDoubleClick, this.mouseX, this.mouseY);
                             this.selectedElement = slotIndex;
                             this.lastClicked = Minecraft.getSystemTime();
                         } else if (this.mouseX >= listLeft && this.mouseX <= listRight && relativeY < 0) {
-                            // Header click
-                            this.func_148132_a(this.mouseX - listLeft, this.mouseY - this.top + (int) this.amountScrolled - 4);
+                            this.clickedHeader(this.mouseX - listLeft, this.mouseY - this.top + (int) this.amountScrolled - 4);
                             clickedOnList = false;
                         }
 
-                        // Scroll bar drag
+                        int scrollBarLeft = this.getScrollBarX();
+                        int scrollBarRight = scrollBarLeft + 6;
+
                         if (this.mouseX >= scrollBarLeft && this.mouseX <= scrollBarRight) {
                             this.scrollMultiplier = -1.0F;
 
@@ -188,33 +199,28 @@ public abstract class CatalogueListExtended extends GuiListExtended {
                         }
 
                         if (clickedOnList) {
-                            this.initialClickY = (float) this.mouseY;
+                            this.initialClickY = this.mouseY;
                         } else {
-                            this.initialClickY = -2.0F;
+                            this.initialClickY = -2;
                         }
                     } else {
-                        this.initialClickY = -2.0F;
+                        this.initialClickY = -2;
                     }
-                } else if (this.initialClickY >= 0.0F) {
-                    // List drag
-                    this.amountScrolled -= ((float) this.mouseY - this.initialClickY) * this.scrollMultiplier;
-                    this.initialClickY = (float) this.mouseY;
+                } else if (this.initialClickY >= 0) {
+                    this.amountScrolled -= (this.mouseY - this.initialClickY) * this.scrollMultiplier;
+                    this.initialClickY = this.mouseY;
                 }
             } else {
-                // Mouse scroll
-                for (; !this.mc.gameSettings.touchscreen && Mouse.next(); this.mc.currentScreen.handleMouseInput()) {
-                    int dWheel = Mouse.getEventDWheel();
-                    if (dWheel != 0) {
-                        dWheel = dWheel > 0 ? -1 : 1;
-                        this.amountScrolled += (float) (dWheel * this.slotHeight / 2);
-                    }
-                }
+                this.initialClickY = -1;
+            }
 
-                this.initialClickY = -1.0F;
+            int dWheel = Mouse.getEventDWheel();
+
+            if (dWheel != 0) {
+                dWheel = dWheel > 0 ? -1 : 1;
+                this.amountScrolled += (float) (dWheel * this.slotHeight / 2);
             }
         }
-
-        this.bindAmountScrolled();
     }
 
     public boolean mouseClicked(int mouseX, int mouseY, int mouseEvent) {
@@ -254,6 +260,12 @@ public abstract class CatalogueListExtended extends GuiListExtended {
         int i1 = MathHelper.floor_float(mouseY - this.top) - this.headerPadding + this.getAmountScrolled() - 4;
         int j1 = i1 / this.slotHeight;
         return mouseX < this.getScrollBarX() && mouseX >= k && mouseX <= l && j1 >= 0 && i1 >= 0 && j1 < this.getSize() ? j1 : -1;
+    }
+
+    // Fix hover check bug in 1.7.10
+    @Override
+    protected void drawSlot(int slotIndex, int xPos, int yPos, int heightIn, Tessellator tessellator, int mouseXIn, int mouseYIn) {
+        this.getListEntry(slotIndex).drawEntry(slotIndex, xPos, yPos, this.getListWidth(), heightIn, tessellator, mouseXIn, mouseYIn, this.isMouseYWithinSlotBounds(mouseYIn) && this.getSlotIndexFromScreenCoords(mouseXIn, mouseYIn) == slotIndex);
     }
 
     public void setClampedAmountScrolled(float scroll) {
@@ -383,5 +395,18 @@ public abstract class CatalogueListExtended extends GuiListExtended {
 
     public int getMaxScroll() {
         return super.func_148135_f();
+    }
+
+    /**
+     * @deprecated Use {@link #clickedHeader(int, int)}.
+     */
+    @Deprecated
+    @Override
+    protected void func_148132_a(int mouseX, int mouseY) {
+        this.clickedHeader(mouseX, mouseY);
+    }
+
+    protected void clickedHeader(int mouseX, int mouseY) {
+        super.func_148132_a(mouseX, mouseY);
     }
 }

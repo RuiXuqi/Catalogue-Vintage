@@ -1,24 +1,31 @@
 {
-	"modListVersion": 2,
-	"modList": [{
-		"modid": "${modId}",
-		"name": "${modName}",
-		"description": "Updates Forge's mod list with a new and improved design",
-		"version": "${modVersion}",
-		"mcversion": "${minecraftVersion}",
-		"url": "https://github.com/RuiXuqi/Catalogue-Vintage",
-		"issueTrackerUrl": "https://github.com/RuiXuqi/Catalogue-Vintage/issues",
-		"updateUrl": "",
-		"authorList": ["MrCrayfish", "RuiXuqi"],
-		"credits": "Hatsondogs for creating icons",
-		"license": "MIT",
-		"logoFile": "assets/catalogue/icon.png",
-		"iconFile": "assets/catalogue/icon.png",
-		"screenshots": [],
-		"parent": "",
-		"requiredMods": [],
-		"dependencies": [],
-		"dependants": [],
-		"useDependencyInformation": false
-	}]
+  "modListVersion": 2,
+  "modList": [
+    {
+      "modid": "${modId}",
+      "name": "${modName}",
+      "description": "Updates Forge's mod list with a new and improved design",
+      "version": "${modVersion}",
+      "mcversion": "${minecraftVersion}",
+      "url": "https://github.com/RuiXuqi/Catalogue-Vintage",
+      "issueTrackerUrl": "https://github.com/RuiXuqi/Catalogue-Vintage/issues",
+      "updateUrl": "",
+      "authorList": [
+        "MrCrayfish",
+        "RuiXuqi"
+      ],
+      "credits": "Hatsondogs for creating icons",
+      "license": "MIT",
+      "iconItem": "",
+      "logoFile": "assets/catalogue/icon.png",
+      "iconFile": "assets/catalogue/icon.png",
+      "backgroundFile": "assets/catalogue/background.png",
+      "screenshots": [],
+      "parent": "",
+      "requiredMods": [],
+      "dependencies": [],
+      "dependants": [],
+      "useDependencyInformation": false
+    }
+  ]
 }
