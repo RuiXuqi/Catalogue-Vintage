@@ -56,7 +56,6 @@ import java.util.stream.Collectors;
 
 @SuppressWarnings("CodeBlock2Expr")
 public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHandler {
-    private static final RenderItem RENDER_ITEM = new RenderItem();
     private static final Favourites FAVOURITES = new Favourites();
     private static final Comparator<ModListEntry> SORT_ALPHABETICALLY = Comparator.comparing(o -> o.getData().getDisplayName());
     private static final Comparator<ModListEntry> SORT_ALPHABETICALLY_REVERSED = SORT_ALPHABETICALLY.reversed();
@@ -663,9 +662,9 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             }
             try {
                 GL11.glEnable(GL12.GL_RESCALE_NORMAL);
-                GL11.glDisable(GL11.GL_DEPTH_TEST);
+                GL11.glEnable(GL11.GL_DEPTH_TEST);
                 RenderHelper.enableGUIStandardItemLighting();
-                RENDER_ITEM.renderItemIntoGUI(CatalogueModListScreen.this.fontRendererObj, CatalogueModListScreen.this.mc.getTextureManager(), this.icon, left + 4, top + 2);
+                RenderItem.getInstance().renderItemIntoGUI(CatalogueModListScreen.this.fontRendererObj, CatalogueModListScreen.this.mc.getTextureManager(), this.icon, left + 4, top + 2);
                 GL11.glDisable(GL12.GL_RESCALE_NORMAL);
                 GL11.glDisable(GL11.GL_DEPTH_TEST);
                 RenderHelper.disableStandardItemLighting();
