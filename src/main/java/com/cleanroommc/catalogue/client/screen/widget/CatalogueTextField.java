@@ -158,6 +158,7 @@ public class CatalogueTextField extends GuiTextField {
         this.suggestion = suggestion;
     }
 
+    @Nonnull
     public String getSuggestion() {
         return this.suggestion;
     }

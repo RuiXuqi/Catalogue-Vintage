@@ -54,6 +54,7 @@ import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("CodeBlock2Expr")
 public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHandler {
     private static final RenderItem RENDER_ITEM = new RenderItem();
     private static final Favourites FAVOURITES = new Favourites();
@@ -555,6 +556,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             return super.mouseReleased(mouseX, mouseY, button);
         }
 
+        @SuppressWarnings("BooleanMethodIsAlwaysInverted")
         public boolean shouldHideFavourites() {
             return this.hideFavourites;
         }
