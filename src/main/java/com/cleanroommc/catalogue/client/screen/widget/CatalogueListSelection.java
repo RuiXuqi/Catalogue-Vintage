@@ -61,10 +61,7 @@ public class CatalogueListSelection<E extends CatalogueListExtended.IListEntry> 
     protected void renderSelection(int left, int top, int right, int bottom) {
         top -= 2;
         bottom += 2;
-        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-        GlStateManager.disableTexture2D();
         Gui.drawRect(left, top, right, bottom, 0xFF808080);
         Gui.drawRect(left + 1, top + 1, right - 1, bottom - 1, -16777216);
-        GlStateManager.enableTexture2D();
     }
 }
