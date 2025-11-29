@@ -2,7 +2,6 @@ package com.cleanroommc.catalogue.client.screen.widget;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
-import net.minecraft.client.renderer.GlStateManager;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
