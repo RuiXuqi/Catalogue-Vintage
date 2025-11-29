@@ -719,8 +719,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             ItemStack foundStack = null;
             for (Object o : GameData.getItemRegistry()) {
                 if (o instanceof Item item) {
-                    String regName = GameData.getItemRegistry()
-                        .getNameForObject(item);
+                    String regName = GameData.getItemRegistry().getNameForObject(item);
                     if (regName != null) {
                         int colonIndex = regName.indexOf(':');
                         if (colonIndex > 0) {
@@ -735,24 +734,24 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             }
             if (foundStack != null) {
                 // If the item is in a creative tab, Catalogue will attempt to use the tab's icon
-                CreativeTabs tab = foundStack.getItem()
-                    .getCreativeTab();
-                if (tab != null) {
-                    try {
-                        ItemStack tabItem = tab.getIconItemStack();
-                        if (tabItem != null && tabItem.getItem() != null) {
-                            String iconRegName = GameData.getItemRegistry()
-                                .getNameForObject(tabItem.getItem());
-                            if (iconRegName != null) {
-                                String iconNamespace = iconRegName.substring(0, iconRegName.indexOf(':'));
-                                if (iconNamespace.equals(this.data.getModId())) {
-                                    foundStack = tabItem;
+                Item foundItem = foundStack.getItem();
+                if (foundItem != null) {
+                    CreativeTabs tab = foundItem.getCreativeTab();
+                    if (tab != null) {
+                        try {
+                            ItemStack tabItem = tab.getIconItemStack();
+                            if (tabItem != null && tabItem.getItem() != null) {
+                                String iconRegName = GameData.getItemRegistry().getNameForObject(tabItem.getItem());
+                                if (iconRegName != null) {
+                                    String iconNamespace = iconRegName.substring(0, iconRegName.indexOf(':'));
+                                    if (iconNamespace.equals(this.data.getModId())) {
+                                        foundStack = tabItem;
+                                    }
                                 }
                             }
+                        } catch (Exception e) {
+                            CatalogueConstants.LOG.debug("Failed to get creative tab icon for mod '{}'", this.data.getModId(), e);
                         }
-                    } catch (Exception e) {
-                        CatalogueConstants.LOG
-                            .debug("Failed to get creative tab icon for mod '{}'", this.data.getModId(), e);
                     }
                 }
                 ITEM_ICON_CACHE.put(this.data.getModId(), foundStack);

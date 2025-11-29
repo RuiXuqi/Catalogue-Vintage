@@ -257,6 +257,11 @@ public class CatalogueListExtended<E extends CatalogueListExtended.IListEntry> e
         this.getListEntry(slotIndex).drawEntry(slotIndex, xPos, yPos, this.getListWidth(), heightIn, tessellator, mouseXIn, mouseYIn, this.isMouseYWithinSlotBounds(mouseYIn) && this.getSlotIndexFromScreenCoords(mouseXIn, mouseYIn) == slotIndex);
     }
 
+    // Fix mouse X pos bug in 1.7.10
+    public boolean isMouseYWithinSlotBounds(int mouseY) {
+        return super.func_148141_e(mouseY) && this.mouseX >= this.left && this.mouseX <= this.right;
+    }
+
     public void setClampedAmountScrolled(float scroll) {
         this.amountScrolled = MathHelper.clamp_float(scroll, 0.0F, this.getMaxScroll());
     }
@@ -393,10 +398,6 @@ public class CatalogueListExtended<E extends CatalogueListExtended.IListEntry> e
     @Override
     public boolean func_148141_e(int mouseY) {
         return this.isMouseYWithinSlotBounds(mouseY);
-    }
-
-    public boolean isMouseYWithinSlotBounds(int mouseY) {
-        return super.func_148141_e(mouseY);
     }
 
     /**
