@@ -9,12 +9,17 @@ import net.minecraft.util.MathHelper;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
-public abstract class CatalogueListExtended extends GuiListExtended {
+import javax.annotation.Nonnull;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+public class CatalogueListExtended<E extends CatalogueListExtended.IListEntry> extends GuiListExtended {
     public boolean visible = true;
     private boolean scrollBarVisible;
 
-    public CatalogueListExtended(Minecraft mcIn, int widthIn, int heightIn, int topIn, int bottomIn, int slotHeightIn) {
-        super(mcIn, widthIn, heightIn, topIn, bottomIn, slotHeightIn);
+    public CatalogueListExtended(Minecraft mc, int width, int height, int top, int bottom, int slotHeight) {
+        super(mc, width, height, top, bottom, slotHeight);
     }
 
     // Values renamed by deepseek. Comments are handwrite.
@@ -43,7 +48,7 @@ public abstract class CatalogueListExtended extends GuiListExtended {
             this.drawListHeader(this.getListLeft(), this.getListTop(), tessellator);
         }
 
-        this.drawSelectionBox(mouseX, mouseY);
+        this.renderListItems(mouseX, mouseY, partialTicks);
 
         GL11.glDisable(GL11.GL_DEPTH_TEST);
         GL11.glEnable(GL11.GL_BLEND);
@@ -103,42 +108,26 @@ public abstract class CatalogueListExtended extends GuiListExtended {
         tessellator.draw();
     }
 
-    protected void drawSelectionBox(int mouseX, int mouseY) {
-        int size = this.getSize();
-        Tessellator tessellator = Tessellator.instance;
-
-        for (int index = 0; index < size; ++index) {
+    protected void renderListItems(int mouseX, int mouseY, float partialTicks) {
+        for (int index = 0; index < this.getSize(); ++index) {
+            int rowLeft = this.getListLeft();
+            int rowRight = this.getListRight();
             int rowTop = this.getRowTop(index);
             int rowBottom = this.getRowBottom(index) - 4;
 
-            if (this.showSelectionBox && this.isSelected(index)) {
-                int left = this.getListLeft();
-                int right = this.getListRight();
-                GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-                GL11.glDisable(GL11.GL_TEXTURE_2D);
-                tessellator.startDrawingQuads();
-                tessellator.setColorOpaque_I(8421504);
-                tessellator.addVertexWithUV(left, rowBottom + 2, 0.0D, 0.0D, 1.0D);
-                tessellator.addVertexWithUV(right, rowBottom + 2, 0.0D, 1.0D, 1.0D);
-                tessellator.addVertexWithUV(right, rowTop - 2, 0.0D, 1.0D, 0.0D);
-                tessellator.addVertexWithUV(left, rowTop - 2, 0.0D, 0.0D, 0.0D);
-                tessellator.setColorOpaque_I(0);
-                tessellator.addVertexWithUV(left + 1, rowBottom + 1, 0.0D, 0.0D, 1.0D);
-                tessellator.addVertexWithUV(right - 1, rowBottom + 1, 0.0D, 1.0D, 1.0D);
-                tessellator.addVertexWithUV(right - 1, rowTop - 1, 0.0D, 1.0D, 0.0D);
-                tessellator.addVertexWithUV(left + 1, rowTop - 1, 0.0D, 0.0D, 0.0D);
-                tessellator.draw();
-                GL11.glEnable(GL11.GL_TEXTURE_2D);
+            if (rowTop + this.slotHeight >= this.top && rowTop <= this.bottom) {
+                this.renderItem(index, rowLeft, rowTop, rowRight, rowBottom, mouseX, mouseY, partialTicks);
             }
-
-            this.drawSlot(index, this.getListLeft(), rowTop, rowBottom - rowTop, tessellator, mouseX, mouseY);
         }
+    }
+
+    protected void renderItem(int slotIndex, int rowLeft, int rowTop, int rowRight, int rowBottom, int mouseX, int mouseY, float partialTicks) {
+        this.drawSlot(slotIndex, rowLeft, rowTop, rowBottom - rowTop, Tessellator.instance, mouseX, mouseY);
     }
 
     @Deprecated
     @Override
     protected void drawSelectionBox(int contentLeft, int contentTop, int mouseXIn, int mouseYIn) {
-        this.drawSelectionBox(mouseXIn, mouseYIn);
     }
 
     // Backport from 1.12.2. Providing a better scroll experience.
@@ -240,13 +229,13 @@ public abstract class CatalogueListExtended extends GuiListExtended {
         return false;
     }
 
-    public boolean mouseReleased(int x, int y, int mouseEvent) {
+    public boolean mouseReleased(int mouseX, int mouseY, int mouseEvent) {
         for (int slotIndex = 0; slotIndex < this.getSize(); ++slotIndex) {
             int j = this.left + this.getListLeft();
             int k = this.top + 4 - this.getAmountScrolled() + slotIndex * this.slotHeight + this.headerPadding;
-            int relativeX = x - j;
-            int relativeY = y - k;
-            this.getListEntry(slotIndex).mouseReleased(slotIndex, x, y, mouseEvent, relativeX, relativeY);
+            int relativeX = mouseX - j;
+            int relativeY = mouseY - k;
+            this.getListEntry(slotIndex).mouseReleased(slotIndex, mouseX, mouseY, mouseEvent, relativeX, relativeY);
         }
         this.setEnabled(true);
         return false;
@@ -306,12 +295,91 @@ public abstract class CatalogueListExtended extends GuiListExtended {
         return this.top + 4 - (int) this.amountScrolled;
     }
 
-    protected int getRowTop(int pIndex) {
-        return this.top + 4 - (int) this.amountScrolled + pIndex * this.slotHeight + this.headerPadding;
+    protected int getRowTop(int slotIndex) {
+        return this.top + 4 - (int) this.amountScrolled + slotIndex * this.slotHeight + this.headerPadding;
     }
 
-    protected int getRowBottom(int pIndex) {
-        return this.getRowTop(pIndex) + this.slotHeight;
+    protected int getRowBottom(int slotIndex) {
+        return this.getRowTop(slotIndex) + this.slotHeight;
+    }
+
+    /*
+    Some helpers.
+     */
+
+    private final List<E> children = new ArrayList<>();
+
+    public final List<E> children() {
+        return this.children;
+    }
+
+    @Nonnull
+    @Override
+    public E getListEntry(int slotIndex) {
+        return this.children().get(slotIndex);
+    }
+
+    @Override
+    protected int getSize() {
+        return this.children().size();
+    }
+
+    public void centerScrollOn(E pEntry) {
+        this.setAmountScrolled((float) (this.children().indexOf(pEntry) * this.slotHeight + this.slotHeight / 2 - (this.bottom - this.top) / 2));
+    }
+
+    public void addEntry(E pEntry) {
+        this.children().add(pEntry);
+    }
+
+    public void clearEntries() {
+        this.children().clear();
+    }
+
+    public void replaceEntries(Collection<E> entries) {
+        this.clearEntries();
+        this.children().addAll(entries);
+    }
+
+    public void removeEntries(@Nonnull List<E> entries) {
+        entries.forEach(this::removeEntry);
+    }
+
+    public void removeEntry(E entry) {
+        this.children.remove(entry);
+    }
+
+    public void clearEntriesExcept(E entry) {
+        this.children.removeIf((e) -> e != entry);
+    }
+
+    public interface IListEntry extends IGuiListEntry {
+
+        /**
+         * Called when the mouse is clicked within this entry.
+         *
+         * @param mouseX    the current mouse x position
+         * @param mouseY    the current mouse y position
+         * @param relativeX the current x position of the mouse relative to the top-left corner of the entry
+         * @param relativeY the current y position of the mouse relative to the top-left corner of the entry
+         * @return true means that something within this entry was clicked and the list should not be dragged.
+         */
+        @Override
+        default boolean mousePressed(int slotIndex, int mouseX, int mouseY, int mouseButton, int relativeX, int relativeY) {
+            return true;
+        }
+
+        /**
+         * Called when the mouse button is released.
+         *
+         * @param mouseX    the current mouse x position
+         * @param mouseY    the current mouse y position
+         * @param relativeX the current x position of the mouse relative to the top-left corner of the entry
+         * @param relativeY the current y position of the mouse relative to the top-left corner of the entry
+         */
+        @Override
+        default void mouseReleased(int slotIndex, int mouseX, int mouseY, int mouseButton, int relativeX, int relativeY) {
+        }
     }
 
     /*
