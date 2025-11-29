@@ -11,7 +11,6 @@ import com.cleanroommc.catalogue.platform.ClientServices;
 import com.github.bsideup.jabel.Desugar;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
@@ -39,7 +38,6 @@ import org.lwjgl.opengl.GL11;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -47,7 +45,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
-import java.util.List;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -453,7 +450,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         }
     }
 
-    private class ModList extends CatalogueListExtended {
+    private class ModList extends CatalogueListSelection<ModListEntry> {
         private static final Predicate<IModData> SEARCH_PREDICATE = data -> {
             String query = OPTION_QUERY.getValue();
             if (query.startsWith("@")) {
@@ -484,8 +481,6 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             }
             return true;
         };
-        private final List<ModListEntry> children = new ArrayList<>();
-        private @Nullable ModListEntry selected;
         private boolean hideFavourites;
 
         public ModList() {
@@ -495,7 +490,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         @Override
         public void drawScreen(int mouseX, int mouseY, float partialTicks) {
             super.drawScreen(mouseX, mouseY, partialTicks);
-            if (this.children.isEmpty()) {
+            if (this.children().isEmpty()) {
                 String text = I18n.format("catalogue.gui.no_mods");
                 int left = this.left + this.width / 2;
                 int top = this.top + (this.bottom - this.top - CatalogueModListScreen.this.fontRenderer.FONT_HEIGHT) / 2;
@@ -512,29 +507,10 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                     .collect(Collectors.toList());
             this.replaceEntries(entries);
             if (CatalogueModListScreen.this.selectedModData != null) {
-                Optional<ModListEntry> selectedEntry = this.children.stream().filter(entry -> entry.data == CatalogueModListScreen.this.selectedModData).findFirst();
+                Optional<ModListEntry> selectedEntry = this.children().stream().filter(entry -> entry.data == CatalogueModListScreen.this.selectedModData).findFirst();
                 selectedEntry.ifPresent(this::setSelected);
             }
             this.clampAmountScrolled();
-        }
-
-        public void centerScrollOn(ModListEntry pEntry) {
-            this.setAmountScrolled((float) (this.children.indexOf(pEntry) * this.slotHeight + this.slotHeight / 2 - (this.bottom - this.top) / 2));
-        }
-
-        protected void clearEntries() {
-            this.children.clear();
-            this.setSelected(null);
-        }
-
-        protected void replaceEntries(Collection<ModListEntry> entries) {
-            this.clearEntries();
-            this.children.addAll(entries);
-        }
-
-        @Override
-        public IGuiListEntry getListEntry(int index) {
-            return this.children.get(index);
         }
 
         @Override
@@ -550,24 +526,6 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         @Override
         public int getListWidth() {
             return this.width - (this.isScrollBarVisible() ? 6 : 0);
-        }
-
-        @Override
-        protected int getSize() {
-            return this.children.size();
-        }
-
-        public @Nullable ModListEntry getSelected() {
-            return this.selected;
-        }
-
-        public void setSelected(@Nullable ModListEntry selected) {
-            this.selected = selected;
-        }
-
-        @Override
-        protected boolean isSelected(int slotIndex) {
-            return Objects.equals(this.getSelected(), this.children.get(slotIndex));
         }
 
         @Override
@@ -639,7 +597,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                 SEARCH_FILTER_VALUE + partial.substring(split + 1) + TextFormatting.RESET;
     }
 
-    private class ModListEntry implements CatalogueListExtended.IGuiListEntry {
+    private class ModListEntry implements CatalogueListExtended.IListEntry {
         private final IModData data;
         private final ModList list;
         private final PinnedButton button;
@@ -807,8 +765,8 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         }
 
         @Override
-        public boolean mousePressed(int slotIndex, int mouseX, int mouseY, int mouseEvent, int relativeX, int relativeY) {
-            if (mouseEvent == 1) {
+        public boolean mousePressed(int slotIndex, int mouseX, int mouseY, int mouseButton, int relativeX, int relativeY) {
+            if (mouseButton == 1) {
                 DropdownMenu menu = DropdownMenu.builder(CatalogueModListScreen.this)
                         .setMinItemSize(0, 16)
                         .setAlignment(DropdownMenu.Alignment.BELOW_LEFT)
@@ -822,21 +780,13 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                         }).build();
                 menu.toggle(mouseX, mouseY);
                 return true;
-            } else if (mouseEvent == 0) {
+            } else if (mouseButton == 0) {
                 if (this.button.mousePressed(CatalogueModListScreen.this.mc, mouseX, mouseY)) return true;
                 CatalogueModListScreen.this.setSelectedModData(this.data);
                 this.list.setSelected(this);
                 return true;
             }
             return false;
-        }
-
-        @Override
-        public void mouseReleased(int slotIndex, int x, int y, int mouseEvent, int relativeX, int relativeY) {
-        }
-
-        @Override
-        public void updatePosition(int slotIndex, int x, int y, float partialTicks) {
         }
 
         public boolean isMouseOver() {
@@ -961,8 +911,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         }
     }
 
-    private class StringList extends CatalogueListExtended {
-        private final List<StringEntry> entries = Lists.newArrayList();
+    private class StringList extends CatalogueListExtended<StringEntry> {
 
         public StringList(int width, int height, int left, int top) {
             super(CatalogueModListScreen.this.mc, width, height, top, top + height, 10);
@@ -971,7 +920,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         }
 
         public void setTextFromInfo(@Nonnull IModData data) {
-            this.entries.clear();
+            this.clearEntries();
             this.visible = true;
             if (data.getDescription() == null) return;
             if (data.getDescription().trim().trim().isEmpty()) {
@@ -980,7 +929,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             }
             List<String> lines = CatalogueModListScreen.this.fontRenderer.listFormattedStringToWidth(data.getDescription().trim(), this.getListWidth());
             for (String line : lines) {
-                this.entries.add(new StringEntry(line.replace("\n", "").replace("\r", "").trim()));
+                this.addEntry(new StringEntry(line.replace("\n", "").replace("\r", "").trim()));
             }
         }
 
@@ -1011,27 +960,17 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         }
 
         @Override
-        protected int getRowTop(int pIndex) {
-            return super.getRowTop(pIndex) + 4;
+        protected int getRowTop(int slotIndex) {
+            return super.getRowTop(slotIndex) + 4;
         }
 
         @Override
         public int getMaxScroll() {
             return Math.max(0, this.getContentHeight() - (this.height - 12));
         }
-
-        @Override
-        protected int getSize() {
-            return this.entries.size();
-        }
-
-        @Override
-        public IGuiListEntry getListEntry(int index) {
-            return this.entries.get(index);
-        }
     }
 
-    private class StringEntry implements CatalogueListExtended.IGuiListEntry {
+    private class StringEntry implements CatalogueListExtended.IListEntry {
         private final String line;
 
         public StringEntry(String line) {
@@ -1041,19 +980,6 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         @Override
         public void drawEntry(int index, int left, int top, int rowWidth, int rowHeight, int mouseX, int mouseY, boolean hovered, float partialTicks) {
             drawString(CatalogueModListScreen.this.fontRenderer, this.line, left, top, 0xFFFFFF);
-        }
-
-        @Override
-        public boolean mousePressed(int slotIndex, int mouseX, int mouseY, int mouseEvent, int relativeX, int relativeY) {
-            return true;
-        }
-
-        @Override
-        public void updatePosition(int slotIndex, int x, int y, float partialTicks) {
-        }
-
-        @Override
-        public void mouseReleased(int slotIndex, int x, int y, int mouseEvent, int relativeX, int relativeY) {
         }
     }
 
@@ -1068,7 +994,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
      * @param y        the y position
      * @param maxWidth the maximum width the string can render
      * @param mouseX   the current mouse x position
-     * @param mouseY   the current mouse u position
+     * @param mouseY   the current mouse y position
      */
     @SuppressWarnings("SameParameterValue")
     private void drawStringWithLabel(String format, String text, int x, int y, int maxWidth, int mouseX, int mouseY, TextFormatting labelColor, TextFormatting contentColor) {
