@@ -51,6 +51,7 @@ import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("CodeBlock2Expr")
 public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHandler {
     private static final Favourites FAVOURITES = new Favourites();
     private static final Comparator<ModListEntry> SORT_ALPHABETICALLY = Comparator.comparing(o -> o.getData().getDisplayName());
@@ -551,6 +552,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             return super.mouseReleased(mouseX, mouseY, button);
         }
 
+        @SuppressWarnings("BooleanMethodIsAlwaysInverted")
         public boolean shouldHideFavourites() {
             return this.hideFavourites;
         }
