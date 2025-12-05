@@ -806,7 +806,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             }
 
             @Override
-            public void drawButton(Minecraft mc, int mouseX, int mouseY, float partialTick) {
+            public void drawButton(@Nonnull Minecraft mc, int mouseX, int mouseY, float partialTick) {
                 if (!this.visible) return;
                 this.hovered = ModListEntry.this.isMouseOver() && ClientHelper.isMouseWithin(this.x, this.y, this.width, this.height, mouseX, mouseY);
                 this.mouseDragged(mc, mouseX, mouseY);
@@ -816,7 +816,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             }
 
             @Override
-            public boolean mousePressed(Minecraft mc, int mouseX, int mouseY) {
+            public boolean mousePressed(@Nonnull Minecraft mc, int mouseX, int mouseY) {
                 if (super.mousePressed(mc, mouseX, mouseY) && !ModListEntry.this.list.shouldHideFavourites()) {
                     FAVOURITES.toggle(this.modId);
                     ModListEntry.this.list.filterAndUpdateList();
