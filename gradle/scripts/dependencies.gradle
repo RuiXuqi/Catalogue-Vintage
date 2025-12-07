@@ -1,29 +1,18 @@
 apply from: 'gradle/scripts/helpers.gradle'
 
 repositories {
+    flatDir {
+        dirs('libs') // /libs
+    }
     // Other repositories described by default:
     // CleanroomMC: https://maven.cleanroommc.com
-    exclusiveContent {
-        forRepository {
-            maven {
-                name 'CurseMaven'
-                url 'https://curse.cleanroommc.com'
-            }
-        }
-        filter {
-            includeGroup 'curse.maven'
-        }
+    maven {
+        name 'CurseMaven'
+        url 'https://curse.cleanroommc.com'
     }
-    exclusiveContent {
-        forRepository {
-            maven {
-                name 'Modrinth'
-                url 'https://api.modrinth.com/maven'
-            }
-        }
-        filter {
-            includeGroup 'maven.modrinth'
-        }
+    maven {
+        name 'Modrinth'
+        url 'https://api.modrinth.com/maven'
     }
     mavenLocal() // Must be last for caching to work
 }
@@ -50,6 +39,9 @@ dependencies {
     // Example - Modrinth dependencies:
     // 'maven.modrinth:jei:4.16.1.1000' << jei = project name, 4.16.1.1000 = file version
     // Full documentation: https://docs.modrinth.com/docs/tutorials/maven/
+
+    // Example - Local dependencies:
+    // 'libs:ctm-1.2.1; << libs = folder name (/libs) in flatDir, ctm-1.2.1 = file name (ctm-1.2.1.jar)
 
     // Common dependency types (configuration):
     // implementation = dependency available at both compile time and runtime
