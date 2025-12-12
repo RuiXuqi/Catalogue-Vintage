@@ -658,12 +658,15 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                 return;
             }
             try {
-                GL11.glEnable(GL12.GL_RESCALE_NORMAL);
+                GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
                 GL11.glEnable(GL11.GL_DEPTH_TEST);
+                GL11.glEnable(GL12.GL_RESCALE_NORMAL);
                 RenderHelper.enableGUIStandardItemLighting();
-                itemRender.renderItemIntoGUI(CatalogueModListScreen.this.fontRendererObj, CatalogueModListScreen.this.mc.getTextureManager(), this.icon, left + 4, top + 2);
-                GL11.glDisable(GL12.GL_RESCALE_NORMAL);
+                itemRender.renderItemAndEffectIntoGUI(CatalogueModListScreen.this.fontRendererObj, CatalogueModListScreen.this.mc.getTextureManager(), this.icon, left + 4, top + 2);
+                itemRender.renderItemOverlayIntoGUI(CatalogueModListScreen.this.fontRendererObj, CatalogueModListScreen.this.mc.getTextureManager(), this.icon, left + 4, top + 2);
+                GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
                 GL11.glDisable(GL11.GL_DEPTH_TEST);
+                GL11.glDisable(GL12.GL_RESCALE_NORMAL);
                 RenderHelper.disableStandardItemLighting();
             } catch (Exception e) {
                 // Attempt to catch exceptions when rendering item. Sometime level instance isn't checked for null
@@ -837,8 +840,11 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                 this.field_146123_n = ModListEntry.this.isMouseOver() && ClientHelper.isMouseWithin(this.xPosition, this.yPosition, this.width, this.height, mouseX, mouseY);
                 this.mouseDragged(mc, mouseX, mouseY);
                 int textureU = FAVOURITES.has(this.modId) ? 10 : 0;
+                GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+                GL11.glEnable(GL11.GL_BLEND);
                 mc.getTextureManager().bindTexture(TEXTURE);
                 ClientHelper.drawModalRectWithCustomSizedTexture(this.xPosition, this.yPosition, textureU, 10, 10, 10, 64, 64);
+                GL11.glDisable(GL11.GL_BLEND);
             }
 
             @Override
