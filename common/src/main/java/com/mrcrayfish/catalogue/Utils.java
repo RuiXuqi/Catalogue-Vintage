@@ -1,14 +1,14 @@
 package com.mrcrayfish.catalogue;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /**
  * Author: MrCrayfish
  */
 public class Utils
 {
-    public static ResourceLocation resource(String name)
+    public static Identifier resource(String name)
     {
-        return ResourceLocation.fromNamespaceAndPath(Constants.MOD_ID, name);
+        return Identifier.fromNamespaceAndPath(Constants.MOD_ID, name);
     }
 }

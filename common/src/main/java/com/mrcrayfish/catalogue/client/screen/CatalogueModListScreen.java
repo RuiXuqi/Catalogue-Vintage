@@ -2,6 +2,8 @@ package com.mrcrayfish.catalogue.client.screen;
 
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.textures.FilterMode;
 import com.mojang.blaze3d.textures.GpuTextureView;
 import com.mrcrayfish.catalogue.Constants;
 import com.mrcrayfish.catalogue.Utils;
@@ -13,7 +15,7 @@ import com.mrcrayfish.catalogue.client.screen.widget.CatalogueIconButton;
 import com.mrcrayfish.catalogue.client.screen.widget.DropdownMenu;
 import com.mrcrayfish.catalogue.platform.ClientServices;
 import net.minecraft.ChatFormatting;
-import net.minecraft.Util;
+import net.minecraft.util.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.*;
@@ -37,7 +39,7 @@ import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.item.Item;
@@ -77,8 +79,8 @@ public class CatalogueModListScreen extends Screen implements DropdownMenuHandle
     private static final MutableBoolean OPTION_UPDATES_ONLY = new MutableBoolean(false);
     private static final MutableBoolean OPTION_FAVOURITES_ONLY = new MutableBoolean(false);
     private static final MutableObject<Comparator<ModListEntry>> OPTION_SORT = new MutableObject<>(SORT_ALPHABETICALLY);
-    private static final ResourceLocation MISSING_BANNER = Utils.resource("textures/gui/missing_banner.png");
-    private static final ResourceLocation MISSING_BACKGROUND = Utils.resource("textures/gui/missing_background.png");
+    private static final Identifier MISSING_BANNER = Utils.resource("textures/gui/missing_banner.png");
+    private static final Identifier MISSING_BACKGROUND = Utils.resource("textures/gui/missing_background.png");
     private static final ImageInfo MISSING_BANNER_INFO = new ImageInfo(MISSING_BANNER, 120, 120, () -> {});
     private static final Map<String, ImageInfo> BANNER_CACHE = new HashMap<>();
     private static final Map<String, ImageInfo> IMAGE_ICON_CACHE = new HashMap<>();
@@ -672,12 +674,12 @@ public class CatalogueModListScreen extends Screen implements DropdownMenuHandle
         if(this.selectedModData == null)
             return;
 
-        ResourceLocation textureRef = cachedBackground != null ? cachedBackground.resource() : MISSING_BACKGROUND;
+        Identifier textureRef = cachedBackground != null ? cachedBackground.resource() : MISSING_BACKGROUND;
         GuiRenderState state = ClientServices.PLATFORM.getGuiRenderState(graphics);
         GpuTextureView gpuTexture = this.minecraft.getTextureManager().getTexture(textureRef).getTextureView();
         BlitRenderState blit = new BlitRenderState(
                 RenderPipelines.GUI_TEXTURED,
-                TextureSetup.singleTexture(gpuTexture),
+                TextureSetup.singleTexture(gpuTexture, RenderSystem.getSamplerCache().getClampToEdge(FilterMode.LINEAR)),
                 new Matrix3x2f(graphics.pose()),
                 contentLeft, contentTop, contentLeft + contentWidth, contentTop + 128, 0, 1, 0, 1,
                 0xFFFFFFFF, null);
@@ -1093,7 +1095,7 @@ public class CatalogueModListScreen extends Screen implements DropdownMenuHandle
             String itemIcon = this.data.getItemIcon();
             if(itemIcon != null && !itemIcon.isEmpty())
             {
-                ResourceLocation resource = ResourceLocation.tryParse(itemIcon);
+                Identifier resource = Identifier.tryParse(itemIcon);
                 if(resource != null)
                 {
                     Item item = BuiltInRegistries.ITEM.getValue(resource);
@@ -1106,7 +1108,7 @@ public class CatalogueModListScreen extends Screen implements DropdownMenuHandle
             }
 
             // If the mod doesn't specify an item to use, Catalogue will attempt to get an item from the mod
-            Optional<Item> optional = BuiltInRegistries.ITEM.stream().filter(item -> item.builtInRegistryHolder().key().location().getNamespace().equals(this.data.getModId())).findFirst();
+            Optional<Item> optional = BuiltInRegistries.ITEM.stream().filter(item -> item.builtInRegistryHolder().key().identifier().getNamespace().equals(this.data.getModId())).findFirst();
             if(optional.isPresent())
             {
                 Item item = optional.get();
@@ -1190,7 +1192,7 @@ public class CatalogueModListScreen extends Screen implements DropdownMenuHandle
 
         private class PinnedButton extends AbstractButton
         {
-            private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(Constants.MOD_ID, "textures/gui/icons.png");
+            private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "textures/gui/icons.png");
 
             private final String modId;
 
@@ -1201,7 +1203,7 @@ public class CatalogueModListScreen extends Screen implements DropdownMenuHandle
             }
 
             @Override
-            protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick)
+            protected void renderContents(GuiGraphics graphics, int mouseX, int mouseY, float partialTick)
             {
                 int textureU = FAVOURITES.has(this.modId) ? 10 : 0;
                 graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, this.getX(), this.getY(), textureU, 10, 10, 10, 64, 64);

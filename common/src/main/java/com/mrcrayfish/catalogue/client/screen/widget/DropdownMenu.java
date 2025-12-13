@@ -16,7 +16,7 @@ import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.jetbrains.annotations.Nullable;
 
@@ -168,8 +168,8 @@ public class DropdownMenu extends AbstractWidget
     public static class MenuItem extends AbstractWidget
     {
         protected static final WidgetSprites SPRITES = new WidgetSprites(
-            ResourceLocation.fromNamespaceAndPath(Constants.MOD_ID, "dropdown/item"),
-            ResourceLocation.fromNamespaceAndPath(Constants.MOD_ID, "dropdown/item_highlighted")
+            Identifier.fromNamespaceAndPath(Constants.MOD_ID, "dropdown/item"),
+            Identifier.fromNamespaceAndPath(Constants.MOD_ID, "dropdown/item_highlighted")
         );
         protected final DropdownMenu parent;
         private final Runnable onClick;
@@ -220,7 +220,7 @@ public class DropdownMenu extends AbstractWidget
 
     private static class CheckboxMenuItem extends MenuItem
     {
-        private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(Constants.MOD_ID, "textures/gui/checkbox.png");
+        private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "textures/gui/checkbox.png");
 
         private final MutableBoolean holder;
         private final Function<Boolean, Boolean> callback;

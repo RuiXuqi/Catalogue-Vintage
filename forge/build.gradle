@@ -6,40 +6,26 @@ plugins {
     id 'net.minecraftforge.gradle'
 }
 
-// Fixes an issue where net.sf.jopt-simple:jopt-simple cannot be resolved
-configurations.configureEach {
-    resolutionStrategy {
-        it.force 'net.sf.jopt-simple:jopt-simple:5.0.4'
-    }
-}
-
 minecraft {
     mappings channel: 'official', version: minecraft_version
-    reobf = false
     copyIdeResources = true
+    reobf = false
 
     def at = file('src/main/resources/META-INF/accesstransformer.cfg')
     if (at.exists()) {
-        accessTransformers = at
+        accessTransformer = at
     }
 
     runs {
-        configureEach {
-            workingDirectory project.file('run')
+        client {
+            workingDirectory file('runs/client')
             ideaModule "${rootProject.name}.${project.name}.main"
-            property 'forge.logging.markers', 'REGISTRIES,SCAN,LOADING'
-            property 'forge.logging.console.level', 'debug'
-            property 'mixin.env.remapRefMap', 'true'
-            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
+            taskName 'Client'
             mods {
-                catalogue {
+                modClientRun {
                     source sourceSets.main
                 }
             }
-        }
-        client {
-            taskName "Client"
-            property 'forge.enabledGameTestNamespaces', mod_id
         }
     }
 }
@@ -49,22 +35,30 @@ sourceSets.main.resources.srcDir 'src/generated/resources'
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     annotationProcessor 'net.minecraftforge:eventbus-validator:7.0-beta.10'
-
-    // Temp hack fix in Forge.
-    implementation('net.sf.jopt-simple:jopt-simple:5.0.4') { version { strictly '5.0.4' } }
 }
 
-tasks.register('signJar', SignJar) {
+tasks.register("signJar") {
     dependsOn jar
     onlyIf {
-        hasProperty('keyStore') || System.getenv("KEYSTORE")
+        findProperty('keyStore') || System.getenv("KEYSTORE")
     }
-    keyStore = findProperty('keyStore') ?: System.getenv("KEYSTORE")
-    alias = findProperty('keyStoreAlias') ?: System.getenv("KEYSTORE_ALIAS")
-    storePass = findProperty('keyStorePass') ?: System.getenv("KEYSTORE_PASS")
-    inputFile = jar.archiveFile
-    def name = FilenameUtils.removeExtension(jar.archiveFile.get().getAsFile().getName());
-    outputFile = layout.buildDirectory.file("libs/%s-signed.jar".formatted(name));
+    doLast {
+        def unsignedJar = tasks.jar.archiveFile.get().asFile
+        def name = FilenameUtils.removeExtension(unsignedJar.getName())
+        def signedJar  = layout.buildDirectory.file("libs/%s-signed.jar".formatted(name)).get().asFile
+        def signingKeyAlias = findProperty('keyStoreAlias') ?: System.getenv("KEYSTORE_ALIAS")
+        def signingKeystore = findProperty('keyStore') ?: System.getenv("KEYSTORE")
+        def signingPassword = findProperty('keyStorePass') ?: System.getenv("KEYSTORE_PASS")
+        ant.signjar(
+            jar: unsignedJar,
+            signedJar: signedJar,
+            alias: signingKeyAlias,
+            keyStore: signingKeystore,
+            storePass: signingPassword,
+            storetype: 'jks'
+        )
+        println "Signed jar created at: $signedJar"
+    }
 }
 
 jar.finalizedBy 'signJar'
@@ -73,4 +67,23 @@ sourceSets.each {
     def dir = layout.buildDirectory.dir("sourcesSets/$it.name")
     it.output.resourcesDir = dir
     it.java.destinationDirectory = dir
+}
+
+// Implement mcgradleconventions loader attribute
+def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', String)
+['apiElements', 'runtimeElements', 'sourcesElements', 'javadocElements'].each { variant ->
+    configurations.named("$variant") {
+        attributes {
+            attribute(loaderAttribute, 'forge')
+        }
+    }
+}
+sourceSets.configureEach {
+    [it.compileClasspathConfigurationName, it.runtimeClasspathConfigurationName].each { variant->
+        configurations.named("$variant") {
+            attributes {
+                attribute(loaderAttribute, 'forge')
+            }
+        }
+    }
 }

@@ -3,7 +3,7 @@ package com.mrcrayfish.catalogue.client;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
@@ -64,7 +64,7 @@ public interface IModData
 
     void drawUpdateIcon(GuiGraphics graphics, Update update, int x, int y);
 
-    record Update(boolean animated, String url, int texOffset, ResourceLocation textures) {}
+    record Update(boolean animated, String url, int texOffset, Identifier textures) {}
 
     enum Type
     {

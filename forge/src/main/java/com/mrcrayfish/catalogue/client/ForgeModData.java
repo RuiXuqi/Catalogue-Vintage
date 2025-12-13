@@ -4,7 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraftforge.client.ConfigScreenHandler;
 import net.minecraftforge.fml.VersionChecker;
 import net.minecraftforge.fml.loading.moddiscovery.ModInfo;
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
  */
 public class ForgeModData implements IModData
 {
-    public static final ResourceLocation VERSION_CHECK_ICONS = ResourceLocation.fromNamespaceAndPath("forge", "textures/gui/version_check_icons.png");
+    public static final Identifier VERSION_CHECK_ICONS = Identifier.fromNamespaceAndPath("forge", "textures/gui/version_check_icons.png");
 
     private final IModInfo info;
     private final Type type;

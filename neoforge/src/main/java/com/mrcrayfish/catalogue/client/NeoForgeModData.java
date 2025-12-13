@@ -5,7 +5,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.resources.language.I18n;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.VersionChecker;
 import net.neoforged.fml.loading.moddiscovery.ModInfo;
@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
  */
 public class NeoForgeModData implements IModData
 {
-    public static final ResourceLocation VERSION_CHECK_ICONS = ResourceLocation.fromNamespaceAndPath("neoforge", "textures/gui/version_check_icons.png");
+    public static final Identifier VERSION_CHECK_ICONS = Identifier.fromNamespaceAndPath("neoforge", "textures/gui/version_check_icons.png");
 
     private final IModInfo info;
     private final Type type;

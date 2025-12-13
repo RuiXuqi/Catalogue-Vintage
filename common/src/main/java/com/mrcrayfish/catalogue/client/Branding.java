@@ -8,7 +8,7 @@ import com.mrcrayfish.catalogue.exception.ModResourceNotFoundException;
 import com.mrcrayfish.catalogue.platform.ClientServices;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -39,7 +39,7 @@ public record Branding(String prefix, int imageWidth, int imageHeight,
             image = ClientServices.PLATFORM.loadImageFromModResource(modId, resource);
             this.predicate.test(image, this); // An InvalidBrandingImageException will be thrown if anything is wrong
             DynamicTexture texture = new DynamicTexture(() -> this.prefix, image); // TODO test
-            ResourceLocation id = this.override ? Utils.resource(this.prefix) :
+            Identifier id = this.override ? Utils.resource(this.prefix) :
                 Utils.resource("%s/%s".formatted(this.prefix, data.getModId()));
             Minecraft.getInstance().getTextureManager().register(id, texture);
             return Optional.of(new ImageInfo(id, image.getWidth(), image.getHeight(), () -> {
