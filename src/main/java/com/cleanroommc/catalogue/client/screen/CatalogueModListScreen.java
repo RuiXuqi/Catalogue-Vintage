@@ -663,7 +663,6 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                 GL11.glEnable(GL12.GL_RESCALE_NORMAL);
                 RenderHelper.enableGUIStandardItemLighting();
                 CatalogueModListScreen.itemRender.renderItemAndEffectIntoGUI(CatalogueModListScreen.this.fontRendererObj, CatalogueModListScreen.this.mc.getTextureManager(), this.icon, left + 4, top + 2);
-                CatalogueModListScreen.itemRender.renderItemOverlayIntoGUI(CatalogueModListScreen.this.fontRendererObj, CatalogueModListScreen.this.mc.getTextureManager(), this.icon, left + 4, top + 2);
                 GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
                 GL11.glDisable(GL11.GL_DEPTH_TEST);
                 GL11.glDisable(GL12.GL_RESCALE_NORMAL);
@@ -696,8 +695,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
 
             // Gets the raw item icon resource string
             String itemIcon = this.data.getItemIcon();
-            if (itemIcon != null && !itemIcon.trim()
-                .isEmpty()) {
+            if (itemIcon != null && !itemIcon.trim().isEmpty()) {
                 try {
                     // 0:mod id 1:item name (2:metadata)
                     String[] parts = itemIcon.split(":");
@@ -713,46 +711,39 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                 }
             }
 
+            // If the mod has a creative tab, Catalogue will attempt to use the tab's icon
+            String prefix = this.data.getModId() + ":";
+            ItemStack foundStack = Arrays.stream(CreativeTabs.creativeTabArray)
+                .filter(Objects::nonNull)
+                .map(tab -> {
+                    try {
+                        return tab.getIconItemStack();
+                    } catch (Exception e) {
+                        CatalogueConstants.LOG.debug("Failed to get creative tab icon for mod '{}'", this.data.getModId(), e);
+                        return null;
+                    }
+                })
+                .filter(tabItem -> tabItem != null && tabItem.getItem() != null)
+                .filter(tabItem -> {
+                    String resourceName = GameData.getItemRegistry().getNameForObject(tabItem.getItem());
+                    return resourceName != null && resourceName.startsWith(prefix);
+                })
+                .findFirst().orElse(null);
+
             // If the mod doesn't specify an item to use, Catalogue will attempt to get an item from the mod
-            // Search item registry
-            ItemStack foundStack = null;
-            for (Object o : GameData.getItemRegistry()) {
-                if (o instanceof Item item) {
-                    String regName = GameData.getItemRegistry().getNameForObject(item);
-                    if (regName != null) {
-                        int colonIndex = regName.indexOf(':');
-                        if (colonIndex > 0) {
-                            String namespace = regName.substring(0, colonIndex);
-                            if (namespace.equals(this.data.getModId())) {
-                                foundStack = new ItemStack(item);
-                                break;
-                            }
+            if (foundStack == null) {
+                for (Object o : GameData.getItemRegistry()) {
+                    if (o instanceof Item item) {
+                        String resourceName = GameData.getItemRegistry().getNameForObject(item);
+                        if (resourceName != null && resourceName.startsWith(prefix)) {
+                            foundStack = new ItemStack(item);
+                            break;
                         }
                     }
                 }
             }
-            if (foundStack != null) {
-                // If the item is in a creative tab, Catalogue will attempt to use the tab's icon
-                Item foundItem = foundStack.getItem();
-                if (foundItem != null) {
-                    CreativeTabs tab = foundItem.getCreativeTab();
-                    if (tab != null) {
-                        try {
-                            ItemStack tabItem = tab.getIconItemStack();
-                            if (tabItem != null && tabItem.getItem() != null) {
-                                String iconRegName = GameData.getItemRegistry().getNameForObject(tabItem.getItem());
-                                if (iconRegName != null) {
-                                    String iconNamespace = iconRegName.substring(0, iconRegName.indexOf(':'));
-                                    if (iconNamespace.equals(this.data.getModId())) {
-                                        foundStack = tabItem;
-                                    }
-                                }
-                            }
-                        } catch (Exception e) {
-                            CatalogueConstants.LOG.debug("Failed to get creative tab icon for mod '{}'", this.data.getModId(), e);
-                        }
-                    }
-                }
+
+            if (foundStack != null && foundStack.getItem() != null) {
                 ITEM_ICON_CACHE.put(this.data.getModId(), foundStack);
                 return foundStack;
             }
