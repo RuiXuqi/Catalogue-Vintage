@@ -662,7 +662,17 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                 GL11.glEnable(GL11.GL_DEPTH_TEST);
                 GL11.glEnable(GL12.GL_RESCALE_NORMAL);
                 RenderHelper.enableGUIStandardItemLighting();
+
+                float screenZ = CatalogueModListScreen.this.zLevel;
+                float itemRenderZ = CatalogueModListScreen.itemRender.zLevel;
+                CatalogueModListScreen.this.zLevel = 100.0F;
+                CatalogueModListScreen.itemRender.zLevel = 100.0F;
+
                 CatalogueModListScreen.itemRender.renderItemAndEffectIntoGUI(CatalogueModListScreen.this.fontRendererObj, CatalogueModListScreen.this.mc.getTextureManager(), this.icon, left + 4, top + 2);
+
+                CatalogueModListScreen.this.zLevel = screenZ;
+                CatalogueModListScreen.itemRender.zLevel = itemRenderZ;
+
                 GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
                 GL11.glDisable(GL11.GL_DEPTH_TEST);
                 GL11.glDisable(GL12.GL_RESCALE_NORMAL);
