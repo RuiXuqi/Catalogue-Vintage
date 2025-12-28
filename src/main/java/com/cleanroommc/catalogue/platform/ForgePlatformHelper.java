@@ -5,6 +5,7 @@ import com.cleanroommc.catalogue.client.Branding;
 import com.cleanroommc.catalogue.client.ForgeModData;
 import com.cleanroommc.catalogue.client.IModData;
 import com.cleanroommc.catalogue.platform.services.IPlatformHelper;
+import com.google.common.base.Strings;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiVideoSettings;
@@ -12,7 +13,9 @@ import net.minecraft.client.renderer.texture.TextureUtil;
 import net.minecraftforge.fml.client.FMLClientHandler;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.ModContainer;
+import net.minecraftforge.fml.common.ModMetadata;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -30,19 +33,34 @@ public class ForgePlatformHelper implements IPlatformHelper {
 
     @Override
     public List<IModData> getAllModData() {
-        List<IModData> dataList = new ArrayList<>();
-        // Handle special containers
+        List<ModContainer> containerList = Loader.instance().getActiveModList();
+
+        // Add special mod containers
         ArrayList<ModContainer> specialContainerList = new ArrayList<>();
         FMLClientHandler.instance().addSpecialModEntries(specialContainerList);
-        specialContainerList.removeIf(modContainer -> {
+        containerList.addAll(specialContainerList);
+
+        // Add child mods to metadata
+        for (ModContainer container : containerList) {
+            if (container == null) continue;
+            ModMetadata metadata = container.getMetadata();
+            if (metadata != null && metadata.parentMod == null && !Strings.isNullOrEmpty(metadata.parent)) {
+                ModContainer parentContainer = Loader.instance().getIndexedModList().get(metadata.parent);
+                if (parentContainer != null) {
+                    metadata.parentMod = parentContainer;
+                    parentContainer.getMetadata().childMods.add(container);
+                }
+            }
+        }
+
+        List<IModData> dataList = new ArrayList<>();
+        containerList.removeIf(modContainer -> {
             if (modContainer.getModId().equals("optifine")) {
                 dataList.add(new OFData(modContainer));
                 return true;
             }
             return false;
         });
-        List<ModContainer> containerList = Loader.instance().getActiveModList();
-        containerList.addAll(specialContainerList);
         dataList.addAll(containerList.stream().map(ForgeModData::new).collect(Collectors.toList()));
         return dataList;
     }
@@ -89,14 +107,21 @@ public class ForgePlatformHelper implements IPlatformHelper {
     }
 
     private static class OFData extends ForgeModData {
+        private final String version;
+
         private OFData(ModContainer info) {
             super(info);
+            this.version = this.getDisplayVersion();
+        }
+
+        private @Nonnull String getDisplayVersion() {
+            String version = this.getInnerVersion();
+            return version.substring(version.indexOf("OptiFine_1.12.2_") + 16);
         }
 
         @Override
         public String getVersion() {
-            String version = this.getInnerVersion();
-            return version.substring(version.indexOf("OptiFine_1.12.2_") + 16);
+            return this.version;
         }
 
         @Nullable

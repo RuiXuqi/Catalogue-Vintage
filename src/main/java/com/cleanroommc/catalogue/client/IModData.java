@@ -7,6 +7,7 @@ import net.minecraft.client.resources.IResourcePack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TextFormatting;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Set;
 
@@ -55,16 +56,24 @@ public interface IModData {
     String getBackground();
 
     @Nullable
+    String getChildModNames();
+
+    @Nullable
+    String getParentModName();
+
+    @Nullable
     Update getUpdate();
 
     @Nullable
     IResourcePack getResourcePack();
 
+    @Nonnull
     Set<String> getDependencies(); //TODO lazily
 
-    boolean hasConfig();
+    @Nonnull
+    Set<String> getChildMods();
 
-    boolean isLibrary();
+    boolean hasConfig();
 
     void openConfigScreen(Minecraft minecraft, GuiScreen parent);
 
@@ -81,7 +90,7 @@ public interface IModData {
     enum Type {
         DEFAULT(TextFormatting.RESET),
         LIBRARY(TextFormatting.DARK_GRAY),
-        GENERATED(TextFormatting.AQUA);
+        CHILD(TextFormatting.AQUA);
 
         private final TextFormatting style;
 
