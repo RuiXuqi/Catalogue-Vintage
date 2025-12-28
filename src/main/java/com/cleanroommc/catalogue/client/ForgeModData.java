@@ -169,7 +169,6 @@ public class ForgeModData implements IModData {
 
     @Override
     public boolean hasConfig() {
-        if (this.info == null) return false;
         IModGuiFactory guiFactory = FMLClientHandler.instance().getGuiFactoryFor(this.info);
         if (guiFactory == null) return false;
         return guiFactory.hasConfigGui();
