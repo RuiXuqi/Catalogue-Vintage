@@ -880,7 +880,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             }
 
             @Override
-            public boolean mousePressed(Minecraft mc, int mouseX, int mouseY) {
+            public boolean mousePressed(@Nonnull Minecraft mc, int mouseX, int mouseY) {
                 return super.mousePressed(mc, mouseX, mouseY) && ModListEntry.this.data.getType() != IModData.Type.CHILD && !ModListEntry.this.list.shouldHideFavourites();
             }
         }
