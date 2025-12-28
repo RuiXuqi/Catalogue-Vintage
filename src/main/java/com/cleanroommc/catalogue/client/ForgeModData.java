@@ -15,10 +15,7 @@ import org.lwjgl.opengl.GL11;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -28,14 +25,18 @@ public class ForgeModData implements IModData {
     public static final List<String> LIB_MODS = Arrays.asList(CatalogueConfig.libraryList);
     public static final List<String> IGNORED_DEPENDENCIES = Arrays.asList(CatalogueConfig.ignoredDependenciesList);
 
-    private final ModContainer info;
+    private final @Nonnull ModContainer info;
+    private final @Nullable ModMetadata metadata;
     private final Type type;
     private final Set<String> dependencies;
+    private final Set<String> childMods;
 
-    public ForgeModData(ModContainer info) {
+    public ForgeModData(@Nonnull ModContainer info) {
         this.info = info;
+        this.metadata = info.getMetadata();
         this.type = analyzeType(info);
-        this.dependencies = this.analyzeDependencies(info);
+        this.dependencies = analyzeDependencies(info);
+        this.childMods = analyzeChildMods(info);
     }
 
     @Override
@@ -66,83 +67,78 @@ public class ForgeModData implements IModData {
     @Nullable
     @Override
     public String getDescription() {
-        ModMetadata metadata = this.getMetadata();
-        return metadata != null ? metadata.description : null;
+        return this.metadata != null ? this.metadata.description : null;
     }
 
     @Nullable
     @Override
     public String getItemIcon() {
-        ModMetadata metadata = this.getMetadata();
-        //return metadata != null ? metadata.iconItem : null;
+        //return this.metadata != null ? this.metadata.iconItem : null;
         return null;
     }
 
     @Nullable
     @Override
     public String getImageIcon() {
-        ModMetadata metadata = this.getMetadata();
-        //return metadata != null ? metadata.iconFile : null;
+        //return this.metadata != null ? this.metadata.iconFile : null;
         return null;
     }
 
     @Nullable
     @Override
     public String getLicense() {
-        ModMetadata metadata = this.getMetadata();
-        //return metadata != null ? metadata.license : null;
+        //return this.metadata != null ? this.metadata.license : null;
         return null;
     }
 
     @Nullable
     @Override
     public String getCredits() {
-        ModMetadata metadata = this.getMetadata();
-        return metadata != null ? metadata.credits : null;
+        return this.metadata != null ? this.metadata.credits : null;
     }
 
     @Nullable
     @Override
     public String getAuthors() {
-        ModMetadata metadata = this.getMetadata();
-        return metadata != null ? metadata.getAuthorList() : null;
+        return this.metadata != null ? this.metadata.getAuthorList() : null;
     }
 
     @Nullable
     @Override
     public String getHomepage() {
-        ModMetadata metadata = this.getMetadata();
-        return metadata != null ? metadata.url : null;
+        return this.metadata != null ? this.metadata.url : null;
     }
 
     @Nullable
     @Override
     public String getIssueTracker() {
-        ModMetadata metadata = this.getMetadata();
-        //return metadata != null ? metadata.issueTrackerUrl : null;
+        //return this.metadata != null ? this.metadata.issueTrackerUrl : null;
         return null;
     }
 
     @Nullable
     @Override
     public String getBanner() {
-        ModMetadata metadata = this.getMetadata();
-        return metadata != null ? metadata.logoFile : null;
+        return this.metadata != null ? this.metadata.logoFile : null;
     }
 
     @Nullable
     @Override
     public String getBackground() {
-        ModMetadata metadata = this.getMetadata();
-        //return metadata != null ? metadata.backgroundFile : null;
+        //return this.metadata != null ? this.metadata.backgroundFile : null;
         return null;
     }
 
     @Nullable
     @Override
-    public String getChildMods() {
-        ModMetadata metadata = this.getMetadata();
-        return metadata != null ? metadata.getChildModList() : null;
+    public String getChildModNames() {
+        return this.metadata != null ? this.metadata.getChildModList() : null;
+    }
+
+    @Nullable
+    @Override
+    public String getParentModName() {
+        return this.metadata != null && this.metadata.parentMod != null ? this.metadata.parentMod.getName() : null;
     }
 
     @Nullable
@@ -151,20 +147,22 @@ public class ForgeModData implements IModData {
         return null;
     }
 
+    @Nonnull
     @Override
     public Set<String> getDependencies() {
         return this.dependencies;
+    }
+
+    @Nonnull
+    @Override
+    public Set<String> getChildMods() {
+        return this.childMods;
     }
 
     @Override
     public boolean hasConfig() {
         IModGuiFactory guiFactory = FMLClientHandler.instance().getGuiFactoryFor(this.info);
         return guiFactory != null && guiFactory.mainConfigGuiClass() != null;
-    }
-
-    @Override
-    public boolean isLibrary() {
-        return this.info.getModId().equals("forge") || this.type != Type.DEFAULT;
     }
 
     @Override
@@ -201,25 +199,30 @@ public class ForgeModData implements IModData {
         return FMLClientHandler.instance().getResourcePackFor(this.getModId());
     }
 
-    @Nullable
-    private ModMetadata getMetadata() {
-        ModMetadata metadata = this.info.getMetadata();
-        return metadata != null && !metadata.autogenerated ? metadata : null;
-    }
-
     private Type analyzeType(@Nonnull ModContainer info) {
-        if (LIB_MODS.contains(info.getModId())) {
+        if (this.metadata != null && this.metadata.parentMod != null) {
+            return Type.CHILD;
+        } else if (LIB_MODS.contains(info.getModId())) {
             return Type.LIBRARY;
         } else {
             return Type.DEFAULT;
         }
     }
 
-    private Set<String> analyzeDependencies(@Nonnull ModContainer source) {
+    private static @Nonnull Set<String> analyzeDependencies(@Nonnull ModContainer source) {
         List<? extends ArtifactVersion> versions = source.getDependencies();
         return versions.stream()
             .map(ArtifactVersion::getLabel)
             .filter(modid -> !IGNORED_DEPENDENCIES.contains(modid))
             .collect(Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
+    }
+
+    private static @Nonnull Set<String> analyzeChildMods(@Nonnull ModContainer source) {
+        ModMetadata metadata = source.getMetadata();
+        if (metadata == null) return Collections.emptySet();
+        return metadata.childMods.stream()
+            .filter(Objects::nonNull)
+            .map(ModContainer::getModId)
+            .collect(Collectors.toSet());
     }
 }

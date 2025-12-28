@@ -6,6 +6,7 @@ import net.minecraft.client.gui.GuiOptions;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.resources.IResourcePack;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Set;
@@ -102,7 +103,13 @@ public class MinecraftModData implements IModData {
 
     @Nullable
     @Override
-    public String getChildMods() {
+    public String getChildModNames() {
+        return null;
+    }
+
+    @Nullable
+    @Override
+    public String getParentModName() {
         return null;
     }
 
@@ -118,18 +125,20 @@ public class MinecraftModData implements IModData {
         return null;
     }
 
+    @Nonnull
     @Override
     public Set<String> getDependencies() {
         return Collections.emptySet();
     }
 
+    @Nonnull
     @Override
-    public boolean hasConfig() {
-        return true;
+    public Set<String> getChildMods() {
+        return Collections.emptySet();
     }
 
     @Override
-    public boolean isLibrary() {
+    public boolean hasConfig() {
         return true;
     }
 

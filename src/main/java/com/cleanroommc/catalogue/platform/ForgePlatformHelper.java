@@ -9,10 +9,12 @@ import com.google.common.base.Strings;
 import cpw.mods.fml.client.FMLClientHandler;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.ModContainer;
+import cpw.mods.fml.common.ModMetadata;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiVideoSettings;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -31,36 +33,34 @@ public class ForgePlatformHelper implements IPlatformHelper {
 
     @Override
     public List<IModData> getAllModData() {
-        List<IModData> dataList = new ArrayList<>();
-        // Handle special containers
+        List<ModContainer> containerList = Loader.instance().getActiveModList();
+
+        // Add special mod containers
         ArrayList<ModContainer> specialContainerList = new ArrayList<>();
         FMLClientHandler.instance().addSpecialModEntries(specialContainerList);
-        specialContainerList.removeIf(modContainer -> {
+        containerList.addAll(specialContainerList);
+
+        // Add child mods to metadata
+        for (ModContainer container : containerList) {
+            if (container == null) continue;
+            ModMetadata metadata = container.getMetadata();
+            if (metadata != null && metadata.parentMod == null && !Strings.isNullOrEmpty(metadata.parent)) {
+                ModContainer parentContainer = Loader.instance().getIndexedModList().get(metadata.parent);
+                if (parentContainer != null) {
+                    metadata.parentMod = parentContainer;
+                    parentContainer.getMetadata().childMods.add(container);
+                }
+            }
+        }
+
+        List<IModData> dataList = new ArrayList<>();
+        containerList.removeIf(modContainer -> {
             if (modContainer.getModId().equals("optifine")) {
                 dataList.add(new OFData(modContainer));
                 return true;
             }
             return false;
         });
-
-        // Handle normal containers
-        List<ModContainer> containerList = new ArrayList<>();
-        for (ModContainer mod : Loader.instance().getActiveModList()) {
-            if (mod.getMetadata() != null && mod.getMetadata().parentMod == null && !Strings.isNullOrEmpty(mod.getMetadata().parent)) {
-                String parentMod = mod.getMetadata().parent;
-                ModContainer parentContainer = Loader.instance().getIndexedModList().get(parentMod);
-                if (parentContainer != null) {
-                    mod.getMetadata().parentMod = parentContainer;
-                    parentContainer.getMetadata().childMods.add(mod);
-                    continue;
-                }
-            } else if (mod.getMetadata() != null && mod.getMetadata().parentMod != null) {
-                continue;
-            }
-            containerList.add(mod);
-        }
-
-        containerList.addAll(specialContainerList);
         dataList.addAll(containerList.stream().map(ForgeModData::new).collect(Collectors.toList()));
         return dataList;
     }
@@ -107,14 +107,21 @@ public class ForgePlatformHelper implements IPlatformHelper {
     }
 
     private static class OFData extends ForgeModData {
+        private final String version;
+
         private OFData(ModContainer info) {
             super(info);
+            this.version = this.getDisplayVersion();
+        }
+
+        private @Nonnull String getDisplayVersion() {
+            String version = this.getInnerVersion();
+            return version.substring(version.indexOf("OptiFine_1.7.10_") + 16);
         }
 
         @Override
         public String getVersion() {
-            String version = this.getInnerVersion();
-            return version.substring(version.indexOf("OptiFine_1.12.2_") + 16);
+            return this.version;
         }
 
         @Nullable

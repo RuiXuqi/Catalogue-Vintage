@@ -7,6 +7,7 @@ import net.minecraft.client.resources.IResourcePack;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.ResourceLocation;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Set;
 
@@ -55,7 +56,10 @@ public interface IModData {
     String getBackground();
 
     @Nullable
-    String getChildMods();
+    String getChildModNames();
+
+    @Nullable
+    String getParentModName();
 
     @Nullable
     Update getUpdate();
@@ -63,11 +67,13 @@ public interface IModData {
     @Nullable
     IResourcePack getResourcePack();
 
+    @Nonnull
     Set<String> getDependencies(); //TODO lazily
 
-    boolean hasConfig();
+    @Nonnull
+    Set<String> getChildMods();
 
-    boolean isLibrary();
+    boolean hasConfig();
 
     void openConfigScreen(Minecraft minecraft, GuiScreen parent);
 
@@ -84,7 +90,7 @@ public interface IModData {
     enum Type {
         DEFAULT(EnumChatFormatting.RESET),
         LIBRARY(EnumChatFormatting.DARK_GRAY),
-        GENERATED(EnumChatFormatting.AQUA);
+        CHILD(EnumChatFormatting.AQUA);
 
         private final EnumChatFormatting style;
 

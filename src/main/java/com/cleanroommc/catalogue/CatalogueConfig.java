@@ -9,7 +9,6 @@ public class CatalogueConfig {
 
     public static boolean enableMod = true;
     public static String[] libraryList = new String[]{
-        "minecraft",
         "Forge",
         "FML",
         "mcp",
