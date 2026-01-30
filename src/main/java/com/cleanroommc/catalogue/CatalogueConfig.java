@@ -12,11 +12,11 @@ import org.jetbrains.annotations.NotNull;
 public class CatalogueConfig {
 
     @Config.Comment({
-            "Whether enable Catalogue mod.",
+            "Whether enable Catalogue.",
             "Setting it false will stop Catalogue redirecting Forge's mod list calls."
     })
-    @Config.LangKey("catalogue.config.enable_mod")
-    public static boolean enableMod = true;
+    @Config.LangKey("catalogue.config.enable")
+    public static boolean enable = true;
 
     @Config.RequiresMcRestart
     @Config.Comment({
@@ -32,7 +32,10 @@ public class CatalogueConfig {
             "configanytime",
             "mixinbooter",
             "fugue",
-            "scalar"
+            "scalar",
+            "kirino_ecs",
+            "kirino_engine",
+            "kirino_gl"
     };
 
     @Config.RequiresMcRestart
