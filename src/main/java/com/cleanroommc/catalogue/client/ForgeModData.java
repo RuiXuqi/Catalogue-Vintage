@@ -223,6 +223,6 @@ public class ForgeModData implements IModData {
         return metadata.childMods.stream()
                 .filter(Objects::nonNull)
                 .map(ModContainer::getModId)
-                .collect(Collectors.toSet());
+                .collect(Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
     }
 }
