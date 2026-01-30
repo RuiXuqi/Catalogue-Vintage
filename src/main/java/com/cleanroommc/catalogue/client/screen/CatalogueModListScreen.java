@@ -371,7 +371,10 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         // Version check button
         if (this.selectedModData != null) {
             int contentLeft = this.modList.right + 12 + 10;
-            String version = I18n.format("catalogue.gui.version", this.selectedModData.getVersion());
+            String displayVersion = this.selectedModData.getVersion();
+            String innerVersion = this.selectedModData.getInnerVersion();
+            boolean useInnerAsMain = displayVersion.trim().isEmpty() && !innerVersion.trim().isEmpty();
+            String version = I18n.format(useInnerAsMain ? "catalogue.gui.inner_version" : "catalogue.gui.version", useInnerAsMain ? innerVersion : displayVersion);
             int versionWidth = this.fontRenderer.getStringWidth(version);
             if (ClientHelper.isMouseWithin(contentLeft + versionWidth + 5, 92, 8, 8, mouseX, mouseY)) {
                 IModData.Update update = this.selectedModData.getUpdate();
@@ -922,12 +925,15 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
 
             // Draw version
             String displayVersion = this.selectedModData.getVersion();
-            this.drawStringWithLabel("catalogue.gui.version", displayVersion, contentLeft, 92, contentWidth, mouseX, mouseY, TextFormatting.GRAY, TextFormatting.WHITE);
-
-            // Draw inner version if the display version is different from it
-            int versionWidth = this.fontRenderer.getStringWidth(I18n.format("catalogue.gui.version", displayVersion));
             String innerVersion = this.selectedModData.getInnerVersion();
-            if (!displayVersion.equals(innerVersion) && ClientHelper.isMouseWithin(contentLeft, 92, versionWidth, this.fontRenderer.FONT_HEIGHT, mouseX, mouseY)) {
+            boolean useInnerAsMain = displayVersion.trim().isEmpty() && !innerVersion.trim().isEmpty();
+            String drawKey = useInnerAsMain ? "catalogue.gui.inner_version" : "catalogue.gui.version";
+            String drawVersion = useInnerAsMain ? innerVersion : displayVersion;
+            this.drawStringWithLabel(drawKey, drawVersion, contentLeft, 92, contentWidth, mouseX, mouseY, TextFormatting.GRAY, TextFormatting.WHITE);
+            int versionWidth = this.fontRenderer.getStringWidth(I18n.format(drawKey, drawVersion));
+
+            // Draw inner version tool tip if the display version is different from it
+            if (!useInnerAsMain && !displayVersion.equals(innerVersion) && !innerVersion.trim().isEmpty() && ClientHelper.isMouseWithin(contentLeft, 92, versionWidth, this.fontRenderer.FONT_HEIGHT, mouseX, mouseY)) {
                 this.setActiveTooltip(I18n.format("catalogue.gui.inner_version", innerVersion));
             }
 
