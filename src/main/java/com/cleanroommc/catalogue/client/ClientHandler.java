@@ -19,7 +19,7 @@ import java.lang.reflect.Field;
 public class ClientHandler {
     @SubscribeEvent
     public void onOpenScreen(@Nonnull GuiOpenEvent event) {
-        if (!CatalogueConfig.enableMod) return;
+        if (!CatalogueConfig.enable) return;
         if (event.gui instanceof GuiModList screen) {
             GuiScreen parent;
             try {

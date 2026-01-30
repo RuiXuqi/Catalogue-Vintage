@@ -7,7 +7,7 @@ import java.io.File;
 public class CatalogueConfig {
     private static Configuration config;
 
-    public static boolean enableMod = true;
+    public static boolean enable = true;
     public static String[] libraryList = new String[]{
             "Forge",
             "FML",
@@ -38,12 +38,12 @@ public class CatalogueConfig {
     }
 
     public static void syncConfig() {
-        enableMod = config.get(
+        enable = config.get(
                         Configuration.CATEGORY_GENERAL,
-                        "enableMod",
-                        enableMod,
-                        "Whether enable Catalogue mod. \nSetting it false will stop Catalogue redirecting Forge's mod list calls."
-                ).setLanguageKey("catalogue.config.enable_mod")
+                        "enable",
+                        enable,
+                        "Whether enable Catalogue. \nSetting it false will stop Catalogue redirecting Forge's mod list calls."
+                ).setLanguageKey("catalogue.config.enable")
                 .getBoolean();
 
         libraryList = config.get(
