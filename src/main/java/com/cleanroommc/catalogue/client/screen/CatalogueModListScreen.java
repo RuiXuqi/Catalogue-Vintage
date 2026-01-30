@@ -1080,7 +1080,8 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         String formatted = labelColor + I18n.format(format, contentColor + text);
         if (this.fontRendererObj.getStringWidth(formatted) > maxWidth) {
             formatted = this.fontRendererObj.trimStringToWidth(formatted, maxWidth - 7) + "...";
-            if (ClientHelper.isMouseWithin(x, y, maxWidth, 9, mouseX, mouseY)) { // Sets the active tool tip if string is too long so users can still read it
+            // Sets the active tool tip if string is too long so users can still read it
+            if (ClientHelper.isMouseWithin(x, y, maxWidth, 9, mouseX, mouseY)) {
                 this.setActiveTooltip(text);
             }
         }
