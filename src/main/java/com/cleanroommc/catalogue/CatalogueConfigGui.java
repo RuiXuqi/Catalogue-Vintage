@@ -9,11 +9,11 @@ public class CatalogueConfigGui extends GuiConfig {
     public CatalogueConfigGui(GuiScreen parent) {
         //noinspection unchecked,rawtypes
         super(
-            parent,
-            new ConfigElement(CatalogueConfig.getConfig().getCategory(Configuration.CATEGORY_GENERAL)).getChildElements(),
-            CatalogueConstants.MOD_ID,
-            false, false,
-            CatalogueConstants.MOD_NAME
+                parent,
+                new ConfigElement(CatalogueConfig.getConfig().getCategory(Configuration.CATEGORY_GENERAL)).getChildElements(),
+                CatalogueConstants.MOD_ID,
+                false, false,
+                CatalogueConstants.MOD_NAME
         );
     }
 }

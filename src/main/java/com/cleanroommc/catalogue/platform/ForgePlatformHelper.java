@@ -129,9 +129,9 @@ public class ForgePlatformHelper implements IPlatformHelper {
         public String getDescription() {
             // Copied from https://www.optifine.net/home
             return """
-                OptiFine is a Minecraft optimization mod.
-                It allows Minecraft to run faster and look better with full support for HD textures and many configuration options.
-                """;
+                    OptiFine is a Minecraft optimization mod.
+                    It allows Minecraft to run faster and look better with full support for HD textures and many configuration options.
+                    """;
         }
 
         @Nullable

@@ -32,7 +32,7 @@ import java.util.function.Function;
 public class DropdownMenu extends Gui implements LayoutElement {
     private final DropdownMenuHandler handler;
     private final BorderedLinearLayout layout = (BorderedLinearLayout)
-        BorderedLinearLayout.vertical().border(1).spacing(1);
+            BorderedLinearLayout.vertical().border(1).spacing(1);
     private final List<MenuItem> items = new ArrayList<>();
     private Alignment alignment = Alignment.BELOW_LEFT;
     private @Nullable DropdownMenu parent;
@@ -146,8 +146,8 @@ public class DropdownMenu extends Gui implements LayoutElement {
 
     public static class MenuItem extends Gui implements LayoutElement {
         static final WidgetSprites SPRITES = new WidgetSprites(
-            Utils.withDefaultNamespace("dropdown/item"),
-            Utils.withDefaultNamespace("dropdown/item_highlighted")
+                Utils.withDefaultNamespace("dropdown/item"),
+                Utils.withDefaultNamespace("dropdown/item_highlighted")
         );
         protected final DropdownMenu parent;
         private final Runnable onClick;

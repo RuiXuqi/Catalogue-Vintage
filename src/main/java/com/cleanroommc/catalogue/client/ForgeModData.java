@@ -212,17 +212,17 @@ public class ForgeModData implements IModData {
     private static @Nonnull Set<String> analyzeDependencies(@Nonnull ModContainer source) {
         List<? extends ArtifactVersion> versions = source.getDependencies();
         return versions.stream()
-            .map(ArtifactVersion::getLabel)
-            .filter(modid -> !IGNORED_DEPENDENCIES.contains(modid))
-            .collect(Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
+                .map(ArtifactVersion::getLabel)
+                .filter(modid -> !IGNORED_DEPENDENCIES.contains(modid))
+                .collect(Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
     }
 
     private static @Nonnull Set<String> analyzeChildMods(@Nonnull ModContainer source) {
         ModMetadata metadata = source.getMetadata();
         if (metadata == null) return Collections.emptySet();
         return metadata.childMods.stream()
-            .filter(Objects::nonNull)
-            .map(ModContainer::getModId)
-            .collect(Collectors.toSet());
+                .filter(Objects::nonNull)
+                .map(ModContainer::getModId)
+                .collect(Collectors.toSet());
     }
 }

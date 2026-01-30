@@ -85,20 +85,20 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         return Pair.of(counts[0], counts[1]);
     });
     private static final Map<String, SearchFilter> SEARCH_FILTERS = ImmutableMap.<String, SearchFilter>builder()
-        .put("dependencies", new SearchFilter((query, data) -> {
-            IModData target = CACHED_MODS.get(query.toLowerCase(Locale.ENGLISH));
-            return target != null && target.getDependencies().contains(data.getModId());
-        }))
-        .put("dependents", new SearchFilter((query, data) -> {
-            return data.getDependencies().stream().anyMatch(query::equalsIgnoreCase);
-        }))
-        .put("childmods", new SearchFilter((query, data) -> {
-            IModData target = CACHED_MODS.get(query.toLowerCase(Locale.ENGLISH));
-            return target != null && target.getChildMods().contains(data.getModId());
-        }))
-        .put("parentmod", new SearchFilter((query, data) -> {
-            return data.getChildMods().stream().anyMatch(query::equalsIgnoreCase);
-        })).build();
+            .put("dependencies", new SearchFilter((query, data) -> {
+                IModData target = CACHED_MODS.get(query.toLowerCase(Locale.ENGLISH));
+                return target != null && target.getDependencies().contains(data.getModId());
+            }))
+            .put("dependents", new SearchFilter((query, data) -> {
+                return data.getDependencies().stream().anyMatch(query::equalsIgnoreCase);
+            }))
+            .put("childmods", new SearchFilter((query, data) -> {
+                IModData target = CACHED_MODS.get(query.toLowerCase(Locale.ENGLISH));
+                return target != null && target.getChildMods().contains(data.getModId());
+            }))
+            .put("parentmod", new SearchFilter((query, data) -> {
+                return data.getChildMods().stream().anyMatch(query::equalsIgnoreCase);
+            })).build();
     private static final EnumChatFormatting SEARCH_FILTER_KEY = EnumChatFormatting.GOLD;
     private static final EnumChatFormatting SEARCH_FILTER_VALUE = EnumChatFormatting.WHITE;
     private static @Nullable ImageInfo cachedBackground;
@@ -238,46 +238,46 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                 break;
             case 6:
                 DropdownMenu menu = DropdownMenu.builder(this)
-                    .setMinItemSize(100, 16)
-                    .setAlignment(DropdownMenu.Alignment.BELOW_RIGHT)
-                    .addMenu(I18n.format("catalogue.gui.filters"), DropdownMenu.builder(this)
-                        .setMinItemSize(60, 16)
-                        .setAlignment(DropdownMenu.Alignment.END_TOP)
-                        .addCheckbox(I18n.format("catalogue.gui.filters.configs_only"), OPTION_CONFIGS_ONLY, newValue -> {
-                            this.modList.filterAndUpdateList();
-                            return false;
-                        })
+                        .setMinItemSize(100, 16)
+                        .setAlignment(DropdownMenu.Alignment.BELOW_RIGHT)
+                        .addMenu(I18n.format("catalogue.gui.filters"), DropdownMenu.builder(this)
+                                .setMinItemSize(60, 16)
+                                .setAlignment(DropdownMenu.Alignment.END_TOP)
+                                .addCheckbox(I18n.format("catalogue.gui.filters.configs_only"), OPTION_CONFIGS_ONLY, newValue -> {
+                                    this.modList.filterAndUpdateList();
+                                    return false;
+                                })
 //                        .addCheckbox(I18n.format("catalogue.gui.filters.updates_only"), OPTION_UPDATES_ONLY, newValue -> {
 //                            this.modList.filterAndUpdateList();
 //                            return false;
 //                        })
-                        .addCheckbox(I18n.format("catalogue.gui.filters.favourites"), OPTION_FAVOURITES_ONLY, newValue -> {
+                                .addCheckbox(I18n.format("catalogue.gui.filters.favourites"), OPTION_FAVOURITES_ONLY, newValue -> {
+                                    this.modList.filterAndUpdateList();
+                                    return false;
+                                }))
+                        .addMenu(I18n.format("catalogue.gui.sort"), DropdownMenu.builder(this)
+                                .setMinItemSize(60, 16)
+                                .setAlignment(DropdownMenu.Alignment.END_TOP)
+                                .addItem(I18n.format("catalogue.gui.sort.alphabetically"), () -> {
+                                    OPTION_SORT.setValue(SORT_ALPHABETICALLY);
+                                    this.modList.filterAndUpdateList();
+                                })
+                                .addItem(I18n.format("catalogue.gui.sort.alphabetically_reverse"), () -> {
+                                    OPTION_SORT.setValue(SORT_ALPHABETICALLY_REVERSED);
+                                    this.modList.filterAndUpdateList();
+                                })
+                                .addItem(I18n.format("catalogue.gui.sort.favourites_first"), () -> {
+                                    OPTION_SORT.setValue(SORT_FAVOURITES_FIRST);
+                                    this.modList.filterAndUpdateList();
+                                }))
+                        .addCheckbox(I18n.format("catalogue.gui.hide_libraries"), OPTION_HIDE_LIBRARIES, newValue -> {
                             this.modList.filterAndUpdateList();
                             return false;
-                        }))
-                    .addMenu(I18n.format("catalogue.gui.sort"), DropdownMenu.builder(this)
-                        .setMinItemSize(60, 16)
-                        .setAlignment(DropdownMenu.Alignment.END_TOP)
-                        .addItem(I18n.format("catalogue.gui.sort.alphabetically"), () -> {
-                            OPTION_SORT.setValue(SORT_ALPHABETICALLY);
-                            this.modList.filterAndUpdateList();
                         })
-                        .addItem(I18n.format("catalogue.gui.sort.alphabetically_reverse"), () -> {
-                            OPTION_SORT.setValue(SORT_ALPHABETICALLY_REVERSED);
+                        .addCheckbox(I18n.format("catalogue.gui.hide_child_mods"), OPTION_HIDE_CHILD_MODS, newValue -> {
                             this.modList.filterAndUpdateList();
-                        })
-                        .addItem(I18n.format("catalogue.gui.sort.favourites_first"), () -> {
-                            OPTION_SORT.setValue(SORT_FAVOURITES_FIRST);
-                            this.modList.filterAndUpdateList();
-                        }))
-                    .addCheckbox(I18n.format("catalogue.gui.hide_libraries"), OPTION_HIDE_LIBRARIES, newValue -> {
-                        this.modList.filterAndUpdateList();
-                        return false;
-                    })
-                    .addCheckbox(I18n.format("catalogue.gui.hide_child_mods"), OPTION_HIDE_CHILD_MODS, newValue -> {
-                        this.modList.filterAndUpdateList();
-                        return false;
-                    }).build();
+                            return false;
+                        }).build();
                 menu.toggle(button);
                 break;
             default:
@@ -462,8 +462,8 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         int countLabelWidth = this.fontRendererObj.getStringWidth(countLabel);
         if (ClientHelper.isMouseWithin(titleLeft + titleWidth - countLabelWidth, 10, countLabelWidth, this.fontRendererObj.FONT_HEIGHT, mouseX, mouseY)) {
             List<String> lines = Arrays.asList(
-                I18n.format("catalogue.gui.mod_count", modCount),
-                I18n.format("catalogue.gui.library_count", libCount)
+                    I18n.format("catalogue.gui.mod_count", modCount),
+                    I18n.format("catalogue.gui.library_count", libCount)
             );
             this.setActiveTooltip(lines);
             this.tooltipYOffset = 10;
@@ -477,8 +477,8 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                 return performSearchFilter(query, data);
             }
             return data.getDisplayName()
-                .toLowerCase(Locale.ENGLISH)
-                .contains(query.toLowerCase(Locale.ENGLISH));
+                    .toLowerCase(Locale.ENGLISH)
+                    .contains(query.toLowerCase(Locale.ENGLISH));
         };
         private static final Predicate<IModData> FILTER_PREDICATE = data -> {
             // We ignore filters when using special query
@@ -523,11 +523,11 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
 
         public void filterAndUpdateList() {
             List<ModListEntry> entries = CACHED_MODS.values().stream()
-                .filter(SEARCH_PREDICATE)
-                .filter(FILTER_PREDICATE)
-                .map(data -> new ModListEntry(data, this))
-                .sorted(OPTION_SORT.getValue())
-                .collect(Collectors.toList());
+                    .filter(SEARCH_PREDICATE)
+                    .filter(FILTER_PREDICATE)
+                    .map(data -> new ModListEntry(data, this))
+                    .sorted(OPTION_SORT.getValue())
+                    .collect(Collectors.toList());
             this.replaceEntries(entries);
             if (CatalogueModListScreen.this.selectedModData != null) {
                 Optional<ModListEntry> selectedEntry = this.children().stream().filter(entry -> entry.data == CatalogueModListScreen.this.selectedModData).findFirst();
@@ -616,7 +616,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         }
 
         return SEARCH_FILTER_KEY + partial.substring(0, split + 1) +
-            SEARCH_FILTER_VALUE + partial.substring(split + 1) + EnumChatFormatting.RESET;
+                SEARCH_FILTER_VALUE + partial.substring(split + 1) + EnumChatFormatting.RESET;
     }
 
     private class ModListEntry implements CatalogueListExtended.IListEntry {
@@ -658,8 +658,8 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                 this.button.drawButton(CatalogueModListScreen.this.mc, mouseX, mouseY);
                 if (!inOptionsMenu && this.button.isMouseOver()) {
                     String label = !FAVOURITES.has(this.data.getModId()) ?
-                        I18n.format("catalogue.gui.favourite") :
-                        I18n.format("catalogue.gui.remove_favourite");
+                            I18n.format("catalogue.gui.favourite") :
+                            I18n.format("catalogue.gui.remove_favourite");
                     CatalogueModListScreen.this.setActiveTooltip(label);
                 }
             }
@@ -744,21 +744,21 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             // If the mod has a creative tab, Catalogue will attempt to use the tab's icon
             String prefix = this.data.getModId() + ":";
             ItemStack foundStack = Arrays.stream(CreativeTabs.creativeTabArray)
-                .filter(Objects::nonNull)
-                .map(tab -> {
-                    try {
-                        return tab.getIconItemStack();
-                    } catch (Exception e) {
-                        CatalogueConstants.LOG.debug("Failed to get creative tab icon for mod '{}'", this.data.getModId(), e);
-                        return null;
-                    }
-                })
-                .filter(tabItem -> tabItem != null && tabItem.getItem() != null)
-                .filter(tabItem -> {
-                    String resourceName = GameData.getItemRegistry().getNameForObject(tabItem.getItem());
-                    return resourceName != null && resourceName.startsWith(prefix);
-                })
-                .findFirst().orElse(null);
+                    .filter(Objects::nonNull)
+                    .map(tab -> {
+                        try {
+                            return tab.getIconItemStack();
+                        } catch (Exception e) {
+                            CatalogueConstants.LOG.debug("Failed to get creative tab icon for mod '{}'", this.data.getModId(), e);
+                            return null;
+                        }
+                    })
+                    .filter(tabItem -> tabItem != null && tabItem.getItem() != null)
+                    .filter(tabItem -> {
+                        String resourceName = GameData.getItemRegistry().getNameForObject(tabItem.getItem());
+                        return resourceName != null && resourceName.startsWith(prefix);
+                    })
+                    .findFirst().orElse(null);
 
             // If the mod doesn't specify an item to use, Catalogue will attempt to get an item from the mod
             if (foundStack == null) {
@@ -817,22 +817,22 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         public boolean mousePressed(int slotIndex, int mouseX, int mouseY, int mouseButton, int relativeX, int relativeY) {
             if (mouseButton == 1) {
                 DropdownMenu.Builder builder = DropdownMenu.builder(CatalogueModListScreen.this)
-                    .setMinItemSize(0, 16)
-                    .setAlignment(DropdownMenu.Alignment.BELOW_LEFT)
-                    .addItem(I18n.format("catalogue.gui.show_dependencies"), () -> {
-                        String filter = "@dependencies:" + this.data.getModId();
-                        CatalogueModListScreen.this.searchTextField.setText(filter);
-                    })
-                    .addItem(I18n.format("catalogue.gui.show_dependents"), () -> {
-                        String filter = "@dependents:" + this.data.getModId();
-                        CatalogueModListScreen.this.searchTextField.setText(filter);
-                    });
+                        .setMinItemSize(0, 16)
+                        .setAlignment(DropdownMenu.Alignment.BELOW_LEFT)
+                        .addItem(I18n.format("catalogue.gui.show_dependencies"), () -> {
+                            String filter = "@dependencies:" + this.data.getModId();
+                            CatalogueModListScreen.this.searchTextField.setText(filter);
+                        })
+                        .addItem(I18n.format("catalogue.gui.show_dependents"), () -> {
+                            String filter = "@dependents:" + this.data.getModId();
+                            CatalogueModListScreen.this.searchTextField.setText(filter);
+                        });
                 if (this.data.getType() == IModData.Type.CHILD) {
                     builder.addItem(I18n.format("catalogue.gui.show_parent_mod"), () -> {
                         String filter = "@parentmod:" + this.data.getModId();
                         CatalogueModListScreen.this.searchTextField.setText(filter);
                     });
-                } else if (!this.data.getChildMods().isEmpty()){
+                } else if (!this.data.getChildMods().isEmpty()) {
                     builder.addItem(I18n.format("catalogue.gui.show_child_mods"), () -> {
                         String filter = "@childmods:" + this.data.getModId();
                         CatalogueModListScreen.this.searchTextField.setText(filter);
@@ -1329,7 +1329,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         try {
             URI uri = new URI(url);
             if (!GuiChat.field_152175_f.contains(
-                uri.getScheme().toLowerCase())) {
+                    uri.getScheme().toLowerCase())) {
                 throw new URISyntaxException(url, "Unsupported protocol: " + uri.getScheme().toLowerCase());
             }
             if (this.mc.gameSettings.chatLinksPrompt) {
