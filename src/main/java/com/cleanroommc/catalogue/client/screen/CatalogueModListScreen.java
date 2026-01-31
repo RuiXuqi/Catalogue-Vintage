@@ -164,7 +164,6 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         this.searchTextField.setResponder(s -> {
             if (!OPTION_QUERY.getValue().equals(s)) {
                 OPTION_QUERY.setValue(s);
-                this.updateSearchFieldSuggestion(s);
                 this.modList.filterAndUpdateList();
             }
         });
@@ -203,7 +202,6 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                 this.modList.centerScrollOn(entry);
             }
         }
-        this.updateSearchFieldSuggestion(this.searchTextField.getText());
     }
 
     @Override
@@ -526,6 +524,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                 Optional<ModListEntry> selectedEntry = this.children().stream().filter(entry -> entry.data == CatalogueModListScreen.this.selectedModData).findFirst();
                 selectedEntry.ifPresent(this::setSelected);
             }
+            CatalogueModListScreen.this.updateSearchFieldSuggestion(CatalogueModListScreen.this.searchTextField.getText());
             this.clampAmountScrolled();
         }
 
