@@ -523,7 +523,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                 Optional<ModListEntry> selectedEntry = this.children().stream().filter(entry -> entry.data == CatalogueModListScreen.this.selectedModData).findFirst();
                 selectedEntry.ifPresent(this::setSelected);
             }
-            CatalogueModListScreen.this.updateSearchFieldSuggestion(CatalogueModListScreen.this.searchTextField.getText());
+            CatalogueModListScreen.this.updateSearchFieldSuggestion();
             this.clampAmountScrolled();
         }
 
@@ -1272,7 +1272,8 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         return count;
     }
 
-    private void updateSearchFieldSuggestion(@Nonnull String value) {
+    private void updateSearchFieldSuggestion() {
+        String value = this.searchTextField.getText();
         if (value.isEmpty()) {
             this.searchTextField.setSuggestion(I18n.format("catalogue.gui.search") + "...");
         } else if (value.startsWith("@")) {
