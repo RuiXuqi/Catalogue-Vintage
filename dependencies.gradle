@@ -35,5 +35,5 @@
  */
 dependencies {
     runtimeOnlyNonPublishable("com.github.GTNewHorizons:NotEnoughItems:2.8.40-GTNH:dev")
-    runtimeOnlyNonPublishable(rfg.deobf(files("libs/IronChest-6.1.6.jar")))
+    runtimeOnlyNonPublishable("com.github.GTNewHorizons:ironchest:6.1.7:dev")
 }
