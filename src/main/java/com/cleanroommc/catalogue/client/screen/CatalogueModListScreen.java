@@ -735,7 +735,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
 
             // If the mod has a creative tab, Catalogue will attempt to use the tab's icon
             String prefix = this.data.getModId() + ":";
-            ItemStack foundStack = Arrays.stream(CreativeTabs.creativeTabArray)
+            Optional<ItemStack> optional = Arrays.stream(CreativeTabs.creativeTabArray)
                     .filter(Objects::nonNull)
                     .map(tab -> {
                         try {
@@ -750,24 +750,27 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                         String resourceName = GameData.getItemRegistry().getNameForObject(tabItem.getItem());
                         return resourceName != null && resourceName.startsWith(prefix);
                     })
-                    .findFirst().orElse(null);
+                    .findFirst();
 
             // If the mod doesn't specify an item to use, Catalogue will attempt to get an item from the mod
-            if (foundStack == null) {
+            if (!optional.isPresent()) {
                 for (Object o : GameData.getItemRegistry()) {
                     if (o instanceof Item item) {
                         String resourceName = GameData.getItemRegistry().getNameForObject(item);
                         if (resourceName != null && resourceName.startsWith(prefix)) {
-                            foundStack = new ItemStack(item);
+                            optional = Optional.of(new ItemStack(item));
                             break;
                         }
                     }
                 }
             }
 
-            if (foundStack != null && foundStack.getItem() != null) {
-                ITEM_ICON_CACHE.put(this.data.getModId(), foundStack);
-                return foundStack;
+            if (optional.isPresent()) {
+                ItemStack item = optional.get();
+                if (item.getItem() != null) {
+                    ITEM_ICON_CACHE.put(this.data.getModId(), item);
+                    return item;
+                }
             }
 
             return new ItemStack(Blocks.grass);
