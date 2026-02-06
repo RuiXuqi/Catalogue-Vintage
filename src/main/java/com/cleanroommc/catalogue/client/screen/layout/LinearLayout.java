@@ -1,6 +1,5 @@
 package com.cleanroommc.catalogue.client.screen.layout;
 
-import com.cleanroommc.catalogue.Utils;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
