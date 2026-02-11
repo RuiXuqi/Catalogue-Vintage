@@ -48,8 +48,8 @@ public class Divisor implements PrimitiveIterator.OfInt {
     public int skip(int n) {
         if (n < 0) throw new IllegalArgumentException("Argument must be nonnegative: " + n);
         int i = 0;
-        while (i < n && hasNext()) {
-            nextInt();
+        while (i < n && this.hasNext()) {
+            this.nextInt();
             i++;
         }
         return i;

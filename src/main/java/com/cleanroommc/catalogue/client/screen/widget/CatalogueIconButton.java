@@ -51,7 +51,7 @@ public class CatalogueIconButton extends CatalogueTextButton {
             GL11.glColor4f(brightness, brightness, brightness, 1.0F);
             ClientHelper.drawModalRectWithCustomSizedTexture(iconX, iconY, this.u, this.v, 10, 10, 64, 64);
             GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-            drawString(fontrenderer, this.label, iconX + 14, iconY + 1, this.getFGColor());
+            this.drawString(fontrenderer, this.label, iconX + 14, iconY + 1, this.getFGColor());
         }
     }
 }

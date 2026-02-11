@@ -77,7 +77,7 @@ public class ForgePlatformHelper implements IPlatformHelper {
 
     @Override
     public BufferedImage loadImageFromModResource(String modid, String resource) throws IOException {
-        InputStream is = getClass().getResourceAsStream(resource);
+        InputStream is = this.getClass().getResourceAsStream(resource);
         return is != null ? ImageIO.read(is) : null;
     }
 
