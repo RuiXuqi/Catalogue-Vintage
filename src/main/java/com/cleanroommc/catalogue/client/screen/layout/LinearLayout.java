@@ -95,7 +95,7 @@ public class LinearLayout implements Layout {
     }
 
     @SideOnly(Side.CLIENT)
-    public static enum Orientation {
+    public enum Orientation {
         HORIZONTAL,
         VERTICAL;
 

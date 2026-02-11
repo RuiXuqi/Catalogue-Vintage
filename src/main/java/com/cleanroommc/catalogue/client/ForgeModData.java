@@ -39,7 +39,7 @@ public class ForgeModData implements IModData {
     public ForgeModData(@Nonnull ModContainer info) {
         this.info = info;
         this.metadata = info.getMetadata();
-        this.type = analyzeType(info);
+        this.type = this.analyzeType(info);
         this.dependencies = analyzeDependencies(info);
         this.childMods = analyzeChildMods(info);
         this.modId = this.info.getModId();
