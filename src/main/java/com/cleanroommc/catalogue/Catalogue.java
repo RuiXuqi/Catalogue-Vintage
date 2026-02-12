@@ -11,7 +11,19 @@ import javax.annotation.Nonnull;
  * Author: MrCrayfish
  */
 @SuppressWarnings("unused")
-@Mod(modid = CatalogueConstants.MOD_ID, name = CatalogueConstants.MOD_NAME, version = Reference.VERSION, acceptableRemoteVersions = "*", guiFactory = "com.cleanroommc.catalogue.CatalogueConfigGuiFactory")
+@Mod(
+        modid = CatalogueConstants.MOD_ID,
+        name = CatalogueConstants.MOD_NAME,
+        version = Reference.VERSION,
+        acceptableRemoteVersions = "*",
+        guiFactory = "com.cleanroommc.catalogue.CatalogueConfigGuiFactory",
+        customProperties = {
+                @Mod.CustomProperty(k = "license", v = "MIT"),
+                @Mod.CustomProperty(k = "issueTrackerUrl", v = "https://github.com/RuiXuqi/Catalogue-Vintage/issues"),
+                @Mod.CustomProperty(k = "iconFile", v = "assets/catalogue/icon.png"),
+                @Mod.CustomProperty(k = "backgroundFile", v = "assets/catalogue/background.png")
+        }
+)
 public class Catalogue {
     @SidedProxy(clientSide = "com.cleanroommc.catalogue.ClientProxy", serverSide = "com.cleanroommc.catalogue.CommonProxy")
     public static CommonProxy proxy;
