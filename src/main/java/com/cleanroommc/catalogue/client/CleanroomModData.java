@@ -80,7 +80,7 @@ public class CleanroomModData implements IModData {
     @Nullable
     @Override
     public String getItemIcon() {
-//        return this.metadata != null ? (this.metadata.iconItem.trim().isEmpty() ?
+//        return this.metadata != null ? (this.metadata.iconItem.isBlank() ?
 //                this.info.getCustomModProperties().get("iconItem") : null) : null;
         return this.info.getCustomModProperties().get("iconItem");
     }
@@ -88,7 +88,7 @@ public class CleanroomModData implements IModData {
     @Nullable
     @Override
     public String getImageIcon() {
-//        return this.metadata != null ? (this.metadata.iconFile.trim().isEmpty() ?
+//        return this.metadata != null ? (this.metadata.iconFile.isBlank() ?
 //                this.info.getCustomModProperties().get("iconFile") : null) : null;
         return this.info.getCustomModProperties().get("iconFile");
     }
@@ -96,7 +96,7 @@ public class CleanroomModData implements IModData {
     @Nullable
     @Override
     public String getLicense() {
-//        return this.metadata != null ? (this.metadata.license.trim().isEmpty() ?
+//        return this.metadata != null ? (this.metadata.license.isBlank() ?
 //                this.info.getCustomModProperties().get("license") : null) : null;
         return this.info.getCustomModProperties().get("license");
     }
@@ -122,7 +122,7 @@ public class CleanroomModData implements IModData {
     @Nullable
     @Override
     public String getIssueTracker() {
-//        return this.metadata != null ? (this.metadata.issueTrackerUrl.trim().isEmpty() ?
+//        return this.metadata != null ? (this.metadata.issueTrackerUrl.isBlank() ?
 //                this.info.getCustomModProperties().get("issueTrackerUrl") : null) : null;
         return this.info.getCustomModProperties().get("issueTrackerUrl");
     }
@@ -136,7 +136,7 @@ public class CleanroomModData implements IModData {
     @Nullable
     @Override
     public String getBackground() {
-//        return this.metadata != null ? (this.metadata.backgroundFile.trim().isEmpty() ?
+//        return this.metadata != null ? (this.metadata.backgroundFile.isBlank() ?
 //                this.info.getCustomModProperties().get("backgroundFile") : null) : null;
         return this.info.getCustomModProperties().get("backgroundFile");
     }
@@ -206,25 +206,25 @@ public class CleanroomModData implements IModData {
     public String getUpdateText(Update update) {
         ForgeVersion.CheckResult result = ForgeVersion.getCleanResult(this.info);
         if (result == null) return null;
-        switch (result.status) {
-            case BETA:
-                return TextFormatting.GOLD + I18n.format("catalogue.gui.beta");
-            case AHEAD:
-                return TextFormatting.LIGHT_PURPLE + I18n.format("catalogue.gui.ahead", update.latestFound());
-            case BETA_OUTDATED:
+        return switch (result.status) {
+            case BETA -> TextFormatting.GOLD + I18n.format("catalogue.gui.beta");
+            case AHEAD -> TextFormatting.LIGHT_PURPLE + I18n.format("catalogue.gui.ahead", update.latestFound());
+            case BETA_OUTDATED -> {
                 if (update.homepage() != null && !update.homepage().isBlank()) {
-                    return TextFormatting.GOLD + I18n.format("catalogue.gui.beta_update_available", update.latestFound(), update.homepage());
+                    yield TextFormatting.GOLD + I18n.format("catalogue.gui.beta_update_available", update.latestFound(), update.homepage());
                 } else {
-                    return TextFormatting.GOLD + I18n.format("catalogue.gui.beta_update_available_no_page", update.latestFound());
+                    yield TextFormatting.GOLD + I18n.format("catalogue.gui.beta_update_available_no_page", update.latestFound());
                 }
-            case OUTDATED:
+            }
+            case OUTDATED -> {
                 if (update.homepage() != null && !update.homepage().isBlank()) {
-                    return TextFormatting.GREEN + I18n.format("catalogue.gui.update_available", update.latestFound(), update.homepage());
+                    yield TextFormatting.GREEN + I18n.format("catalogue.gui.update_available", update.latestFound(), update.homepage());
                 } else {
-                    return TextFormatting.GREEN + I18n.format("catalogue.gui.update_available_no_page", update.latestFound());
+                    yield TextFormatting.GREEN + I18n.format("catalogue.gui.update_available_no_page", update.latestFound());
                 }
-        }
-        return null;
+            }
+            default -> null;
+        };
     }
 
     @Nullable
