@@ -2,7 +2,7 @@
 
 Backport of MrCrayfish's wonderful mod [Catalogue, aka MrCrayfish's Mod List](https://github.com/MrCrayfish/Catalogue) to mc 1.12.2.
 
-![processed_image](https://private-user-images.githubusercontent.com/90179819/497130040-db62091c-797d-48aa-bf1b-f02ade1c8b98.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NjM4MjcwMjksIm5iZiI6MTc2MzgyNjcyOSwicGF0aCI6Ii85MDE3OTgxOS80OTcxMzAwNDAtZGI2MjA5MWMtNzk3ZC00OGFhLWJmMWItZjAyYWRlMWM4Yjk4LnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNTExMjIlMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjUxMTIyVDE1NTIwOVomWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPTEyNGM2NGZkZjgxNDEyZjcyMjZiNmUyOGVmZWEzNTBmM2JlMWY5NjE5ZTMyNWYzMzM0NDJhZjkwZmRhMWRmOGEmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0In0.DtrQ4vib4YKMrMAXzN-e1ziu_MzlKRRJhvWbhS5WKkY)
+![processed_image](https://github.com/user-attachments/assets/db62091c-797d-48aa-bf1b-f02ade1c8b98)
 
 ## Notes
 
@@ -15,6 +15,13 @@ Backport of MrCrayfish's wonderful mod [Catalogue, aka MrCrayfish's Mod List](ht
   - backgroundFile: a string, should point to a 512x256 PNG file. It will be the mod's background.
   - license: a string, will be displayed at the bottom of the mod info page.
   - issueTrackerUrl: a string, should be a link. The "Submit Bug" button will open it when clicked.
+
+  Or if you want to apply them to Catalogue mod, you can use `@Mod.CustomProperty` in `@Mod` annotation.
+  For reference, see [Catalogue.java](src/main/java/com/cleanroommc/catalogue/Catalogue.java).
+
+  Only the new props are available through annotation, and will be overridden by those in mcmod.info in the PR.
+
+  It is completely unnecessary to add Catalogue to your build script.
 
 ![Catalogue Banner](https://github.com/user-attachments/assets/0692aba1-b38f-42b6-b0f5-5f5de278c3e0)
 **Available on:**
