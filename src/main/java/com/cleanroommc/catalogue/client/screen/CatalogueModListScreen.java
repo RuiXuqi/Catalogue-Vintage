@@ -22,6 +22,8 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.init.Blocks;
@@ -680,7 +682,11 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                 CatalogueModListScreen.this.zLevel = 100.0F;
                 CatalogueModListScreen.itemRender.zLevel = 100.0F;
 
+                // This is necessary in 1.7.10 since dispatcherTM is null before joining a world
+                final TextureManager dispatcherTM = TileEntityRendererDispatcher.instance.field_147553_e;
+                TileEntityRendererDispatcher.instance.field_147553_e = CatalogueModListScreen.this.mc.getTextureManager();
                 CatalogueModListScreen.itemRender.renderItemAndEffectIntoGUI(CatalogueModListScreen.this.fontRendererObj, CatalogueModListScreen.this.mc.getTextureManager(), this.icon, left + 4, top + 2);
+                TileEntityRendererDispatcher.instance.field_147553_e = dispatcherTM;
 
                 CatalogueModListScreen.this.zLevel = screenZ;
                 CatalogueModListScreen.itemRender.zLevel = itemRenderZ;
