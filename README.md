@@ -8,7 +8,7 @@ Backport of MrCrayfish's wonderful mod [Catalogue, aka MrCrayfish's Mod List](ht
 
 - Catalogue Vintage mod does not have the ability to read custom props in mcmod.info since legacy Forge doesn't provide any APIs.
 - There are two branches: 1.12.2-Cleanroom and 1.12.2-Forge. Make sure you have chosen the right platform.
-- The repo is just a test field of [Cleanroom#422](https://github.com/CleanroomMC/Cleanroom/pull/422) and there might not be any releases. If you want to have a try, see actions page.
+- The repo is just a test field of [Cleanroom#422](https://github.com/CleanroomMC/Cleanroom/pull/422) and the cleanroom version will stop updating if the PR is merged.
 - For developers, you can try to add new props in mcmod.info. Catalogue in the PR above has the ability to read them and apply. The new props follow. 
   - iconFile: a string, should point to a square PNG file.
   - iconItem: a string, should be in the format "minecraft:stone". Metadata is allowed. This will not be applied if iconFile is valid.
