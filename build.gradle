@@ -33,7 +33,7 @@ version = propertyString('mod_version')
 group = propertyString('root_package')
 
 base {
-    archivesName.set(propertyString('mod_id') + "-1.12.2-cleanroom")
+    archivesName.set(propertyString('mod_id'))
 }
 
 java {
