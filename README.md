@@ -1,6 +1,6 @@
 # Catalogue Vintage
 
-Backport of MrCrayfish's wonderful mod [Catalogue, aka MrCrayfish's Mod List](https://github.com/MrCrayfish/Catalogue) to mc 1.12.2.
+Backport of MrCrayfish's wonderful mod [Catalogue, aka MrCrayfish's Mod List](https://github.com/MrCrayfish/Catalogue) to mc 1.12.2 & 1.7.10.
 
 ![processed_image](https://github.com/user-attachments/assets/db62091c-797d-48aa-bf1b-f02ade1c8b98)
 
