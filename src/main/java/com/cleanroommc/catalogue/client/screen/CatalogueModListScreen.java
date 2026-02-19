@@ -1351,18 +1351,42 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
     }
 
     /**
-     * Open uri directly using Desktop API. A copy of {@link GuiChat#func_146407_a}
-     *
+     * Open uri directly using Desktop API, with lwjgl3ify fallback.
      * @param uri the URI instance to open
      */
     @SuppressWarnings("JavadocReference")
     private void openURI(URI uri) {
         try {
-            Class<?> oclass = Class.forName("java.awt.Desktop");
-            Object object = oclass.getMethod("getDesktop", new Class[0]).invoke(null);
-            oclass.getMethod("browse", new Class[]{URI.class}).invoke(object, uri);
-        } catch (Throwable throwable) {
-            CatalogueConstants.LOG.error("Failed to open url {}", uri.toString(), throwable);
+            java.awt.Desktop.getDesktop().browse(uri);
+            return;
+        } catch (Throwable t) {
+            CatalogueConstants.LOG.warn("Desktop browse failed, trying lwjgl3ify fallback: {}", uri, t);
+        }
+
+        // 2) lwjgl3ify redirect Desktop
+        try {
+            Class<?> desktopCls = Class.forName("me.eigenraven.lwjgl3ify.redirects.Desktop");
+            Object desktop = desktopCls.getMethod("getDesktop").invoke(null);
+            desktopCls.getMethod("browse", URI.class).invoke(desktop, uri);
+            return;
+        } catch (Throwable t) {
+            CatalogueConstants.LOG.warn("lwjgl3ify Desktop redirect failed: {}", uri, t);
+        }
+
+        // lwjgl3ify Sys shim
+        try {
+            Class<?> sysX = Class.forName("org.lwjglx.Sys");
+            Object ok = sysX.getMethod("openURL", String.class).invoke(null, uri.toString());
+            if (ok instanceof Boolean && (Boolean) ok) return;
+        } catch (Throwable t) {
+            CatalogueConstants.LOG.warn("org.lwjglx.Sys.openURL failed: {}", uri, t);
+        }
+
+        // Legacy LWJGL2 Sys
+        try {
+            org.lwjgl.Sys.openURL(uri.toString());
+        } catch (Throwable t) {
+            CatalogueConstants.LOG.error("All URL open methods failed: {}", uri, t);
         }
     }
 
