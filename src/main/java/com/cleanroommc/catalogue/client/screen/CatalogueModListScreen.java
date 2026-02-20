@@ -31,9 +31,11 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.Util;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.apache.commons.lang3.tuple.Pair;
+import org.lwjgl.Sys;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
@@ -216,15 +218,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
     public void actionPerformed(@Nonnull GuiButton button) {
         switch (button.id) {
             case 1 -> this.mc.displayGuiScreen(this.parentScreen);
-            case 2 -> {
-                try {
-                    Class<?> oclass = Class.forName("java.awt.Desktop");
-                    Object object = oclass.getMethod("getDesktop", new Class[0]).invoke(null);
-                    oclass.getMethod("open", File.class).invoke(object, ClientServices.PLATFORM.getModDirectory());
-                } catch (Exception e) {
-                    CatalogueConstants.LOG.error("Problem opening mods folder", e);
-                }
-            }
+            case 2 -> openFolder(ClientServices.PLATFORM.getModDirectory());
             case 3 -> this.selectedModData.openConfigScreen(this.mc, this);
             case 4 -> this.openLink(this.selectedModData.getHomepage());
             case 5 -> this.openLink(this.selectedModData.getIssueTracker());
@@ -1324,6 +1318,46 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         }
     }
 
+    /// {@link net.minecraft.client.gui.GuiScreenResourcePacks#actionPerformed(GuiButton)}
+    /// Works properly with java 25.
+    @SuppressWarnings("JavadocReference")
+    private static void openFolder(File folder) {
+        String absolutePath = folder.getAbsolutePath();
+
+        if (Util.getOSType() == Util.EnumOS.OSX) {
+            try {
+                Runtime.getRuntime().exec(new String[] {"/usr/bin/open", absolutePath});
+                return;
+            } catch (IOException ioexception) {
+                CatalogueConstants.LOG.error("Problem opening mods folder", ioexception);
+            }
+        } else if (Util.getOSType() == Util.EnumOS.WINDOWS) {
+            String openCommand = String.format("cmd.exe /C start \"Open file\" \"%s\"", absolutePath);
+            try {
+                Runtime.getRuntime().exec(openCommand);
+                return;
+            } catch (IOException ioexception) {
+                CatalogueConstants.LOG.error("Problem opening mods folder", ioexception);
+            }
+        }
+
+        boolean awtDesktopFailed = false;
+
+        try {
+            Class<?> oclass = Class.forName("java.awt.Desktop");
+            Object object = oclass.getMethod("getDesktop", new Class[0]).invoke(null);
+            oclass.getMethod("browse", new Class[] {URI.class}).invoke(object, folder.toURI());
+        } catch (Throwable throwable) {
+            CatalogueConstants.LOG.error("Problem opening mods folder", throwable);
+            awtDesktopFailed = true;
+        }
+
+        if (awtDesktopFailed) {
+            CatalogueConstants.LOG.info("Opening via system class!");
+            Sys.openURL("file://" + absolutePath);
+        }
+    }
+
     /**
      * Creates a confirmation screen to open a link
      *
@@ -1333,8 +1367,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         if (url == null) return;
         try {
             URI uri = new URI(url);
-            if (!GuiChat.field_152175_f.contains(
-                    uri.getScheme().toLowerCase())) {
+            if (!GuiChat.field_152175_f.contains(uri.getScheme().toLowerCase())) {
                 throw new URISyntaxException(url, "Unsupported protocol: " + uri.getScheme().toLowerCase());
             }
             if (this.mc.gameSettings.chatLinksPrompt) {
