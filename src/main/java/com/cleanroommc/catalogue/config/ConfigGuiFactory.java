@@ -1,4 +1,4 @@
-package com.cleanroommc.catalogue;
+package com.cleanroommc.catalogue.config;
 
 import cpw.mods.fml.client.IModGuiFactory;
 import net.minecraft.client.Minecraft;
@@ -8,14 +8,14 @@ import javax.annotation.Nullable;
 import java.util.Set;
 
 @SuppressWarnings("unused")
-public class CatalogueConfigGuiFactory implements IModGuiFactory {
+public class ConfigGuiFactory implements IModGuiFactory {
     @Override
     public void initialize(Minecraft minecraftInstance) {
     }
 
     @Override
     public Class<? extends GuiScreen> mainConfigGuiClass() {
-        return CatalogueConfigGui.class;
+        return ConfigGui.class;
     }
 
     @Nullable

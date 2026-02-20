@@ -1,6 +1,5 @@
 package com.cleanroommc.catalogue.client.screen.layout;
 
-import com.cleanroommc.catalogue.Utils;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 

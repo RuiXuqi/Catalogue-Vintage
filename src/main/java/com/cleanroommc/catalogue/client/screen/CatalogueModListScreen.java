@@ -1326,7 +1326,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
 
         if (Util.getOSType() == Util.EnumOS.OSX) {
             try {
-                Runtime.getRuntime().exec(new String[] {"/usr/bin/open", absolutePath});
+                Runtime.getRuntime().exec(new String[]{"/usr/bin/open", absolutePath});
                 return;
             } catch (IOException ioexception) {
                 CatalogueConstants.LOG.error("Problem opening mods folder", ioexception);
@@ -1346,7 +1346,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
         try {
             Class<?> oclass = Class.forName("java.awt.Desktop");
             Object object = oclass.getMethod("getDesktop", new Class[0]).invoke(null);
-            oclass.getMethod("browse", new Class[] {URI.class}).invoke(object, folder.toURI());
+            oclass.getMethod("browse", new Class[]{URI.class}).invoke(object, folder.toURI());
         } catch (Throwable throwable) {
             CatalogueConstants.LOG.error("Problem opening mods folder", throwable);
             awtDesktopFailed = true;

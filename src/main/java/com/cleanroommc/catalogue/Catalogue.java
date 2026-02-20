@@ -16,7 +16,7 @@ import javax.annotation.Nonnull;
         name = CatalogueConstants.MOD_NAME,
         version = Reference.VERSION,
         acceptableRemoteVersions = "*",
-        guiFactory = "com.cleanroommc.catalogue.CatalogueConfigGuiFactory",
+        guiFactory = "com.cleanroommc.catalogue.config.ConfigGuiFactory",
         customProperties = {
                 @Mod.CustomProperty(k = "license", v = "MIT"),
                 @Mod.CustomProperty(k = "issueTrackerUrl", v = "https://github.com/RuiXuqi/Catalogue-Vintage/issues"),
