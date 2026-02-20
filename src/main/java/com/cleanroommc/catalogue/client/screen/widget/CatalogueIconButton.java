@@ -43,7 +43,6 @@ public class CatalogueIconButton extends CatalogueTextButton {
         if (this.visible) {
             FontRenderer fontrenderer = minecraft.fontRenderer;
             minecraft.getTextureManager().bindTexture(TEXTURE);
-            GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
             int contentWidth = 10 + fontrenderer.getStringWidth(this.label) + (!this.label.isEmpty() ? 4 : 0);
             int iconX = this.xPosition + (this.width - contentWidth) / 2;
             int iconY = this.yPosition + (this.height - 10) / 2;
@@ -52,6 +51,7 @@ public class CatalogueIconButton extends CatalogueTextButton {
             ClientHelper.drawModalRectWithCustomSizedTexture(iconX, iconY, this.u, this.v, 10, 10, 64, 64);
             GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
             this.drawString(fontrenderer, this.label, iconX + 14, iconY + 1, this.getFGColor());
+            GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         }
     }
 }

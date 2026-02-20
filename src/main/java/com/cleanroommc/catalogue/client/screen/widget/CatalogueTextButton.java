@@ -58,10 +58,12 @@ public class CatalogueTextButton extends GuiButton {
             double d3 = Utils.lerp(d2, 0.0F, l);
             ClientHelper.scissor(minX, minY, maxX - minX, maxY - minY);
             this.drawString(font, text, minX - (int) d3, j, color);
+            GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
             GL11.glDisable(GL11.GL_SCISSOR_TEST);
         } else {
             int i1 = MathHelper.clamp_int(centerX, minX + i / 2, maxX - i / 2);
             this.drawCenteredString(font, text, i1, j, color);
+            GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         }
     }
 
