@@ -34,6 +34,7 @@ import net.minecraft.util.ResourceLocation;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.apache.commons.lang3.tuple.Pair;
+import org.lwjgl.Sys;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
@@ -1339,11 +1340,11 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             }
             if (this.mc.gameSettings.chatLinksPrompt) {
                 this.mc.displayGuiScreen(new GuiConfirmOpenLink((result, id) -> {
-                    if (result) CatalogueModListScreen.this.openURI(uri);
+                    if (result) openURI(uri);
                     CatalogueModListScreen.this.mc.displayGuiScreen(CatalogueModListScreen.this);
                 }, url, 0, false));
             } else {
-                this.openURI(uri);
+                openURI(uri);
             }
         } catch (URISyntaxException urisyntaxexception) {
             CatalogueConstants.LOG.error("Failed to open url {}", url, urisyntaxexception);
@@ -1352,10 +1353,11 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
 
     /**
      * Open uri directly using Desktop API, with lwjgl3ify fallback.
+     *
      * @param uri the URI instance to open
      */
-    @SuppressWarnings("JavadocReference")
-    private void openURI(URI uri) {
+    private static void openURI(URI uri) {
+        // awt Desktop
         try {
             java.awt.Desktop.getDesktop().browse(uri);
             return;
@@ -1363,7 +1365,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
             CatalogueConstants.LOG.warn("Desktop browse failed, trying lwjgl3ify fallback: {}", uri, t);
         }
 
-        // 2) lwjgl3ify redirect Desktop
+        // lwjgl3ify redirect Desktop
         try {
             Class<?> desktopCls = Class.forName("me.eigenraven.lwjgl3ify.redirects.Desktop");
             Object desktop = desktopCls.getMethod("getDesktop").invoke(null);
@@ -1384,7 +1386,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
 
         // Legacy LWJGL2 Sys
         try {
-            org.lwjgl.Sys.openURL(uri.toString());
+            Sys.openURL(uri.toString());
         } catch (Throwable t) {
             CatalogueConstants.LOG.error("All URL open methods failed: {}", uri, t);
         }
