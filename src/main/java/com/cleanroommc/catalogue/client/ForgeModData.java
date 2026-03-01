@@ -159,17 +159,56 @@ public class ForgeModData implements IModData {
     @Override
     public boolean hasConfig() {
         IModGuiFactory guiFactory = FMLClientHandler.instance().getGuiFactoryFor(this.info);
-        return guiFactory != null && guiFactory.mainConfigGuiClass() != null;
+        if (guiFactory != null && guiFactory.mainConfigGuiClass() != null) {
+            return true;
+        }
+        return this.hasGtnhLibConfig();
+    }
+
+    private boolean hasGtnhLibConfig() {
+        try {
+            Class<?> managerClass = Class.forName("com.gtnewhorizon.gtnhlib.config.ConfigurationManager");
+            return Boolean.TRUE.equals(
+                    managerClass.getMethod("isModRegistered", String.class).invoke(null, this.getModId()));
+        } catch (ReflectiveOperationException | LinkageError ignored) {
+            return false;
+        }
     }
 
     @Override
     public void openConfigScreen(Minecraft minecraft, GuiScreen parent) {
         try {
             IModGuiFactory guiFactory = FMLClientHandler.instance().getGuiFactoryFor(this.info);
-            GuiScreen newScreen = guiFactory.mainConfigGuiClass().getConstructor(GuiScreen.class).newInstance(parent);
-            minecraft.displayGuiScreen(newScreen);
+            if (guiFactory != null && guiFactory.mainConfigGuiClass() != null) {
+                GuiScreen newScreen = guiFactory.mainConfigGuiClass().getConstructor(GuiScreen.class).newInstance(parent);
+                minecraft.displayGuiScreen(newScreen);
+                return;
+            }
+
+            GuiScreen gtnhLibScreen = this.createGtnhLibConfigScreen(parent);
+            if (gtnhLibScreen != null) {
+                minecraft.displayGuiScreen(gtnhLibScreen);
+                //return;
+            }
         } catch (Exception e) {
             CatalogueConstants.LOG.error("There was a critical issue trying to build the config GUI for {}", this.getModId());
+        }
+    }
+
+    @Nullable
+    private GuiScreen createGtnhLibConfigScreen(GuiScreen parent) {
+        if (!this.hasGtnhLibConfig()) {
+            return null;
+        }
+
+        try {
+            Class<?> guiClass = Class.forName("com.gtnewhorizon.gtnhlib.config.SimpleGuiConfig");
+            return (GuiScreen) guiClass
+                    .getConstructor(GuiScreen.class, String.class, String.class)
+                    .newInstance(parent, this.getModId(), this.getDisplayName());
+        } catch (ReflectiveOperationException | LinkageError e) {
+            CatalogueConstants.LOG.error("Failed to create GTNHLib config GUI for {}", this.getModId(), e);
+            return null;
         }
     }
 
