@@ -162,27 +162,7 @@ public class ForgeModData implements IModData {
         if (guiFactory != null && guiFactory.mainConfigGuiClass() != null) {
             return true;
         }
-        return hasGtnhLibConfig();
-    }
-
-    @Override
-    public void openConfigScreen(Minecraft minecraft, GuiScreen parent) {
-        try {
-            IModGuiFactory guiFactory = FMLClientHandler.instance().getGuiFactoryFor(this.info);
-            if (guiFactory != null && guiFactory.mainConfigGuiClass() != null) {
-                GuiScreen newScreen = guiFactory.mainConfigGuiClass().getConstructor(GuiScreen.class).newInstance(parent);
-                minecraft.displayGuiScreen(newScreen);
-                return;
-            }
-
-            GuiScreen gtnhLibScreen = createGtnhLibConfigScreen(parent);
-            if (gtnhLibScreen != null) {
-                minecraft.displayGuiScreen(gtnhLibScreen);
-                return;
-            }
-        } catch (Exception e) {
-            CatalogueConstants.LOG.error("There was a critical issue trying to build the config GUI for {}", this.getModId());
-        }
+        return this.hasGtnhLibConfig();
     }
 
     private boolean hasGtnhLibConfig() {
@@ -195,9 +175,29 @@ public class ForgeModData implements IModData {
         }
     }
 
+    @Override
+    public void openConfigScreen(Minecraft minecraft, GuiScreen parent) {
+        try {
+            IModGuiFactory guiFactory = FMLClientHandler.instance().getGuiFactoryFor(this.info);
+            if (guiFactory != null && guiFactory.mainConfigGuiClass() != null) {
+                GuiScreen newScreen = guiFactory.mainConfigGuiClass().getConstructor(GuiScreen.class).newInstance(parent);
+                minecraft.displayGuiScreen(newScreen);
+                return;
+            }
+
+            GuiScreen gtnhLibScreen = this.createGtnhLibConfigScreen(parent);
+            if (gtnhLibScreen != null) {
+                minecraft.displayGuiScreen(gtnhLibScreen);
+                //return;
+            }
+        } catch (Exception e) {
+            CatalogueConstants.LOG.error("There was a critical issue trying to build the config GUI for {}", this.getModId());
+        }
+    }
+
     @Nullable
     private GuiScreen createGtnhLibConfigScreen(GuiScreen parent) {
-        if (!hasGtnhLibConfig()) {
+        if (!this.hasGtnhLibConfig()) {
             return null;
         }
 
