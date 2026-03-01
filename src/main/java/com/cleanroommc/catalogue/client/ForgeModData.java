@@ -184,14 +184,13 @@ public class ForgeModData implements IModData {
                 minecraft.displayGuiScreen(newScreen);
                 return;
             }
-
-            GuiScreen gtnhLibScreen = this.createGtnhLibConfigScreen(parent);
-            if (gtnhLibScreen != null) {
-                minecraft.displayGuiScreen(gtnhLibScreen);
-                //return;
-            }
         } catch (Exception e) {
             CatalogueConstants.LOG.error("There was a critical issue trying to build the config GUI for {}", this.getModId());
+        }
+        GuiScreen gtnhLibScreen = this.createGtnhLibConfigScreen(parent);
+        if (gtnhLibScreen != null) {
+            minecraft.displayGuiScreen(gtnhLibScreen);
+            //return;
         }
     }
 
