@@ -176,7 +176,7 @@ processResources {
     inputs.property 'mod_name', propertyString('mod_name')
     inputs.property 'mod_version', propertyString('mod_version')
     inputs.property 'mod_description', propertyString('mod_description')
-    inputs.property 'mod_authors', "${propertyStringList('mod_authors', ',').join(', ')}"
+    inputs.property 'mod_authors', "${propertyStringList('mod_authors', ',').join('", "')}"
     inputs.property 'mod_credits', propertyString('mod_credits')
     inputs.property 'mod_license', propertyString('mod_license')
     inputs.property 'mod_url', propertyString('mod_url')
@@ -199,7 +199,7 @@ processResources {
                 'mod_name': propertyString('mod_name'),
                 'mod_version': propertyString('mod_version'),
                 'mod_description': propertyString('mod_description'),
-                'mod_authors': "${propertyStringList('mod_authors', ',').join(', ')}",
+                'mod_authors': "${propertyStringList('mod_authors', ',').join('", "')}",
                 'mod_credits': propertyString('mod_credits'),
                 'mod_license': propertyString('mod_license'),
                 'mod_url': propertyString('mod_url'),
