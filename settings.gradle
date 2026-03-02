@@ -1,9 +1,11 @@
 pluginManagement {
     repositories {
-        mavenCentral()
-        maven {
-            url = "https://maven.neoforged.net/releases"
+        gradlePluginPortal() {
+            content {
+                excludeGroup("org.apache.logging.log4j")
+            }
         }
+        mavenCentral()
         maven {
             url = "https://maven.minecraftforge.net/"
         }
@@ -19,11 +21,6 @@ pluginManagement {
 
         maven {
             url = "https://maven.wagyourtail.xyz/snapshots"
-        }
-        gradlePluginPortal() {
-            content {
-                excludeGroup("org.apache.logging.log4j")
-            }
         }
     }
 }
