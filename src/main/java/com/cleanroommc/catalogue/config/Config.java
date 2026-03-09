@@ -28,6 +28,10 @@ public final class Config {
         build(ConfigBuilder.startReadingFromProp(config));
     }
 
+    public static void saveToFile() {
+        build(ConfigBuilder.startSaving(config));
+    }
+
     private static void build(@Nonnull ConfigBuilder builder) {
         builder.setLangKeyPrefix("catalogue.config");
         builder.setLangKeyFormatter(IFormatter.CAMEL_TO_SNAKE);

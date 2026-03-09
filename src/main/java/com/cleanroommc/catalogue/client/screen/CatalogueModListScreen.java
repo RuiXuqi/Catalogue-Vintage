@@ -1,5 +1,6 @@
 package com.cleanroommc.catalogue.client.screen;
 
+import com.cleanroommc.catalogue.CatalogueConfig;
 import com.cleanroommc.catalogue.CatalogueConstants;
 import com.cleanroommc.catalogue.Utils;
 import com.cleanroommc.catalogue.client.Branding;
@@ -7,6 +8,7 @@ import com.cleanroommc.catalogue.client.ClientHelper;
 import com.cleanroommc.catalogue.client.IModData;
 import com.cleanroommc.catalogue.client.ImageInfo;
 import com.cleanroommc.catalogue.client.screen.widget.*;
+import com.cleanroommc.catalogue.config.Config;
 import com.cleanroommc.catalogue.platform.ClientServices;
 import com.github.bsideup.jabel.Desugar;
 import com.google.common.base.Supplier;
@@ -64,12 +66,12 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
     private static final Comparator<ModListEntry> SORT_ALPHABETICALLY_REVERSED = SORT_ALPHABETICALLY.reversed();
     private static final Comparator<ModListEntry> SORT_FAVOURITES_FIRST = Comparator.comparing(ModListEntry::getData, Comparator.comparing(data -> FAVOURITES.has(data.getModId()))).reversed().thenComparing(SORT_ALPHABETICALLY);
     private static final MutableObject<String> OPTION_QUERY = new MutableObject<>("");
-    private static final MutableBoolean OPTION_HIDE_LIBRARIES = new MutableBoolean(true);
-    private static final MutableBoolean OPTION_HIDE_CHILD_MODS = new MutableBoolean(true);
-    private static final MutableBoolean OPTION_CONFIGS_ONLY = new MutableBoolean(false);
+    private static final MutableBoolean OPTION_HIDE_LIBRARIES = new MutableBoolean(CatalogueConfig.guiHideLibraries);
+    private static final MutableBoolean OPTION_HIDE_CHILD_MODS = new MutableBoolean(CatalogueConfig.guiHideChildMods);
+    private static final MutableBoolean OPTION_CONFIGS_ONLY = new MutableBoolean(CatalogueConfig.guiConfigsOnly);
     //    private static final MutableBoolean OPTION_UPDATES_ONLY = new MutableBoolean(false);
-    private static final MutableBoolean OPTION_FAVOURITES_ONLY = new MutableBoolean(false);
-    private static final MutableObject<Comparator<ModListEntry>> OPTION_SORT = new MutableObject<>(SORT_ALPHABETICALLY);
+    private static final MutableBoolean OPTION_FAVOURITES_ONLY = new MutableBoolean(CatalogueConfig.guiFavouritesOnly);
+    private static final MutableObject<Comparator<ModListEntry>> OPTION_SORT = new MutableObject<>(getSortComparator(CatalogueConfig.guiSortMode));
     private static final ResourceLocation MISSING_BANNER = Utils.resource("textures/gui/missing_banner.png");
     private static final ResourceLocation MISSING_BACKGROUND = Utils.resource("textures/gui/missing_background.png");
     private static final ResourceLocation MINECRAFT_LOGO = Utils.resource("textures/gui/minecraft.png");
@@ -131,6 +133,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
     public CatalogueModListScreen(GuiScreen parent) {
         super();
         this.parentScreen = parent;
+        syncOptionsFromConfig();
         if (!loaded) {
             ClientServices.PLATFORM.getAllModData().forEach(data -> CACHED_MODS.put(data.getModId().toLowerCase(Locale.ENGLISH), data));
             CACHED_MODS.put("minecraft", new MinecraftModData()); // Override minecraft
@@ -230,6 +233,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                                 .setMinItemSize(60, 16)
                                 .setAlignment(DropdownMenu.Alignment.END_TOP)
                                 .addCheckbox(I18n.format("catalogue.gui.filters.configs_only"), OPTION_CONFIGS_ONLY, newValue -> {
+                                    saveGuiSettings();
                                     this.modList.filterAndUpdateList();
                                     return false;
                                 })
@@ -238,6 +242,7 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
 //                                    return false;
 //                                })
                                 .addCheckbox(I18n.format("catalogue.gui.filters.favourites"), OPTION_FAVOURITES_ONLY, newValue -> {
+                                    saveGuiSettings();
                                     this.modList.filterAndUpdateList();
                                     return false;
                                 }))
@@ -246,21 +251,26 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
                                 .setAlignment(DropdownMenu.Alignment.END_TOP)
                                 .addItem(I18n.format("catalogue.gui.sort.alphabetically"), () -> {
                                     OPTION_SORT.setValue(SORT_ALPHABETICALLY);
+                                    saveGuiSettings();
                                     this.modList.filterAndUpdateList();
                                 })
                                 .addItem(I18n.format("catalogue.gui.sort.alphabetically_reverse"), () -> {
                                     OPTION_SORT.setValue(SORT_ALPHABETICALLY_REVERSED);
+                                    saveGuiSettings();
                                     this.modList.filterAndUpdateList();
                                 })
                                 .addItem(I18n.format("catalogue.gui.sort.favourites_first"), () -> {
                                     OPTION_SORT.setValue(SORT_FAVOURITES_FIRST);
+                                    saveGuiSettings();
                                     this.modList.filterAndUpdateList();
                                 }))
                         .addCheckbox(I18n.format("catalogue.gui.hide_libraries"), OPTION_HIDE_LIBRARIES, newValue -> {
+                            saveGuiSettings();
                             this.modList.filterAndUpdateList();
                             return false;
                         })
                         .addCheckbox(I18n.format("catalogue.gui.hide_child_mods"), OPTION_HIDE_CHILD_MODS, newValue -> {
+                            saveGuiSettings();
                             this.modList.filterAndUpdateList();
                             return false;
                         }).build();
@@ -1435,6 +1445,42 @@ public class CatalogueModListScreen extends GuiScreen implements DropdownMenuHan
     protected <T extends GuiButton> T addButton(T buttonIn) {
         this.buttonList.add(buttonIn);
         return buttonIn;
+    }
+
+    private static void syncOptionsFromConfig() {
+        OPTION_CONFIGS_ONLY.setValue(CatalogueConfig.guiConfigsOnly);
+        OPTION_FAVOURITES_ONLY.setValue(CatalogueConfig.guiFavouritesOnly);
+        OPTION_HIDE_LIBRARIES.setValue(CatalogueConfig.guiHideLibraries);
+        OPTION_HIDE_CHILD_MODS.setValue(CatalogueConfig.guiHideChildMods);
+        OPTION_SORT.setValue(getSortComparator(CatalogueConfig.guiSortMode));
+    }
+
+    private static Comparator<ModListEntry> getSortComparator(int sortMode) {
+        return switch (sortMode) {
+            case 1 -> SORT_ALPHABETICALLY_REVERSED;
+            case 2 -> SORT_FAVOURITES_FIRST;
+            default -> SORT_ALPHABETICALLY;
+        };
+    }
+
+    private static int getSortMode() {
+        Comparator<ModListEntry> comparator = OPTION_SORT.getValue();
+        if (comparator == SORT_ALPHABETICALLY_REVERSED) {
+            return 1;
+        }
+        if (comparator == SORT_FAVOURITES_FIRST) {
+            return 2;
+        }
+        return 0;
+    }
+
+    private static void saveGuiSettings() {
+        CatalogueConfig.guiConfigsOnly = OPTION_CONFIGS_ONLY.booleanValue();
+        CatalogueConfig.guiFavouritesOnly = OPTION_FAVOURITES_ONLY.booleanValue();
+        CatalogueConfig.guiSortMode = getSortMode();
+        CatalogueConfig.guiHideLibraries = OPTION_HIDE_LIBRARIES.booleanValue();
+        CatalogueConfig.guiHideChildMods = OPTION_HIDE_CHILD_MODS.booleanValue();
+        Config.saveToFile();
     }
 
     @Desugar

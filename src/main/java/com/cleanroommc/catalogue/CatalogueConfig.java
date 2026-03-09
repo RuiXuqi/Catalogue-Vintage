@@ -25,6 +25,11 @@ public class CatalogueConfig {
     public static int bannerMaxHeight = 256;
     public static boolean enableIconLimit = false;
     public static int iconMaxWidthHeight = 256;
+    public static boolean guiConfigsOnly = false;
+    public static boolean guiFavouritesOnly = false;
+    public static int guiSortMode = 0;
+    public static boolean guiHideLibraries = true;
+    public static boolean guiHideChildMods = true;
 
     /// Inner method, do not call
     public static void build(ConfigBuilder builder) {
@@ -77,6 +82,36 @@ public class CatalogueConfig {
                 iconMaxWidthHeight,
                 "The maximum of icon's width and height. Will not work if Enable Icon Limit is set false."
         ).setMinValue(0).setRequiresMcRestart(true).getInt();
+
+        guiConfigsOnly = builder.getProp(
+                "guiConfigsOnly",
+                guiConfigsOnly,
+                "Whether Catalogue starts with the 'mods with configs only' filter enabled."
+        ).getBoolean();
+
+        guiFavouritesOnly = builder.getProp(
+                "guiFavouritesOnly",
+                guiFavouritesOnly,
+                "Whether Catalogue starts with the 'favourites only' filter enabled."
+        ).getBoolean();
+
+        guiSortMode = builder.getProp(
+                "guiSortMode",
+                guiSortMode,
+                "Catalogue mod list sort mode. 0 = A to Z, 1 = Z to A, 2 = favourites first."
+        ).setMinValue(0).setMaxValue(2).getInt();
+
+        guiHideLibraries = builder.getProp(
+                "guiHideLibraries",
+                guiHideLibraries,
+                "Whether Catalogue hides library mods by default."
+        ).getBoolean();
+
+        guiHideChildMods = builder.getProp(
+                "guiHideChildMods",
+                guiHideChildMods,
+                "Whether Catalogue hides child mods by default."
+        ).getBoolean();
 
         builder.popCategoryWithoutLangKey();
     }
