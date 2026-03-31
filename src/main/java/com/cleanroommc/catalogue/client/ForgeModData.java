@@ -158,6 +158,7 @@ public class ForgeModData implements IModData {
 
     @Override
     public boolean hasConfig() {
+        ensureCarbonConfigsRegistered();
         IModGuiFactory guiFactory = FMLClientHandler.instance().getGuiFactoryFor(this.info);
         return guiFactory != null && guiFactory.mainConfigGuiClass() != null;
     }
@@ -166,10 +167,30 @@ public class ForgeModData implements IModData {
     public void openConfigScreen(Minecraft minecraft, GuiScreen parent) {
         try {
             IModGuiFactory guiFactory = FMLClientHandler.instance().getGuiFactoryFor(this.info);
-            GuiScreen newScreen = guiFactory.mainConfigGuiClass().getConstructor(GuiScreen.class).newInstance(parent);
+            GuiScreen newScreen;
+            try {
+                newScreen = guiFactory.mainConfigGuiClass().getConstructor(GuiScreen.class).newInstance(parent);
+            } catch (NoSuchMethodException e) {
+                newScreen = (GuiScreen) guiFactory.getClass()
+                        .getMethod("createConfigGui", GuiScreen.class).invoke(guiFactory, parent);
+            }
             minecraft.displayGuiScreen(newScreen);
         } catch (Exception e) {
             CatalogueConstants.LOG.error("There was a critical issue trying to build the config GUI for {}", this.getModId());
+        }
+    }
+
+    private static boolean carbonConfigRegistrationAttempted;
+
+    private static void ensureCarbonConfigsRegistered() {
+        if (carbonConfigRegistrationAttempted) return;
+        carbonConfigRegistrationAttempted = true;
+        try {
+            Class<?> cls = Class.forName("carbonconfiglib.impl.internal.EventHandler");
+            java.lang.reflect.Method m = cls.getDeclaredMethod("registerConfigs");
+            m.setAccessible(true);
+            m.invoke(cls.getField("INSTANCE").get(null));
+        } catch (ReflectiveOperationException | LinkageError ignored) {
         }
     }
 
