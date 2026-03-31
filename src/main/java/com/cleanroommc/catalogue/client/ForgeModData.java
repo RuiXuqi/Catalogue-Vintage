@@ -160,21 +160,33 @@ public class ForgeModData implements IModData {
     public boolean hasConfig() {
         ensureCarbonConfigsRegistered();
         IModGuiFactory guiFactory = FMLClientHandler.instance().getGuiFactoryFor(this.info);
-        return guiFactory != null && guiFactory.mainConfigGuiClass() != null;
+        if (guiFactory != null && guiFactory.mainConfigGuiClass() != null) {
+            return true;
+        }
+        return hasGtnhLibConfig();
     }
 
     @Override
     public void openConfigScreen(Minecraft minecraft, GuiScreen parent) {
         try {
             IModGuiFactory guiFactory = FMLClientHandler.instance().getGuiFactoryFor(this.info);
-            GuiScreen newScreen;
-            try {
-                newScreen = guiFactory.mainConfigGuiClass().getConstructor(GuiScreen.class).newInstance(parent);
-            } catch (NoSuchMethodException e) {
-                newScreen = (GuiScreen) guiFactory.getClass()
-                        .getMethod("createConfigGui", GuiScreen.class).invoke(guiFactory, parent);
+            if (guiFactory != null && guiFactory.mainConfigGuiClass() != null) {
+                GuiScreen newScreen;
+                try {
+                    newScreen = guiFactory.mainConfigGuiClass().getConstructor(GuiScreen.class).newInstance(parent);
+                } catch (NoSuchMethodException e) {
+                    newScreen = (GuiScreen) guiFactory.getClass()
+                            .getMethod("createConfigGui", GuiScreen.class).invoke(guiFactory, parent);
+                }
+                minecraft.displayGuiScreen(newScreen);
+                return;
             }
-            minecraft.displayGuiScreen(newScreen);
+
+            GuiScreen gtnhLibScreen = createGtnhLibConfigScreen(parent);
+            if (gtnhLibScreen != null) {
+                minecraft.displayGuiScreen(gtnhLibScreen);
+                return;
+            }
         } catch (Exception e) {
             CatalogueConstants.LOG.error("There was a critical issue trying to build the config GUI for {}", this.getModId());
         }
@@ -191,6 +203,32 @@ public class ForgeModData implements IModData {
             m.setAccessible(true);
             m.invoke(cls.getField("INSTANCE").get(null));
         } catch (ReflectiveOperationException | LinkageError ignored) {
+        }
+    }
+
+    private boolean hasGtnhLibConfig() {
+        try {
+            Class<?> managerClass = Class.forName("com.gtnewhorizon.gtnhlib.config.ConfigurationManager");
+            return Boolean.TRUE.equals(
+                    managerClass.getMethod("isModRegistered", String.class).invoke(null, this.getModId()));
+        } catch (ReflectiveOperationException | LinkageError ignored) {
+            return false;
+        }
+    }
+
+    @Nullable
+    private GuiScreen createGtnhLibConfigScreen(GuiScreen parent) {
+        if (!hasGtnhLibConfig()) {
+            return null;
+        }
+        try {
+            Class<?> guiClass = Class.forName("com.gtnewhorizon.gtnhlib.config.SimpleGuiConfig");
+            return (GuiScreen) guiClass
+                    .getConstructor(GuiScreen.class, String.class, String.class)
+                    .newInstance(parent, this.getModId(), this.getDisplayName());
+        } catch (ReflectiveOperationException | LinkageError e) {
+            CatalogueConstants.LOG.error("Failed to create GTNHLib config GUI for {}", this.getModId(), e);
+            return null;
         }
     }
 
