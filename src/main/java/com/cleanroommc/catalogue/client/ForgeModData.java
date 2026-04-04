@@ -25,6 +25,27 @@ import java.util.stream.Collectors;
 public class ForgeModData implements IModData {
     public static final List<String> LIB_MODS = Arrays.asList(CatalogueConfig.libraryList);
     public static final List<String> IGNORED_DEPENDENCIES = Arrays.asList(CatalogueConfig.ignoredDependenciesList);
+    public static final Map<String, Map<String, String>> CUSTOM_MOD_INFO = parseCustomModInfo();
+
+    private static Map<String, Map<String, String>> parseCustomModInfo() {
+        Map<String, Map<String, String>> result = new HashMap<>();
+        if (CatalogueConfig.customModInfo == null) return result;
+        for (String entry : CatalogueConfig.customModInfo) {
+            int colon = entry.indexOf(':');
+            if (colon <= 0) continue;
+            String modId = entry.substring(0, colon);
+            String content = entry.substring(colon + 1);
+            Map<String, String> fieldMap = new HashMap<>();
+            for (String field : content.split(",")) {
+                int equal = field.indexOf('=');
+                if (equal > 0) {
+                    fieldMap.put(field.substring(0, equal), field.substring(equal + 1));
+                }
+            }
+            result.put(modId, fieldMap);
+        }
+        return result;
+    }
 
     private final @Nonnull ModContainer info;
     private final @Nullable ModMetadata metadata;
@@ -54,6 +75,10 @@ public class ForgeModData implements IModData {
 
     @Override
     public String getDisplayName() {
+        Map<String, String> custom = CUSTOM_MOD_INFO.get(this.getModId());
+        if (custom != null && custom.containsKey("name")) {
+            return custom.get("name");
+        }
         return this.info.getName();
     }
 
@@ -70,60 +95,101 @@ public class ForgeModData implements IModData {
     @Nullable
     @Override
     public String getDescription() {
+        Map<String, String> custom = CUSTOM_MOD_INFO.get(this.getModId());
+        if (custom != null && custom.containsKey("description")) {
+            return custom.get("description");
+        }
         return this.metadata != null ? this.metadata.description : null;
     }
 
     @Nullable
     @Override
     public String getItemIcon() {
+        Map<String, String> custom = CUSTOM_MOD_INFO.get(this.getModId());
+        if (custom != null && custom.containsKey("iconItem")) {
+            return custom.get("iconItem");
+        }
         return this.info.getCustomModProperties().get("iconItem");
     }
 
     @Nullable
     @Override
     public String getImageIcon() {
-        return this.info.getCustomModProperties().get("iconFile");
+        Map<String, String> custom = CUSTOM_MOD_INFO.get(this.getModId());
+        if (custom != null && custom.containsKey("iconFile")) {
+            return custom.get("iconFile");
+        }
+        // Make customized iconItem replace the old one
+        return custom != null && custom.containsKey("iconItem") ? null : this.info.getCustomModProperties().get("iconFile");
     }
 
     @Nullable
     @Override
     public String getLicense() {
+        Map<String, String> custom = CUSTOM_MOD_INFO.get(this.getModId());
+        if (custom != null && custom.containsKey("license")) {
+            return custom.get("license");
+        }
         return this.info.getCustomModProperties().get("license");
     }
 
     @Nullable
     @Override
     public String getCredits() {
+        Map<String, String> custom = CUSTOM_MOD_INFO.get(this.getModId());
+        if (custom != null && custom.containsKey("credits")) {
+            return custom.get("credits");
+        }
         return this.metadata != null ? this.metadata.credits : null;
     }
 
     @Nullable
     @Override
     public String getAuthors() {
+        Map<String, String> custom = CUSTOM_MOD_INFO.get(this.getModId());
+        if (custom != null && custom.containsKey("authors")) {
+            return custom.get("authors");
+        }
         return this.metadata != null ? this.metadata.getAuthorList() : null;
     }
 
     @Nullable
     @Override
     public String getHomepage() {
+        Map<String, String> custom = CUSTOM_MOD_INFO.get(this.getModId());
+        if (custom != null && custom.containsKey("url")) {
+            return custom.get("url");
+        }
         return this.metadata != null ? this.metadata.url : null;
     }
 
     @Nullable
     @Override
     public String getIssueTracker() {
+        Map<String, String> custom = CUSTOM_MOD_INFO.get(this.getModId());
+        if (custom != null && custom.containsKey("issueTrackerUrl")) {
+            return custom.get("issueTrackerUrl");
+        }
         return this.info.getCustomModProperties().get("issueTrackerUrl");
     }
 
     @Nullable
     @Override
     public String getBanner() {
+        Map<String, String> custom = CUSTOM_MOD_INFO.get(this.getModId());
+        if (custom != null && custom.containsKey("logoFile")) {
+            return custom.get("logoFile");
+        }
         return this.metadata != null ? this.metadata.logoFile : null;
     }
 
     @Nullable
     @Override
     public String getBackground() {
+        Map<String, String> custom = CUSTOM_MOD_INFO.get(this.getModId());
+        if (custom != null && custom.containsKey("backgroundFile")) {
+            return custom.get("backgroundFile");
+        }
         return this.info.getCustomModProperties().get("backgroundFile");
     }
 
