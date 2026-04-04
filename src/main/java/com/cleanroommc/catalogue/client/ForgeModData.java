@@ -18,6 +18,7 @@ import net.minecraftforge.fml.common.versioning.ArtifactVersion;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -166,6 +167,7 @@ public class ForgeModData implements IModData {
 
     @Override
     public boolean hasConfig() {
+        ensureCarbonConfigsRegistered();
         IModGuiFactory guiFactory = FMLClientHandler.instance().getGuiFactoryFor(this.info);
         if (guiFactory == null) return false;
         return guiFactory.hasConfigGui();
@@ -179,6 +181,20 @@ public class ForgeModData implements IModData {
             minecraft.displayGuiScreen(newScreen);
         } catch (Exception e) {
             CatalogueConstants.LOG.error("There was a critical issue trying to build the config GUI for {}", this.getModId(), e);
+        }
+    }
+
+    private static boolean carbonConfigRegistrationAttempted;
+
+    private static void ensureCarbonConfigsRegistered() {
+        if (carbonConfigRegistrationAttempted) return;
+        carbonConfigRegistrationAttempted = true;
+        try {
+            Class<?> cls = Class.forName("carbonconfiglib.impl.internal.EventHandler");
+            Method m = cls.getDeclaredMethod("registerConfigs");
+            m.setAccessible(true);
+            m.invoke(cls.getField("INSTANCE").get(null));
+        } catch (ReflectiveOperationException | LinkageError ignored) {
         }
     }
 
