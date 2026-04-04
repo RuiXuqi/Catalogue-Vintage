@@ -15,6 +15,7 @@ import org.lwjgl.opengl.GL11;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -225,7 +226,7 @@ public class ForgeModData implements IModData {
         carbonConfigRegistrationAttempted = true;
         try {
             Class<?> cls = Class.forName("carbonconfiglib.impl.internal.EventHandler");
-            java.lang.reflect.Method m = cls.getDeclaredMethod("registerConfigs");
+            Method m = cls.getDeclaredMethod("registerConfigs");
             m.setAccessible(true);
             m.invoke(cls.getField("INSTANCE").get(null));
         } catch (ReflectiveOperationException | LinkageError ignored) {
