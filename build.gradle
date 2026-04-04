@@ -5,10 +5,10 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'org.jetbrains.gradle.plugin.idea-ext' version '1.4.1'
-    id 'com.gradleup.shadow' version '9.3.2'
-    id 'xyz.wagyourtail.unimined' version '1.4.10-kappa'
+    id 'com.gradleup.shadow' version '9.4.0'
+    id 'xyz.wagyourtail.unimined' version '1.4.16-kappa'
     id 'net.kyori.blossom' version '2.2.0'
-    id 'com.diffplug.spotless' version '8.2.1'
+    id 'com.diffplug.spotless' version '8.4.0'
 }
 
 apply from: 'gradle/scripts/helpers.gradle'
@@ -38,7 +38,7 @@ base {
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(25)
     }
     if (propertyBool('generate_sources_jar')) {
         withSourcesJar()
@@ -70,7 +70,7 @@ unimined.minecraft {
         if (propertyBool('use_access_transformer')) {
             accessTransformer "${rootProject.projectDir}/src/main/resources/${propertyString('access_transformer_locations')}"
         }
-        loader "0.4.4-alpha"
+        loader "0.5.6-alpha"
         runs.auth.username = minecraft_username
         runs.all {
             def extraArgs = propertyString('extra_jvm_args')
@@ -118,7 +118,7 @@ dependencies {
         implementation "com.cleanroommc:assetmover:${propertyString('asset_mover_version')}"
     }
     if (propertyBool('enable_junit_testing')) {
-        testImplementation 'org.junit.jupiter:junit-jupiter:5.7.1'
+        testImplementation 'org.junit.jupiter:junit-jupiter:6.0.3'
         testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     }
     compileOnly 'com.google.code.findbugs:jsr305:3.0.2'
@@ -144,7 +144,7 @@ sourceSets {
                 property('mod_name', propertyString('mod_name'))
                 property('mod_version', propertyString('mod_version'))
                 property('mod_description', propertyString('mod_description'))
-                property('mod_authors', "${propertyStringList('mod_authors', ',').join('", "')}")
+                property('mod_authors', propertyStringList('mod_authors', ',').collect {it.strip()}.join('", "'))
                 property('mod_credits', propertyString('mod_credits'))
                 property('mod_license', propertyString('mod_license'))
                 property('mod_url', propertyString('mod_url'))
@@ -230,13 +230,7 @@ idea {
                 "2. Run Server"(Gradle) {
                     taskNames = ["runServer"]
                 }
-                "3. Run Obfuscated Client"(Gradle) {
-                    taskNames = ["runObfClient"]
-                }
-                "4. Run Obfuscated Server"(Gradle) {
-                    taskNames = ["runObfServer"]
-                }
-                "5. Build Mod"(Gradle) {
+                "3. Build Mod"(Gradle) {
                     taskNames = ["build"]
                 }
             }
@@ -259,7 +253,7 @@ compileTestJava {
 test {
     useJUnitPlatform()
     javaLauncher.set(javaToolchains.launcherFor {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(25)
     })
     if (propertyBool('show_testing_output')) {
         testLogging {
