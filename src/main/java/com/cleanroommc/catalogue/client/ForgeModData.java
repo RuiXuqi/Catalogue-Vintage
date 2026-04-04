@@ -15,6 +15,7 @@ import org.lwjgl.opengl.GL11;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -158,6 +159,7 @@ public class ForgeModData implements IModData {
 
     @Override
     public boolean hasConfig() {
+        ensureCarbonConfigsRegistered();
         IModGuiFactory guiFactory = FMLClientHandler.instance().getGuiFactoryFor(this.info);
         if (guiFactory != null && guiFactory.mainConfigGuiClass() != null) {
             return true;
@@ -180,7 +182,13 @@ public class ForgeModData implements IModData {
         try {
             IModGuiFactory guiFactory = FMLClientHandler.instance().getGuiFactoryFor(this.info);
             if (guiFactory != null && guiFactory.mainConfigGuiClass() != null) {
-                GuiScreen newScreen = guiFactory.mainConfigGuiClass().getConstructor(GuiScreen.class).newInstance(parent);
+                GuiScreen newScreen;
+                try {
+                    newScreen = guiFactory.mainConfigGuiClass().getConstructor(GuiScreen.class).newInstance(parent);
+                } catch (NoSuchMethodException e) {
+                    newScreen = (GuiScreen) guiFactory.getClass()
+                            .getMethod("createConfigGui", GuiScreen.class).invoke(guiFactory, parent);
+                }
                 minecraft.displayGuiScreen(newScreen);
                 return;
             }
@@ -208,6 +216,20 @@ public class ForgeModData implements IModData {
         } catch (ReflectiveOperationException | LinkageError e) {
             CatalogueConstants.LOG.error("Failed to create GTNHLib config GUI for {}", this.getModId(), e);
             return null;
+        }
+    }
+
+    private static boolean carbonConfigRegistrationAttempted;
+
+    private static void ensureCarbonConfigsRegistered() {
+        if (carbonConfigRegistrationAttempted) return;
+        carbonConfigRegistrationAttempted = true;
+        try {
+            Class<?> cls = Class.forName("carbonconfiglib.impl.internal.EventHandler");
+            Method m = cls.getDeclaredMethod("registerConfigs");
+            m.setAccessible(true);
+            m.invoke(cls.getField("INSTANCE").get(null));
+        } catch (ReflectiveOperationException | LinkageError ignored) {
         }
     }
 
