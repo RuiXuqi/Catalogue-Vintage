@@ -1,161 +1,90 @@
-import net.minecraftforge.gradle.common.tasks.SignJar
+import org.apache.commons.io.FilenameUtils
 
 plugins {
-    id 'java'
-    id 'eclipse'
-    id 'maven-publish'
-    id 'net.minecraftforge.gradle' version '5.1.+'
+    id 'multiloader-loader'
+    id 'net.neoforged.moddev.legacyforge'
 }
 
-archivesBaseName = "${mod_id}-forge"
-version = "${minecraft_version}-${mod_version}"
+legacyForge {
+    version = minecraft_version + "-" + forge_version
 
-minecraft {
-    mappings channel: 'official', version: minecraft_version
+    def at = file('src/main/resources/META-INF/accesstransformer.cfg')
+    if (at.exists()) {
+        accessTransformers.from(at.absolutePath)
+    }
 
-    if (project.hasProperty('forge_ats_enabled') && project.findProperty('forge_ats_enabled').toBoolean()) {
-        // This location is hardcoded in Forge and can not be changed.
-        // https://github.com/MinecraftForge/MinecraftForge/blob/be1698bb1554f9c8fa2f58e32b9ab70bc4385e60/fmlloader/src/main/java/net/minecraftforge/fml/loading/moddiscovery/ModFile.java#L123
-        accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
-        project.logger.debug('Forge Access Transformers are enabled for this project.')
+    parchment {
+        minecraftVersion = parchment_minecraft
+        mappingsVersion = parchment_version
+    }
+
+    mods {
+        catalogue {
+            sourceSet sourceSets.main
+        }
     }
 
     runs {
+        configureEach {
+            systemProperty('forge.enabledGameTestNamespaces', mod_id)
+            ideName = "Forge ${it.name.capitalize()} (${project.path})" // Unify the run config names with fabric
+        }
         client {
-            workingDirectory project.file('run')
-            ideaModule "${rootProject.name}.${project.name}.main"
-            taskName 'Client'
-            property 'forge.logging.console.level', 'debug'
-            property 'mixin.env.remapRefMap', 'true'
-            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
-            mods {
-                modClientRun {
-                    source sourceSets.main
-                    source sourceSets.test
-                    source project(":common").sourceSets.main
-                }
-            }
-        }
-
-        server {
-            workingDirectory project.file('run')
-            ideaModule "${rootProject.name}.${project.name}.main"
-            taskName 'Server'
-            property 'forge.logging.console.level', 'debug'
-            property 'mixin.env.remapRefMap', 'true'
-            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
-            mods {
-                modServerRun {
-                    source sourceSets.main
-                    source sourceSets.test
-                    source project(":common").sourceSets.main
-                }
-            }
-        }
-
-        data {
-            workingDirectory project.file('run')
-            ideaModule "${rootProject.name}.${project.name}.main"
-            args '--mod', mod_id, '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
-            taskName 'Data'
-            property 'mixin.env.remapRefMap', 'true'
-            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
-            mods {
-                modDataRun {
-                    source sourceSets.main
-                    source project(":common").sourceSets.main
-                }
-            }
+            client()
         }
     }
 }
 
-sourceSets.main.resources.srcDir 'src/generated/resources'
+sourceSets.main.resources { srcDir 'src/generated/resources' }
 
-configurations {
-    implementation.extendsFrom library
-}
-
-dependencies {
-    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
-    compileOnly project(":common")
-    testCompileOnly project(":common")
-}
-
-tasks.withType(JavaCompile) {
-    source(project(":common").sourceSets.main.allSource)
-}
-
-processResources {
-    from project(":common").sourceSets.main.resources
-    inputs.property "version", project.version
-
-    filesMatching("META-INF/mods.toml") {
-        expand project.properties
-    }
-}
-
-jar.finalizedBy('reobfJar')
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            groupId project.group
-            artifactId project.archivesBaseName
-            version project.version
-
-            artifact jar
-            artifact sourcesJar
-
-            pom.withXml {
-                def depsNode = asNode().appendNode('dependencies')
-                [this.configurations.library].each {
-                    it.allDependencies.each {
-                        def depNode = depsNode.appendNode('dependency')
-                        depNode.appendNode('groupId', it.group)
-                        depNode.appendNode('artifactId', it.name)
-                        depNode.appendNode('version', it.version)
-                    }
-                }
-            }
-        }
-    }
-    repositories {
-        if (System.getenv("CI")) {
-            maven {
-                name = "GitHubPackages"
-                url = "https://maven.pkg.github.com/MrCrayfish/Maven"
-                credentials {
-                    username = project.findProperty("gpr.user") ?: System.getenv("GPR_USER")
-                    password = project.findProperty("gpr.key") ?: System.getenv("GPR_KEY")
-                }
-            }
-        } else {
-            maven {
-                url "file://" + System.getenv("LOCAL_MAVEN")
-            }
-        }
-    }
-}
-
-signing {
-    if (System.getenv("SIGNING_KEY")) {
-        def signingKey = System.getenv("SIGNING_KEY")
-        def signingPassword = System.getenv("SIGNING_PASSPHRASE")
-        useInMemoryPgpKeys(signingKey, signingPassword)
-    }
-    sign publishing.publications.mavenJava
-}
-
-task signJar(type: SignJar, dependsOn: jar) {
+tasks.register("signJar") {
+    dependsOn jar
     onlyIf {
-        hasProperty('keyStore') || System.getenv("KEYSTORE")
+        findProperty('keyStore') || System.getenv("KEYSTORE")
     }
-    keyStore = findProperty('keyStore') ?: System.getenv("KEYSTORE")
-    alias = findProperty('keyStoreAlias') ?: System.getenv("KEYSTORE_ALIAS")
-    storePass = findProperty('keyStorePass') ?: System.getenv("KEYSTORE_PASS")
-    inputFile = outputFile = jar.archiveFile
+    doLast {
+        def unsignedJar = tasks.jar.archiveFile.get().asFile
+        def name = FilenameUtils.removeExtension(unsignedJar.getName())
+        def signedJar  = layout.buildDirectory.file("libs/%s-signed.jar".formatted(name)).get().asFile
+        def signingKeyAlias = findProperty('keyStoreAlias') ?: System.getenv("KEYSTORE_ALIAS")
+        def signingKeystore = findProperty('keyStore') ?: System.getenv("KEYSTORE")
+        def signingPassword = findProperty('keyStorePass') ?: System.getenv("KEYSTORE_PASS")
+        ant.signjar(
+            jar: unsignedJar,
+            signedJar: signedJar,
+            alias: signingKeyAlias,
+            keyStore: signingKeystore,
+            storePass: signingPassword,
+            storetype: 'jks'
+        )
+        println "Signed jar created at: $signedJar"
+    }
 }
 
 jar.finalizedBy 'signJar'
-signJar.mustRunAfter 'reobfJar'
+
+// Disables JUnit on test packages on build
+tasks.configureEach { task ->
+    if (task.name.startsWith("testJunit")) {
+        task.enabled = false
+    }
+}
+
+// Implement mcgradleconventions loader attribute
+def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', String)
+['apiElements', 'runtimeElements', 'sourcesElements', 'javadocElements'].each { variant ->
+    configurations.named("$variant") {
+        attributes {
+            attribute(loaderAttribute, 'forge')
+        }
+    }
+}
+sourceSets.configureEach {
+    [it.compileClasspathConfigurationName, it.runtimeClasspathConfigurationName, it.getTaskName(null, 'jarJar')].each { variant->
+        configurations.named("$variant") {
+            attributes {
+                attribute(loaderAttribute, 'forge')
+            }
+        }
+    }
+}

@@ -1,0 +1,159 @@
+name: Build Mod
+on:
+  push:
+    tags:
+      - 'v*'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: Build
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - name: Set up JDK 25
+        uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+      - name: Validate Gradle Wrapper
+        uses: gradle/actions/wrapper-validation@v6
+      - name: Read mod data from gradle.properties
+        id: mod_data
+        uses: christian-draeger/read-properties@1.1.1
+        with:
+          path: './gradle.properties'
+          properties: 'mod_id mod_version minecraft_version'
+      - name: Validate tag format
+        run: |
+          set -euo pipefail
+          tag="${{ github.ref_name }}"
+          expected_mc_version="${{ steps.mod_data.outputs.minecraft_version }}"
+          expected_mod_version="${{ steps.mod_data.outputs.mod_version }}"
+          mod_version="$(printf '%s\n' "${tag:1}" | cut -d'+' -f1)"
+          mc_version="$(printf '%s\n' "${tag:1}" | cut -d'+' -f2)"
+          if [[ "${tag:0:1}" != "v" ]]; then
+            echo "Tag must start with v"
+            exit 1
+          elif [[ "$mc_version" != "$expected_mc_version" ]]; then
+            echo "The minecraft version in the tag does not match the gradle property"
+            exit 1
+          elif [[ "$mod_version" != "$expected_mod_version" ]]; then
+            echo "The mod version in the tag does not match the gradle property"
+            exit 1
+          fi
+          echo "Tag validation sucessful!"
+      - name: Load Keystore
+        id: load_keystore
+        env:
+          JKS: ${{ secrets.MRCRAYFISH_JKS }}
+        if: ${{ env.JKS != '' }}
+        run: |
+          echo "${{ env.JKS }}" > keystore.jks.tmp
+          base64 -d -i keystore.jks.tmp > keystore.jks
+          rm keystore.jks.tmp
+          KEYSTORE_PATH="$(pwd)/keystore.jks"
+          echo "keystore=$KEYSTORE_PATH" >> "$GITHUB_OUTPUT"
+          echo "Keystore succesfully loaded into $KEYSTORE_PATH"
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+      - name: Build (Common)
+        env:
+          GPR_USER: "MrCrayfish"
+          GPR_KEY: ${{ secrets.GPR_TOKEN }}
+          PACKAGES_REPO: ${{ vars.PACKAGES_REPOSITORY }}
+          TARGET_LOADER: "common"
+        run: ./gradlew :common:build
+      - name: Build (Forge)
+        env:
+          GPR_USER: "MrCrayfish"
+          GPR_KEY: ${{ secrets.GPR_TOKEN }}
+          PACKAGES_REPO: ${{ vars.PACKAGES_REPOSITORY }}
+          KEYSTORE: ${{ steps.load_keystore.outputs.keystore }}
+          KEYSTORE_ALIAS: ${{ secrets.MRCRAYFISH_JKS_ALIAS }}
+          KEYSTORE_PASS: ${{ secrets.MRCRAYFISH_JKS_PASSPHRASE }}
+          TARGET_LOADER: "forge"
+        run: ./gradlew :forge:build
+      - name: Build (Fabric)
+        env:
+          GPR_USER: "MrCrayfish"
+          GPR_KEY: ${{ secrets.GPR_TOKEN }}
+          PACKAGES_REPO: ${{ vars.PACKAGES_REPOSITORY }}
+          KEYSTORE: ${{ steps.load_keystore.outputs.keystore }}
+          KEYSTORE_ALIAS: ${{ secrets.MRCRAYFISH_JKS_ALIAS }}
+          KEYSTORE_PASS: ${{ secrets.MRCRAYFISH_JKS_PASSPHRASE }}
+          TARGET_LOADER: "fabric"
+        run: ./gradlew :fabric:build
+      - name: Construct artifact files
+        id: artifacts
+        run: |
+          echo "forge=forge/build/libs/${{ steps.mod_data.outputs.mod_id }}-forge-${{ steps.mod_data.outputs.mod_version }}+${{ steps.mod_data.outputs.minecraft_version }}-signed.jar" >> "$GITHUB_OUTPUT"
+          echo "fabric=fabric/build/libs/${{ steps.mod_data.outputs.mod_id }}-fabric-${{ steps.mod_data.outputs.mod_version }}+${{ steps.mod_data.outputs.minecraft_version }}-signed.jar" >> "$GITHUB_OUTPUT"
+      - name: Create Changelog Files
+        run: |
+          echo "" > CHANGELOG.txt
+          echo "### Technical Changelog:" >> RELEASE_BODY.md
+          tag_count=$(git tag --merged | wc -l)
+          if [ "$tag_count" -ge 2 ]; then
+            latest_tag=$(git describe --tags --abbrev=0)
+            previous_tag=$(git describe --tags --abbrev=0 --exclude=$latest_tag)
+            git log "$previous_tag..$latest_tag^" --oneline --pretty="- %s (%H)" >> RELEASE_BODY.md
+            git log "$previous_tag..$latest_tag^" --oneline --pretty="%s" >> CHANGELOG.txt
+          else
+            echo "No changes"
+          fi
+          echo "### Download:" >> RELEASE_BODY.md
+          echo "- Official Website: https://mrcrayfish.com/mods/${{ steps.mod_data.outputs.mod_id }}" >> RELEASE_BODY.md
+          echo "- CurseForge: https://curseforge.com/minecraft/mc-mods/catalogue" >> RELEASE_BODY.md
+      - name: Import GPG
+        env:
+          SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
+          SIGNING_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        if: ${{ env.SIGNING_KEY != '' && env.SIGNING_PASSPHRASE != '' }}
+        uses: crazy-max/ghaction-import-gpg@v7.0.0
+        with:
+          gpg_private_key: ${{ env.SIGNING_KEY }}
+          passphrase: ${{ env.SIGNING_PASSPHRASE }}
+      - name: GPG Sign
+        env:
+          SIGNING_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        if: ${{ env.SIGNING_PASSPHRASE != '' }}
+        run: |
+          gpg --batch --yes --passphrase "${{ env.SIGNING_PASSPHRASE }}" --armor --detach-sign ${{ steps.artifacts.outputs.forge }}
+          gpg --batch --yes --passphrase "${{ env.SIGNING_PASSPHRASE }}" --armor --detach-sign ${{ steps.artifacts.outputs.fabric }}
+      - name: Publish to GitHub Packages
+        env:
+          GPR_USER: "MrCrayfish"
+          GPR_KEY: ${{ secrets.GPR_TOKEN }}
+          PACKAGES_REPO: ${{ vars.PACKAGES_REPOSITORY }}
+          SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
+          SIGNING_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: ./gradlew publish
+      - name: Stop Gradle
+        run: ./gradlew --stop
+      - name: Create Release
+        uses: ncipollo/release-action@v1
+        with:
+          name: '${{ steps.mod_data.outputs.mod_version }}+${{ steps.mod_data.outputs.minecraft_version }}'
+          artifacts: "${{ steps.artifacts.outputs.forge }},${{ steps.artifacts.outputs.forge }}.asc,${{ steps.artifacts.outputs.fabric }},${{ steps.artifacts.outputs.fabric }}.asc,CHANGELOG.txt"
+          bodyFile: "RELEASE_BODY.md"
+      - name: Prepare Artifacts
+        run: |
+          mkdir artifacts
+          mv ${{ steps.artifacts.outputs.forge }} artifacts
+          mv ${{ steps.artifacts.outputs.forge }}.asc artifacts
+          mv ${{ steps.artifacts.outputs.fabric }} artifacts
+          mv ${{ steps.artifacts.outputs.fabric }}.asc artifacts
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v7.0.0
+        with:
+          name: '${{ steps.mod_data.outputs.mod_id }}-${{ steps.mod_data.outputs.mod_version }}+${{ steps.mod_data.outputs.minecraft_version }}'
+          path: artifacts
+      - name: Delete tag on fail
+        if: failure()
+        run: |
+          echo "Cleaning up tag..."
+          git push origin :refs/tags/${{ github.ref_name }}
